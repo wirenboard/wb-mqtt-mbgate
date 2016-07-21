@@ -5,11 +5,13 @@ from mosquitto import Mosquitto, topic_matches_sub
 import json
 import signal  # DEBUG
 import sys
+import time,random
 
 client = None
 table = dict()
 
 coil_formats = ["switch", "alarm", "pushbutton"]
+retain_hack_topic = None
 
 class RegDiscr(object):
     def __init__(self, topic, meta_type):
@@ -113,6 +115,11 @@ def process_channel(obj, topic):
 # apply MQTT retained hack to collect all MQTT retained values, then die
 def mqtt_on_message(arg0, arg1, arg2=None):
     msg = arg2 or arg1
+
+    if msg.topic == retain_hack_topic:
+        print json.dumps(process_table(table), indent=True)
+        sys.exit(0)
+
     if msg.retain:
         print >>sys.stderr, msg.topic
 
@@ -133,18 +140,21 @@ def mqtt_on_message(arg0, arg1, arg2=None):
 
 if __name__ == "__main__":
 
-    client = Mosquitto()
+    client_id = str(time.time()) + str(random.randint(0, 100000))
+
+    client = Mosquitto(client_id)
     client.connect("localhost", 1883)
 
     client.on_message = mqtt_on_message
 
     client.subscribe("/devices/+/controls/+/meta/+")
 
-    try:
-        while 1:
-            rc = client.loop()
-            if rc != 0:
-                break
-    except KeyboardInterrupt:
-        print >>sys.stderr, "Caught Ctrl-C, prepare table"
-        print json.dumps(process_table(table), indent=True)
+    # apply retained-hack to be sure that all data is received
+    retain_hack_topic = "/tmp/%s/retain_hack" % (client_id)
+    client.subscribe(retain_hack_topic)
+    client.publish(retain_hack_topic, '1')
+
+    while 1:
+        rc = client.loop()
+        if rc != 0:
+            break
