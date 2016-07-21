@@ -42,10 +42,10 @@ class RegSpace:
     def append(self, value):
         value.address = self.address % 65536
         value.unitId = int(self.address / 65536) + 1
-        if isinstance(value, RegDiscr):
-            self.address += 1
+        if isinstance(value, Register) and value.size > 0:
+            self.address += int(value.size) / 2
         else:
-            self.address += int(value.size)
+            self.address += 1
         self.values.append(value)
 
     def getValues(self):
