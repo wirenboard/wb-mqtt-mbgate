@@ -32,7 +32,9 @@ def mqtt2modbus(value, config, offset):
     ret = None
     format = config["format"]
     size = config["size"]
-    scale = config["scale"]
+
+    if format != "varchar":
+        scale = config["scale"]
 
     str_format = ">"  # big endian first
 
@@ -70,7 +72,14 @@ def mqtt2modbus(value, config, offset):
         else:
             raise ConvertException("wrong float size: %d" % (size))
     elif format == "varchar":
-        str_format += str(int((size + 1) / 2)) + "s"
+        # each symbol in string stored in 1 register
+        old_value = str(value)
+        value = ""
+
+        for c in old_value:
+            value += pack("xc", c)
+
+        str_format += str(int(size * 2)) + "s"
 
     ret = pack(str_format, value)
 
@@ -91,7 +100,6 @@ def mqtt2modbus(value, config, offset):
     # required map from addresses to registers
     # or not, I don't really know by now
     return dict(zip(range(offset, offset + len(values_list)), values_list))
-
 
 
 def modbus2mqtt(value, config):
