@@ -1,7 +1,8 @@
 {
   "$schema": "http://json-schema.org/draft-04/schema#",
   "type": "object",
-  "title": "MQTT to Modbus-TCP gate configuration",
+  "title": "MQTT to Modbus-TCP gateway configuration",
+  "description": "Configure topics to registers mapping and daemon configuration",
 
   "configFile": {
     "path": "/etc/wb-mqtt-mbgate.conf",
