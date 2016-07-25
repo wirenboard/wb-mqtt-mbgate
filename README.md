@@ -1,5 +1,5 @@
-Modbus TCP <-> MQTT gate for Wirenboard
-=======================================
+Modbus TCP <-> MQTT gateway for Wirenboard
+==========================================
 
 Назначение
 ----------

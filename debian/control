@@ -1,0 +1,12 @@
+Source: wb-mqtt-mbgate
+Maintainer: Nikita Maslov <n.maslov@contactless.ru>
+Section: misc
+Priority: optional
+Standards-Version: 3.9.2
+Build-Depends: debhelper (>= 9), pkg-config, g++, libjsoncpp-dev, libmosquittopp-dev, libmosquitto-dev, libwbmqtt-dev (>= 1.3.2), libmodbus-dev (>= 3.0.3)
+
+Package: wb-mqtt-mbgate
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}, libjsoncpp0, libmosquittopp1, libmosquitto1, bsdutils, libwbmqtt (>= 1.3.2)
+Breaks:
+Description: Wiren Board MQTT to Modbus TCP gateway
