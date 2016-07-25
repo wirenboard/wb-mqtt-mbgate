@@ -6,15 +6,18 @@ from mosquitto import Mosquitto
 from threading import RLock
 import json
 import argparse
+import signal
 from Queue import Queue
+import thread
 
-from pymodbus.server.sync import StartTcpServer
+from pymodbus.server.sync import ModbusTcpServer, StartTcpServer
 from pymodbus.datastore import ModbusSparseDataBlock
 from pymodbus.datastore import ModbusSlaveContext, ModbusServerContext
 
 from type_convert import mqtt2modbus, modbus2mqtt
 
 from pprint import pprint
+
 
 def dev2topic(t):
     parts = t.split("/")
@@ -326,18 +329,34 @@ if __name__ == "__main__":
 
     modbus_context = ModbusContextBuilder(args.config).buildContext()
 
+    # Run MQTT client in another thread
     mqtt_client = MQTTClient()
     mqtt_client.connect(args.server, args.port)
     mqtt_client.loop_start()
 
+    # Run Modbus in current thread
+    modbus_server = ModbusTcpServer(context=modbus_context)
+
+    # signal handlers
+    def sighndlr(signum, msg):
+        def server_killer():
+            print "Shutting down..."
+            modbus_server.shutdown()
+        thread.start_new_thread(server_killer, ())
+
+
+    signal.signal(signal.SIGINT, sighndlr)
+    signal.signal(signal.SIGTERM, sighndlr)
 
     try:
-        StartTcpServer(context=modbus_context)
-        while 1:
-            pass
+        # StartTcpServer(context=modbus_context)
+        modbus_server.serve_forever()
     except KeyboardInterrupt:
+        pass
+    finally:
         print "Stopping..."
         mqtt_client.loop_stop()
+        modbus_server.shutdown()
 
         print "###############################################"
         print "Benchmark"
