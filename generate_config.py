@@ -3,9 +3,9 @@
 from mosquitto import Mosquitto, topic_matches_sub
 
 import json
-import signal  # DEBUG
 import sys
-import time,random
+import time
+import random
 
 client = None
 table = dict()
@@ -13,13 +13,14 @@ table = dict()
 coil_formats = ["switch", "alarm", "pushbutton"]
 retain_hack_topic = None
 
+
 class RegDiscr(object):
     def __init__(self, topic, meta_type):
         self.topic = topic
         self.address = -1
         self.unitId = -1
         self.meta_type = meta_type
-        self.enable = False
+        self.enabled = False
 
 
 class Register(RegDiscr):
@@ -55,7 +56,6 @@ class RegSpace:
             ret.append(val.__dict__)
 
         return ret
-
 
 
 regs_discr = RegSpace("discretes")

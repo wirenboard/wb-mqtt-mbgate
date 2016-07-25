@@ -16,7 +16,7 @@
         "_format": "grid",
         "properties": {
           
-          "enable": {
+          "enabled": {
             "type": "boolean",
             "title": "Enabled",
             "propertyOrder": 1,
