@@ -28,7 +28,7 @@ def bcd2int(bcd_value):
         bcd_value >>= 4
     return result
 
-def mqtt2modbus(value, config, offset):
+def mqtt2modbus(value, config, offset = None):
     ret = None
     format = config["format"]
     size = config["size"]
@@ -97,12 +97,22 @@ def mqtt2modbus(value, config, offset):
         for val in old_values:
             values_list.append(val[::-1])
 
+    # convert values to integers
+    for i in range(0, len(values_list)):
+        values_list[i] = unpack(">H", values_list[i])[0]
+
     # required map from addresses to registers
     # or not, I don't really know by now
+    if offset is None:
+        if "address" in config:
+            offset = config["address"]
+        else:
+            raise ConvertException("No offset is defined neither in config nor in args")
+
     return dict(zip(range(offset, offset + len(values_list)), values_list))
 
 
-def modbus2mqtt(value, config):
+def modbus2mqtt(values, config):
     ret = None
     format = config["format"]
     size = config["size"]
@@ -110,56 +120,58 @@ def modbus2mqtt(value, config):
     if format != "varchar":
         scale = config["scale"]
 
-    str_format = ">"  # big endian first
+    byteswap = False
+    if "byteswap" in config and config["byteswap"]:
+        byteswap = True
 
+    wordswap = False
+    if "wordswap" in config and config["wordswap"]:
+        wordswap = True
+
+    # convert data from raw registers to struct
+    raw_value = ""
+
+    for v in values[::(-1 if wordswap else 1)]:
+        fmt = "<H" if byteswap else ">H"
+        raw_value += pack(fmt, v)
+
+    # unpack struct
+    fmt = ">"
     if format in ["signed", "unsigned", "bcd"]:
-        if format == "bcd":
-            value = int2bcd(int(float(value) * scale))
-        else:
-            value = int(float(value) * scale)
-
-        if size in [1, 2]:  # doesn't matter for Modbus
+        if size in [1,2]:
             if format == "signed":
-                str_format += "h"
+                fmt += "h"
             else:
-                str_format += "H"
-        elif size in [3, 4]:
+                fmt += "H"
+        elif size in [3,4]:
             if format == "signed":
-                str_format += "i"
+                fmt += "i"
             else:
-                str_format += "I"
-        elif size in range(5, 8):
+                fmt += "I"
+        elif size in [5, 6, 7, 8]:
             if format == "signed":
-                str_format += "q"
+                fmt += "q"
             else:
-                str_format += "Q"
+                fmt += "Q"
         else:
             raise ConvertException("integer too large: %d" % (size))
     elif format == "float":
-        value = float(value) * scale
         if size == 4:
-            str_format += "f"
+            fmt += "f"
         elif size == 8:
-            str_format += "d"
+            fmt += "d"
         else:
             raise ConvertException("wrong float size: %d" % (size))
     elif format == "varchar":
-        str_format += str(int(size)) + "s"
+        raw_value = raw_value[1::2]  # remove padding bytes
+        fmt += str(size) + "s"
 
-    ret = pack(str_format, value)
+    ret = unpack(fmt, raw_value)[0]
 
-    # deal with endiness
-    values_list = list()
+    if format == "bcd":
+        ret = bcd2int(ret)
 
-    if "wordswap" in config and config["wordswap"]:
-        values_list = [ret[i-2:i] for i in range(len(ret), 0, -2)]
-    else:
-        values_list = [ret[i:i+2] for i in range(0, len(ret), 2)]
+    if format != "varchar":
+        ret /= scale
 
-    if "byteswap" in config and config["byteswap"]:
-        old_values = list(values_list)
-        values_list = []
-        for val in old_values:
-            values_list.append(val[::-1])
-
-    return values_list
+    return ret
