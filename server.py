@@ -14,6 +14,7 @@ from pymodbus.datastore import ModbusSlaveContext, ModbusServerContext
 
 from type_convert import mqtt2modbus, modbus2mqtt
 
+from pprint import pprint
 
 def dev2topic(t):
     parts = t.split("/")
@@ -25,13 +26,28 @@ def topic2dev(t):
     return str(parts[2] + "/" + parts[4])
 
 
-def benchmark(func_):
+def benchmark(func_, get=False):
 
-    def generator(*args, **kargs):
-        print "I am " + func_.__name__
-        return func_(*args, **kargs)
+    from time import clock
 
-    return generator
+    if func_.__name__ not in benchmark.func_dt:
+        benchmark.func_dt[func_.__name__] = {"ncalls": 0, "dt": 0}
+
+    def decorator(*args, **kargs):
+        benchmark.func_dt["idle"] += clock() - benchmark.last_idle
+
+        dt = clock()
+        ret = func_(*args, **kargs)
+        benchmark.func_dt[func_.__name__]["dt"] += clock() - dt
+        benchmark.func_dt[func_.__name__]["ncalls"] += 1
+
+        benchmark.last_idle = clock()
+        return ret
+
+    return decorator
+
+benchmark.func_dt = {"idle": 0}
+benchmark.last_idle = 0
 
 
 def singleton(class_):
@@ -94,16 +110,16 @@ class MQTTClient(Mosquitto):
             raise MQTTClientException("can't add this as datablock")
 
     def QueueMessage(self, topic, msg, qos=0, retain=True):
-        if self.DataSending:
+        if self.DataProcessing:
             self.DataQueue.put((topic, msg, qos, retain))
         else:
-            self.DataSending = True
+            self.DataProcessing = True
             self.publish(topic, msg, qos, retain)
 
     # MQTT callbacks
     def ProcessOnMessage(self, userdata, msg):
         # find data block with this topic
-        print "Received message from " + msg.topic
+        # print "Received message from " + msg.topic
 
         for datablock in self.DataBlocks:
             if datablock.CheckTopic(topic2dev(msg.topic)):
@@ -153,7 +169,6 @@ class MQTTDataBlock(ModbusSparseDataBlock):
     @benchmark
     def validate(self, address, count=1):
         address -= 1
-        print "[MB] Validating values %d@%d" % (count, address)
         while count > 0:
             if address not in self.RegAddrMap:
                 return False
@@ -161,9 +176,6 @@ class MQTTDataBlock(ModbusSparseDataBlock):
             item_len = self.RegAddrMap[address].regSize()
             count -= item_len
             address += item_len
-
-        if count == 0:
-            print "Validated"
 
         return count == 0
 
@@ -178,14 +190,12 @@ class MQTTDataBlock(ModbusSparseDataBlock):
                 conf = self.RegAddrMap[address]
 
                 with self.DataLock:
-                    print conf
                     value_container += conf["mb_value"]
 
                 item_len = conf.regSize()
                 count -= item_len
                 address += item_len
 
-            print value_container
             return value_container
 
         return None
@@ -215,8 +225,6 @@ class MQTTDataBlock(ModbusSparseDataBlock):
         else:  # Modbus register case
             address -= 1  # address space should start from 0
             count = len(values)
-            print "Got values for address " + str(address)
-            print values
 
             offset = 0
 
@@ -330,3 +338,7 @@ if __name__ == "__main__":
     except KeyboardInterrupt:
         print "Stopping..."
         mqtt_client.loop_stop()
+
+        print "###############################################"
+        print "Benchmark"
+        pprint(benchmark.func_dt)
