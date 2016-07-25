@@ -28,7 +28,26 @@ def bcd2int(bcd_value):
         bcd_value >>= 4
     return result
 
-def mqtt2modbus(value, config, offset = None):
+def mqtt2modbus(value, config):
+    if "format" not in config:  # discrete data
+        if int(value) == 0:
+            return [False]
+        else:
+            return [True]
+    else:
+        return _mqtt2modbus_reg(value, config)
+
+def modbus2mqtt(value, config):
+    if "format" not in config:
+        if value[0] == False:
+            return "0"
+        else:
+            return "1"
+    else:
+        return _modbus2mqtt_reg(value, config)
+
+
+def _mqtt2modbus_reg(value, config):
     ret = None
     format = config["format"]
     size = config["size"]
@@ -101,18 +120,9 @@ def mqtt2modbus(value, config, offset = None):
     for i in range(0, len(values_list)):
         values_list[i] = unpack(">H", values_list[i])[0]
 
-    # required map from addresses to registers
-    # or not, I don't really know by now
-    if offset is None:
-        if "address" in config:
-            offset = config["address"]
-        else:
-            raise ConvertException("No offset is defined neither in config nor in args")
+    return values_list
 
-    return dict(zip(range(offset, offset + len(values_list)), values_list))
-
-
-def modbus2mqtt(values, config):
+def _modbus2mqtt_reg(values, config):
     ret = None
     format = config["format"]
     size = config["size"]
