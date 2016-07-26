@@ -15,6 +15,8 @@ table = dict()
 coil_formats = ["switch", "alarm", "pushbutton"]
 retain_hack_topic = None
 
+config_file = None
+
 
 class RegDiscr(object):
     def __init__(self, topic, meta_type):
@@ -119,7 +121,7 @@ def mqtt_on_message(arg0, arg1, arg2=None):
     msg = arg2 or arg1
 
     if msg.topic == retain_hack_topic:
-        print json.dumps(process_table(table), indent=True)
+        print >>config_file, json.dumps(process_table(table), indent=True)
         sys.exit(0)
 
     if msg.retain:
@@ -127,29 +129,41 @@ def mqtt_on_message(arg0, arg1, arg2=None):
 
         if not topic_matches_sub("/devices/+/controls/name", msg.topic):
             if get_dev_name(msg.topic) not in table:
-                table[get_dev_name(msg.topic)] = {}
+                table[get_dev_name(msg.topic)] = {"new": True}
 
         dname = get_dev_name(msg.topic)
-
-        if topic_matches_sub("/devices/+/controls/+/meta/type", msg.topic):
-            table[dname]["meta_type"] = msg.payload
-        elif topic_matches_sub("/devices/+/controls/+", msg.topic):
-            table[dname]["value"] = msg.payload
-        elif topic_matches_sub("/devices/+/controls/+/meta/readonly", msg.topic):
-            if int(msg.payload) != 0:
-                table[dname]["readonly"] = True
+        if not table[dname]["new"]:
+            if topic_matches_sub("/devices/+/controls/+/meta/type", msg.topic):
+                table[dname]["meta_type"] = msg.payload
+            elif topic_matches_sub("/devices/+/controls/+", msg.topic):
+                table[dname]["value"] = msg.payload
+            elif topic_matches_sub("/devices/+/controls/+/meta/readonly", msg.topic):
+                if int(msg.payload) != 0:
+                    table[dname]["readonly"] = True
 
 
 def main(args=None):
 
+    global table, config_file
+
     if args is None:
         parser = argparse.ArgumentParser(description="Config generator/updater for wb-mqtt-mbgate")
-        parser.add_argument("-c", "--config", help="config file to create/update")
+        parser.add_argument("-c", "--config", help="config file to create/update",
+                            type=str, default="")
         parser.add_argument("--create", help="force creating new config file",
                             action="store_true")
 
         args = parser.parse_args()
 
+    if args.config == "":
+        config_file = sys.stdout
+    else:
+        if not args.create:
+            try:
+                table = json.loads(open(args.config, "r").read())
+            except:
+                pass
+        config_file = open(args.config, "w")
 
     client_id = str(time.time()) + str(random.randint(0, 100000))
 

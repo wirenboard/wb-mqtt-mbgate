@@ -319,7 +319,7 @@ class ModbusContextBuilder:
 
 def main(args=None):
 
-    if args is not None:
+    if args is None:
         parser = argparse.ArgumentParser(description="Modbus TCP to MQTT gateway")
         parser.add_argument("-c", "--config", help="config file name", type=str,
                     default="/etc/wb-mqtt-mbgate.conf")
@@ -331,7 +331,7 @@ def main(args=None):
 
         args = parser.parse_args()
 
-    # configure logging
+    # TODO: configure logging
 
     modbus_context = ModbusContextBuilder(args.config).buildContext()
 
