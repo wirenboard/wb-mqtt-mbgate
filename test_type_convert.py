@@ -1,9 +1,8 @@
 #!/usr/bin/env python
 
 import unittest
-from struct import pack
 
-import type_convert
+from wb_mqtt_mbgate import type_convert
 
 
 class TypeConvert_MQTT2MB_Test(unittest.TestCase):

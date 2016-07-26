@@ -10,13 +10,14 @@ import signal
 from Queue import Queue
 import thread
 
-from pymodbus.server.sync import ModbusTcpServer, StartTcpServer
+from pymodbus.server.sync import ModbusTcpServer
 from pymodbus.datastore import ModbusSparseDataBlock
 from pymodbus.datastore import ModbusSlaveContext, ModbusServerContext
 
 from type_convert import mqtt2modbus, modbus2mqtt
 
 from pprint import pprint
+import logging
 
 
 def dev2topic(t):
@@ -316,16 +317,21 @@ class ModbusContextBuilder:
         return context
 
 
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Modbus TCP to MQTT gateway")
-    parser.add_argument("-c", "--config", help="config file name", type=str,
-                default="/etc/wb-mqtt-mbgate.conf")
-    parser.add_argument("-s", "--server", help="MQTT server hostname", type=str,
-                default="localhost")
-    parser.add_argument("-p", "--port", help="MQTT server port", type=int,
-                default=1883)
+def main(args=None):
 
-    args = parser.parse_args()
+    if args is not None:
+        parser = argparse.ArgumentParser(description="Modbus TCP to MQTT gateway")
+        parser.add_argument("-c", "--config", help="config file name", type=str,
+                    default="/etc/wb-mqtt-mbgate.conf")
+        parser.add_argument("-s", "--server", help="MQTT server hostname", type=str,
+                    default="localhost")
+        parser.add_argument("-p", "--port", help="MQTT server port", type=int,
+                    default=1883)
+        parser.add_argument("-v", help="Verbose output", action="store_true")
+
+        args = parser.parse_args()
+
+    # configure logging
 
     modbus_context = ModbusContextBuilder(args.config).buildContext()
 
@@ -361,3 +367,7 @@ if __name__ == "__main__":
         print "###############################################"
         print "Benchmark"
         pprint(benchmark.func_dt)
+
+
+if __name__ == "__main__":
+    main()

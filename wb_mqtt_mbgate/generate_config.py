@@ -6,6 +6,8 @@ import json
 import sys
 import time
 import random
+import argparse
+
 
 client = None
 table = dict()
@@ -138,7 +140,16 @@ def mqtt_on_message(arg0, arg1, arg2=None):
                 table[dname]["readonly"] = True
 
 
-if __name__ == "__main__":
+def main(args=None):
+
+    if args is None:
+        parser = argparse.ArgumentParser(description="Config generator/updater for wb-mqtt-mbgate")
+        parser.add_argument("-c", "--config", help="config file to create/update")
+        parser.add_argument("--create", help="force creating new config file",
+                            action="store_true")
+
+        args = parser.parse_args()
+
 
     client_id = str(time.time()) + str(random.randint(0, 100000))
 
@@ -158,3 +169,6 @@ if __name__ == "__main__":
         rc = client.loop()
         if rc != 0:
             break
+
+if __name__ == "__main__":
+    main()
