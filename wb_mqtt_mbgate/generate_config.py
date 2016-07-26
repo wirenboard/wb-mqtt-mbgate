@@ -11,6 +11,7 @@ import argparse
 
 client = None
 table = dict()
+old_config = None
 
 coil_formats = ["switch", "alarm", "pushbutton"]
 retain_hack_topic = None
@@ -74,9 +75,19 @@ def get_dev_name(topic):
 
 
 def process_table(table):
+    global old_config
+
     result = dict()
+    # TODO: update feature - don't touch existing registers
+
     result["address"] = "127.0.0.1"
     result["port"] = 502
+    result["debug"] = False
+
+    if old_config is not None:
+        for f in ["address", "port", "debug"]:
+            if f in old_config:
+                result[f] = old_config[f]
 
     for topic in table.keys():
         process_channel(table[topic], topic)
@@ -129,22 +140,21 @@ def mqtt_on_message(arg0, arg1, arg2=None):
 
         if not topic_matches_sub("/devices/+/controls/name", msg.topic):
             if get_dev_name(msg.topic) not in table:
-                table[get_dev_name(msg.topic)] = {"new": True}
+                table[get_dev_name(msg.topic)] = {}
 
         dname = get_dev_name(msg.topic)
-        if not table[dname]["new"]:
-            if topic_matches_sub("/devices/+/controls/+/meta/type", msg.topic):
-                table[dname]["meta_type"] = msg.payload
-            elif topic_matches_sub("/devices/+/controls/+", msg.topic):
-                table[dname]["value"] = msg.payload
-            elif topic_matches_sub("/devices/+/controls/+/meta/readonly", msg.topic):
-                if int(msg.payload) != 0:
-                    table[dname]["readonly"] = True
+        if topic_matches_sub("/devices/+/controls/+/meta/type", msg.topic):
+            table[dname]["meta_type"] = msg.payload
+        elif topic_matches_sub("/devices/+/controls/+", msg.topic):
+            table[dname]["value"] = msg.payload
+        elif topic_matches_sub("/devices/+/controls/+/meta/readonly", msg.topic):
+            if int(msg.payload) != 0:
+                table[dname]["readonly"] = True
 
 
 def main(args=None):
 
-    global table, config_file
+    global old_config, config_file
 
     if args is None:
         parser = argparse.ArgumentParser(description="Config generator/updater for wb-mqtt-mbgate")
@@ -160,7 +170,7 @@ def main(args=None):
     else:
         if not args.create:
             try:
-                table = json.loads(open(args.config, "r").read())
+                old_config = json.loads(open(args.config, "r").read())
             except:
                 pass
         config_file = open(args.config, "w")

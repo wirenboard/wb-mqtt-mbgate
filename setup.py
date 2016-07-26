@@ -10,7 +10,7 @@ setup(
     packages = find_packages(),
     entry_points = {
         "console_scripts":
-            ["wb-mqtt-mbgate=wb_mqtt_mbgate.server:main"]
+            ["wb-mqtt-mbgate=wb_mqtt_mbgate.__main__:main"]
     },
     test_suite = "test_type_convert"
     )

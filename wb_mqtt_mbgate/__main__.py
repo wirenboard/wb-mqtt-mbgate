@@ -6,8 +6,12 @@ import argparse
 def main():
     parser = argparse.ArgumentParser("description = Modbus TCP to WirenBoard MQTT gateway")
 
-    parser.add_argument("-g", "--generate-config", help="generate/update config file and exit",
+    gengroup = parser.add_argument_group("Config file generator")
+    gengroup.add_argument("-g", "--generate-config", help="generate/update config file and exit",
             action="store_true")
+    gengroup.add_argument("--create", help="force generating new config file",
+            action="store_true")
+
     parser.add_argument("-c", "--config", help="config file name", type=str,
             default="/etc/wb-mqtt-mbgate.conf")
     parser.add_argument("-s", "--server", help="MQTT server hostname", type=str,
