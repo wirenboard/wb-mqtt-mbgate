@@ -52,8 +52,8 @@
 
           "address": {
             "type": "integer",
-            "title": "Offset",
-            "description": "different spaces for different types",
+            "title": "Start address",
+            "description": "in words, different spaces for different types",
             "minimum": 0,
             "maximum": 65535,
             "propertyOrder": 30
@@ -92,7 +92,7 @@
           "max": {
             "type": "integer",
             "title": "Maximum value",
-            "description": "for integer formats, > 0",
+            "description": "for range metatype, > 0",
             "propertyOrder": 60
           },
 
