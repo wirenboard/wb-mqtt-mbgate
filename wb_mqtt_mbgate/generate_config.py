@@ -186,10 +186,16 @@ def mqtt_on_message(arg0, arg1, arg2=None):
         dname = get_dev_name(msg.topic)
         if topic_matches_sub("/devices/+/controls/+/meta/type", msg.topic):
             table[dname]["meta_type"] = msg.payload
+            # FIXME: crazy read-onlys
+            if "readonly" not in table[dname]:
+                if msg.payload in ["switch", "pushbutton", "range", "rgb"]:
+                    table[dname]["readonly"] = False
+                else:
+                    table[dname]["readonly"] = True
         elif topic_matches_sub("/devices/+/controls/+", msg.topic):
             table[dname]["value"] = msg.payload
         elif topic_matches_sub("/devices/+/controls/+/meta/readonly", msg.topic):
-            if int(msg.payload) != 0:
+            if int(msg.payload) == 1:
                 table[dname]["readonly"] = True
 
 
