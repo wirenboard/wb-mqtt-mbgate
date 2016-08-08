@@ -12,7 +12,7 @@ TEST_OBJS := $(patsubst %, $(TEST_DIR)/%, $(TEST_OBJS))
 CXX=g++
 LD=g++
 LDFLAGS=-lmodbus
-CXXFLAGS=-std=c++11 -Wall -Werror
+CXXFLAGS=-std=c++11 -Wall -Werror -ggdb
 
 all: $(TARGET)
 
