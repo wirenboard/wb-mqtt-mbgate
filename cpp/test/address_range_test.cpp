@@ -1,8 +1,10 @@
 #include <gtest/gtest.h>
 
-#include <address_range.h>
+#include "address_range.h"
+#include <memory>
 
 typedef TAddressRange<int> TestAddressRange;
+typedef TAddressRange<std::shared_ptr<int>> TestPtrAddressRange;
 
 class TAddressRangeTest : public ::testing::Test
 {
@@ -122,6 +124,15 @@ TEST_F(TAddressRangeTest, IntersectionTest)
 
     test_range.clear();
     result_range.clear();
+}
+
+TEST_F(TAddressRangeTest, EmptyIntersectionTest)
+{
+    TestPtrAddressRange r1(0, 10), r2(5, 10), result(0, 15);
+
+    r1 += r2;
+
+    EXPECT_EQ(r1, result);
 }
 
 TEST_F(TAddressRangeTest, OperatorTest)

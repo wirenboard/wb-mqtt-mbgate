@@ -27,7 +27,8 @@ public:
 template<typename T> class TAddressRange
 {
 public:
-    TAddressRange(int start, unsigned count, T obs)
+
+    TAddressRange(int start, unsigned count, T obs = T())
     {
         insert(start, count, obs);
     }
@@ -41,7 +42,7 @@ public:
      * \param count Number of units in segment
      * \param obs User param for this segment
      */
-    void insert(int start, unsigned count, T obs)
+    void insert(int start, unsigned count, T obs = T())
     {
         int end = start + count;
 
@@ -169,6 +170,12 @@ public:
     {
         m.clear();
     }
+
+    /*! Iterator */
+    typename std::map<int, std::pair<int, T>>::const_iterator cbegin() const { return m.cbegin(); }
+    typename std::map<int, std::pair<int, T>>::const_iterator cend() const { return m.cend(); }
+    
+    typedef typename std::map<int, std::pair<int, T>>::const_iterator const_iterator;
 
     template<typename U>
     friend std::ostream& operator<<(std::ostream &str, const TAddressRange<U>& range);

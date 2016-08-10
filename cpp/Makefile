@@ -1,10 +1,12 @@
 TARGET = wb-mqtt-mbgate
-OBJS = main.o modbus_wrapper.o
+OBJS = main.o
+
+COMMON_OBJS = i_modbus_server_observer.o i_modbus_backend.o modbus_wrapper.o
 
 TEST_DIR = test
-TEST_OBJS = main.o address_range_test.o
+TEST_OBJS = main.o address_range_test.o modbus_server_test.o mock_modbus_observer.o
 TEST_TARGET = test-app
-TEST_LDFLAGS = -lgtest -lpthread
+TEST_LDFLAGS = -lgtest -lpthread -lgmock
 TEST_CXXFLAGS = -I.
 
 TEST_OBJS := $(patsubst %, $(TEST_DIR)/%, $(TEST_OBJS))
@@ -16,7 +18,7 @@ CXXFLAGS=-std=c++11 -Wall -Werror -ggdb
 
 all: $(TARGET)
 
-$(TARGET): $(OBJS)
+$(TARGET): $(OBJS) $(COMMON_OBJS)
 	$(LD) -o $@ $^ $(LDFLAGS)
 
 %.o: %.cpp
@@ -32,8 +34,8 @@ test: $(TEST_DIR)/$(TEST_TARGET)
 			exit 1; \
 		fi
 
-$(TEST_DIR)/$(TEST_TARGET): $(TARGET) $(TEST_OBJS)
-	$(CXX) -o $@ $(TEST_OBJS) $(LDFLAGS) $(TEST_LDFLAGS)
+$(TEST_DIR)/$(TEST_TARGET): $(TEST_OBJS) $(COMMON_OBJS)
+	$(CXX) -o $@ $^ $(LDFLAGS) $(TEST_LDFLAGS)
 
 clean:
 	rm -rf *.o $(TARGET) $(TEST_DIR)/*.o $(TEST_DIR)/$(TEST_TARGET)
