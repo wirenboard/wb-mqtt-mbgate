@@ -1,10 +1,10 @@
 TARGET = wb-mqtt-mbgate
 OBJS = main.o
 
-COMMON_OBJS = i_modbus_server_observer.o i_modbus_backend.o modbus_wrapper.o
+COMMON_OBJS = i_modbus_server_observer.o i_modbus_backend.o modbus_wrapper.o mqtt_converters.o
 
 TEST_DIR = test
-TEST_OBJS = main.o address_range_test.o modbus_server_test.o mock_modbus_observer.o
+TEST_OBJS = main.o address_range_test.o modbus_server_test.o mock_modbus_observer.o converters_test.o
 TEST_TARGET = test-app
 TEST_LDFLAGS = -lgtest -lpthread -lgmock
 TEST_CXXFLAGS = -I.
