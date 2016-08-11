@@ -79,9 +79,9 @@ TEST_F(MQTTConvertersTest, TextTest)
 {
     string val = "Hello12345";
     string result;
-
+    
     TMQTTTextConverter t(10), tb(10, true), tw(10, false, true), tbw(10, true, true);
-
+    
     uint16_t buffer[10] = { 0 };
     
     t.Pack(val, buffer, 10);
@@ -89,7 +89,7 @@ TEST_F(MQTTConvertersTest, TextTest)
     result = t.Unpack(buffer, 10);
     EXPECT_EQ(result, val);
     memset(buffer, 0, 20);
-
+    
     tb.Pack(val, buffer, 10);
     EXPECT_THAT(buffer, ElementsAre('H' << 8, 'e' << 8, 'l' << 8, 'l' << 8, 'o' << 8, '1' << 8, '2' << 8, '3' << 8, '4' << 8, '5' << 8));
     result = tb.Unpack(buffer, 10);
@@ -101,10 +101,32 @@ TEST_F(MQTTConvertersTest, TextTest)
     result = tw.Unpack(buffer, 10);
     EXPECT_EQ(result, val);
     memset(buffer, 0, 20);
-
+    
     tbw.Pack(val, buffer, 10);
     EXPECT_THAT(buffer, ElementsAre('5' << 8, '4' << 8, '3' << 8, '2' << 8, '1' << 8, 'o' << 8, 'l' << 8, 'l' << 8, 'e' << 8, 'H' << 8));
     result = tbw.Unpack(buffer, 10);
     EXPECT_EQ(result, val);
     memset(buffer, 0, 20);
+}
+
+TEST_F(MQTTConvertersTest, DiscreteTest)
+{
+    string val_true = "1";
+    string val_false = "0";
+    
+    string result;
+
+    uint8_t buffer;
+    
+    TMQTTDiscrConverter conv;
+    
+    conv.Pack(val_true, &buffer, 1);
+    EXPECT_EQ(buffer, 0xFF);
+    result = conv.Unpack(&buffer, 1);
+    EXPECT_EQ(result, val_true);
+
+    conv.Pack(val_false, &buffer, 1);
+    EXPECT_EQ(buffer, 0x00);
+    result = conv.Unpack(&buffer, 1);
+    EXPECT_EQ(result, val_false);
 }
