@@ -47,13 +47,15 @@ public:
 /*! Integer types data converter */
 class TMQTTIntConverter : public IMQTTConverter
 {
-protected:
+public:
     /*! Integer data representation */
     enum IntegerType {
         SIGNED = 1, /*!< Generic 2s-complement signed integer */
         UNSIGNED,   /*!< Generic unsigned integer */
         BCD         /*!< Binary-coded decimal */
-    } Type = SIGNED;
+    };
+protected:
+    IntegerType Type = SIGNED;
 
     /*! Swap bytes in each register */
     bool ByteSwap = false;
