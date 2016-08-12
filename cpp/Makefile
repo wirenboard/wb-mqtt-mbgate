@@ -1,7 +1,7 @@
 TARGET = wb-mqtt-mbgate
 OBJS = main.o
 
-COMMON_OBJS = i_modbus_server_observer.o i_modbus_backend.o modbus_wrapper.o mqtt_converters.o
+COMMON_OBJS = i_modbus_server_observer.o i_modbus_backend.o modbus_wrapper.o mqtt_converters.o observer.o
 
 TEST_DIR = test
 TEST_OBJS = main.o address_range_test.o modbus_server_test.o mock_modbus_observer.o converters_test.o
@@ -13,7 +13,7 @@ TEST_OBJS := $(patsubst %, $(TEST_DIR)/%, $(TEST_OBJS))
 
 CXX=g++
 LD=g++
-LDFLAGS=-lmodbus
+LDFLAGS=-lmodbus -lmosquittopp -lwbmqtt -pthread -pg
 CXXFLAGS=-std=c++11 -Wall -Werror -ggdb
 
 all: $(TARGET)

@@ -10,6 +10,20 @@
 #include <modbus/modbus.h>
 #include <cstdlib>
 #include <cerrno>
+#include <error.h>
+#include <queue>
+#include <iostream>
+#include <string>
+
+#include <unistd.h>
+#include <sys/select.h>
+#include <sys/socket.h>
+#include <arpa/inet.h>
+#include <cstring>
+
+// Maximum number of connections
+#define NB_CONNECTIONS 2 
+
 
 /*! Modbus TCP backend */
 class TModbusTCPBackend : public IModbusBackend
@@ -47,9 +61,18 @@ public:
 
     virtual void Listen()
     {
-        _s = modbus_tcp_pi_listen(_context, 1);
-        if (modbus_tcp_pi_accept(_context, &_s))
+        if (server_socket >= 0)
+            return; // TODO: error handling
+
+        server_socket = modbus_tcp_pi_listen(_context, NB_CONNECTIONS);
+        if (server_socket < 1)
             _error = errno;
+
+        fd_max = server_socket;
+
+        // configure select() stuff
+        FD_ZERO(&refset);
+        FD_SET(server_socket, &refset);
     }
 
     virtual void AllocateCache(size_t di, size_t co, size_t ir, size_t hr)
@@ -84,23 +107,89 @@ public:
         return slaveId;
     }
 
-    virtual TModbusQuery ReceiveQuery()
-    {   
-        int size = 0;
-        do {
-            size = modbus_receive(_context, queryBuffer);
-        } while (size == 0);
+    virtual int WaitForMessages(int timeout = -1)
+    {
+        int num_msgs = 0;
 
-        if (size < 0)
+        fd_set rdset = refset;
+
+        struct timeval tv;
+        tv.tv_usec = (timeout % 1000) * 1000;
+        tv.tv_sec = timeout / 1000;
+
+        if (select(fd_max + 1, &rdset, NULL, NULL, timeout == -1 ? NULL : &tv) == -1) {
+            throw ModbusException(std::string("Error while select(): ") + strerror(errno));
+            return -1; // TODO: error handling
+        }
+
+        // retrieve all available data into queue
+        for (int s = 0; s <= fd_max; s++) {
+            if (!FD_ISSET(s, &rdset))
+                continue;
+
+            if (s == server_socket) {  // accepting new connection
+                struct sockaddr_in client;
+                socklen_t addrlen = sizeof (client);
+                memset(&client, 0, addrlen);
+
+                int newfd = accept(server_socket, (struct sockaddr *) &client, &addrlen);
+                if (newfd == -1) {
+                    return -1; // TODO: error handling
+                }
+
+                FD_SET(newfd, &refset);
+                if (newfd > fd_max)
+                    fd_max = newfd;
+
+                // TODO: log incoming connection
+                /* std::cerr << "Modbus incoming connection" << std::endl; */
+            } else { // receiving new query
+                modbus_set_socket(_context, s);
+
+                int rc = modbus_receive(_context, queryBuffer);
+                if (rc > 0) {
+                    QueuedQueries.push(TModbusQuery(queryBuffer, rc, modbus_get_header_length(_context), s));
+                    num_msgs++;
+                } else {
+                    // TODO: error handling + log disconnection
+                    /* std::cerr << "Modbus closed connection" << std::endl; */
+                    close(s);
+                    FD_CLR(s, &refset);
+
+                    if (s == fd_max)
+                        fd_max--;
+                }
+            }
+        }
+
+        return num_msgs;
+    }
+
+    virtual bool Available()
+    {
+        return !QueuedQueries.empty();
+    }
+
+    virtual TModbusQuery ReceiveQuery(bool block = false)
+    {
+        if (block && !Available())
+            WaitForMessages(-1);
+        
+        if (Available()) {
+            TModbusQuery q = QueuedQueries.front();
+            QueuedQueries.pop();
+            return q;
+        } else {
             return TModbusQuery::emptyQuery();
-
-        return TModbusQuery(queryBuffer, size, modbus_get_header_length(_context));
+        }
     }
 
     virtual void Reply(const TModbusQuery &q)
     {
         if (q.size <= 0) 
             return;
+
+        modbus_set_socket(_context, q.socket_fd);
 
         if (modbus_reply(_context, q.data, q.size, _mapping) < 0)
             _error = errno;
@@ -131,6 +220,11 @@ public:
             _error = errno;
     }
 
+    virtual void Close()
+    {
+        fd_max = -1;
+    }
+
     virtual int GetError()
     {
         return _error;
@@ -140,7 +234,13 @@ protected:
     modbus_t *_context = nullptr;
     modbus_mapping_t *_mapping = nullptr;
     int _error = 0;
-    int _s = -1;
     uint8_t slaveId = 0;
     uint8_t *queryBuffer = nullptr;
+
+    std::queue<TModbusQuery> QueuedQueries;
+
+private:
+    fd_set refset;
+    int fd_max = -1;
+    int server_socket = -1;
 };

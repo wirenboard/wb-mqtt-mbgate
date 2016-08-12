@@ -6,6 +6,12 @@
 
 #include "modbus_wrapper.h"
 #include "modbus_lmb_backend.h"
+#include "observer.h"
+
+#include <wbmqtt/mqtt_wrapper.h>
+
+#include <thread>
+#include <tuple>
 
 using namespace std;
 
@@ -55,6 +61,34 @@ public:
 
         return server;
     }
+
+    static tuple<PModbusServer, PMQTTClient> ModbusMQTTTest(const char *host = "127.0.0.1", int port = 502)
+    {
+        // create libmodbus context
+        PModbusBackend backend = make_shared<TModbusTCPBackend>(host, port);
+
+        // create Modbus server
+        PModbusServer server = make_shared<TModbusServer>(backend);
+
+        // create MQTT client
+        TMQTTClient::TConfig mqtt_config;
+        mqtt_config.Port = 1883;
+        mqtt_config.Host = "wirenboard-sgqye5nt.local";
+        PMQTTClient mqtt_client = make_shared<TMQTTClient>(mqtt_config);
+
+        // create observers
+        PGatewayObserver ext_observer = make_shared<TGatewayObserver>("wb-ms-thls-v2_32/External Sensor 1", make_shared<TMQTTIntConverter>(TMQTTIntConverter::BCD, 10, 4), mqtt_client);
+        server->Observe(ext_observer, INPUT_REGISTER, TModbusAddressRange(0, 2));
+
+        mqtt_client->Observe(ext_observer);
+
+        server->AllocateCache();
+        
+        backend->Listen();
+        mqtt_client->ConnectAsync();
+
+        return make_tuple(server, mqtt_client);
+    }
 };
 
 int main(int argc, char *argv[])
@@ -79,11 +113,18 @@ int main(int argc, char *argv[])
         }
     }
 
-    PModbusServer s = ModbusGatewayBuilder::ModbusDummy(hostname.c_str(), port);
+    /* PModbusServer s = ModbusGatewayBuilder::ModbusDummy(hostname.c_str(), port); */
+    PModbusServer s;
+    PMQTTClient t;
+    tie(s, t) = ModbusGatewayBuilder::ModbusMQTTTest(hostname.c_str(), port);
+
+    t->StartLoop();
 
     while (1) {
         s->Loop();
     }
+
+    t->StopLoop();
 
     return 0;
 }

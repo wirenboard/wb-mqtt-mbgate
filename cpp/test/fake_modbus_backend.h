@@ -57,10 +57,15 @@ public:
         return Caches[type];
     }
 
+    virtual int WaitForMessages(int timeout = -1)
+    {
+        return IncomingQueries.size();
+    }
+
     /*! Receive new query from instance 
      * \return New query (or .size <= 0 on error)
      */
-    virtual TModbusQuery ReceiveQuery()
+    virtual TModbusQuery ReceiveQuery(bool block = false)
     {
         if (!IncomingQueries.empty()) {
             auto ret = IncomingQueries.front();
@@ -69,6 +74,16 @@ public:
         }
 
         return TModbusQuery::emptyQuery();
+    }
+
+    virtual bool Available() 
+    {
+        return !IncomingQueries.empty();
+    }
+
+    virtual void Close()
+    {
+
     }
 
     /*! Send reply 

@@ -85,24 +85,26 @@ struct TModbusQuery
 {
     static TModbusQuery emptyQuery()
     {
-        return TModbusQuery(nullptr, 0, 0);
+        return TModbusQuery(nullptr, 0, 0, -1);
     }
 
     static TModbusQuery exceptionQuery(TReplyState state)
     {
         if (state > 0)
-            return TModbusQuery(nullptr, -state, 0);
+            return TModbusQuery(nullptr, -state, 0, -1);
 
         return TModbusQuery::emptyQuery();
     }
 
     uint8_t *data = nullptr; /*!< Query raw data */
     int size = 0; /*!< Query size */
-    int header_length = 0;
+    int header_length = 0; /*!< Query header length - from Modbus context */
+    int socket_fd = -1; /*!< Reply socket descriptor (for TCP) */
 
-    TModbusQuery(uint8_t *_data, int _size, int _header_length)
+    TModbusQuery(uint8_t *_data, int _size, int _header_length, int _fd = -1)
         : size(_size)
         , header_length(_header_length)
+        , socket_fd(_fd)
     {
         if (size > 0) {
             data = new uint8_t[size];
@@ -111,11 +113,13 @@ struct TModbusQuery
     }
 
     TModbusQuery(const TModbusQuery &q)
+        : size(q.size)
+        , header_length(q.header_length)
+        , socket_fd(q.socket_fd)
     {
         if (data)
             delete [] data;
 
-        size = q.size;
         data = new uint8_t[size];
         std::memcpy(data, q.data, size);
     }
@@ -170,10 +174,22 @@ public:
      */
     virtual void *GetCache(TStoreType type) = 0;
 
-    /*! Receive new query from instance 
-     * \return New query (or .size <= 0 on error)
+    /*! Poll new queries and fill queue
+     * \param timeout Poll timeout (in ms)
+     * \return Number of messages received or -1 on error
      */
-    virtual TModbusQuery ReceiveQuery() = 0;
+    virtual int WaitForMessages(int timeout = -1) = 0;
+
+    /*! Check if messages are available
+     * \return true if there are messages ready to read
+     */
+    virtual bool Available() = 0;
+
+    /*! Receive query from queue (or wait for new query)
+     * \param block Blocking call (wait for new query on empty queue)
+     * \return New query, or .size == 0 on empty queue
+     */
+    virtual TModbusQuery ReceiveQuery(bool block = false) = 0;
 
     /*! Send reply 
      * \param query Query to reply on
@@ -187,6 +203,9 @@ public:
 
     /*! Get last error code */
     virtual int GetError() = 0;
+
+    /*! Close connection */
+    virtual void Close() = 0;
     
     /*! Virtual destructor */
     virtual ~IModbusBackend();
@@ -245,7 +264,7 @@ public:
 
     /*! Modbus main loop function
      */
-    virtual void Loop();
+    virtual void Loop(int timeout = -1);
 
     /*! Cache allocation request
      * (Re)allocate cache values and tell observers about it

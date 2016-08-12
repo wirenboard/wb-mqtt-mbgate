@@ -152,76 +152,78 @@ TEST_F(MQTTConvertersTest, UnsignedIntTest)
     
     string sval = "1234"; // * 2.0 == 0x09A4
 
-    uint8_t sbuf[2];
+    uint16_t sbuf[1];
 
     s.Pack(sval, &sbuf, 2);
-    EXPECT_THAT(sbuf, ElementsAre(0x09, 0xA4));
+    EXPECT_THAT(sbuf, ElementsAre(0x09A4));
     result = s.Unpack(sbuf, 2);
     EXPECT_EQ(result, sval);
     
     sb.Pack(sval, &sbuf, 2);
-    EXPECT_THAT(sbuf, ElementsAre(0xA4, 0x09));
+    EXPECT_THAT(sbuf, ElementsAre(0xA409));
     result = sb.Unpack(sbuf, 2);
     EXPECT_EQ(result, sval);
     
     sw.Pack(sval, &sbuf, 2);
-    EXPECT_THAT(sbuf, ElementsAre(0x09, 0xA4));
+    EXPECT_THAT(sbuf, ElementsAre(0x09A4));
     result = sw.Unpack(sbuf, 2);
     EXPECT_EQ(result, sval);
     
     sbw.Pack(sval, &sbuf, 2);
-    EXPECT_THAT(sbuf, ElementsAre(0xA4, 0x09));
+    EXPECT_THAT(sbuf, ElementsAre(0xA409));
     result = sbw.Unpack(sbuf, 2);
     EXPECT_EQ(result, sval);
     
 
     string ival = "12345678"; // * 2.0 == 0x0178C29C
-    uint8_t ibuf[4];
+    string ival_out = "1.23457e+07";
+    uint16_t ibuf[2];
 
     i.Pack(ival, &ibuf, 4);
-    EXPECT_THAT(ibuf, ElementsAre(0x01, 0x78, 0xC2, 0x9C));
+    EXPECT_THAT(ibuf, ElementsAre(0x0178, 0xC29C));
     result = i.Unpack(ibuf, 4);
-    EXPECT_EQ(result, ival);
+    EXPECT_EQ(result, ival_out);
     
     ib.Pack(ival, &ibuf, 4);
-    EXPECT_THAT(ibuf, ElementsAre(0x78, 0x01, 0x9C, 0xC2));
+    EXPECT_THAT(ibuf, ElementsAre(0x7801, 0x9CC2));
     result = ib.Unpack(ibuf, 4);
-    EXPECT_EQ(result, ival);
+    EXPECT_EQ(result, ival_out);
     
     iw.Pack(ival, &ibuf, 4);
-    EXPECT_THAT(ibuf, ElementsAre(0xC2, 0x9C, 0x01, 0x78));
+    EXPECT_THAT(ibuf, ElementsAre(0xC29C, 0x0178));
     result = iw.Unpack(ibuf, 4);
-    EXPECT_EQ(result, ival);
+    EXPECT_EQ(result, ival_out);
     
     ibw.Pack(ival, &ibuf, 4);
-    EXPECT_THAT(ibuf, ElementsAre(0x9C, 0xC2, 0x78, 0x01));
+    EXPECT_THAT(ibuf, ElementsAre(0x9CC2, 0x7801));
     result = ibw.Unpack(ibuf, 4);
-    EXPECT_EQ(result, ival);
+    EXPECT_EQ(result, ival_out);
     
 
 
     string lval = "12345678"; // * 2.0 == 0x0178C29C
-    uint8_t lbuf[8];
+    string lval_out = "1.23457e+07";
+    uint16_t lbuf[4];
 
     l.Pack(lval, &lbuf, 8);
-    EXPECT_THAT(lbuf, ElementsAre(0, 0, 0, 0, 0x01, 0x78, 0xC2, 0x9C));
+    EXPECT_THAT(lbuf, ElementsAre(0, 0, 0x0178, 0xC29C));
     result = l.Unpack(lbuf, 8);
-    EXPECT_EQ(result, lval);
+    EXPECT_EQ(result, lval_out);
     
     lb.Pack(lval, &lbuf, 8);
-    EXPECT_THAT(lbuf, ElementsAre(0, 0, 0, 0, 0x78, 0x01, 0x9C, 0xC2));
+    EXPECT_THAT(lbuf, ElementsAre(0, 0, 0x7801, 0x9CC2));
     result = lb.Unpack(lbuf, 8);
-    EXPECT_EQ(result, lval);
+    EXPECT_EQ(result, lval_out);
     
     lw.Pack(lval, &lbuf, 8);
-    EXPECT_THAT(lbuf, ElementsAre(0xC2, 0x9C, 0x01, 0x78, 0, 0, 0, 0));
+    EXPECT_THAT(lbuf, ElementsAre(0xC29C, 0x0178, 0, 0));
     result = lw.Unpack(lbuf, 8);
-    EXPECT_EQ(result, lval);
+    EXPECT_EQ(result, lval_out);
     
     lbw.Pack(lval, &lbuf, 8);
-    EXPECT_THAT(lbuf, ElementsAre(0x9C, 0xC2, 0x78, 0x01, 0, 0, 0, 0));
+    EXPECT_THAT(lbuf, ElementsAre(0x9CC2, 0x7801, 0, 0));
     result = lbw.Unpack(lbuf, 8);
-    EXPECT_EQ(result, lval);
+    EXPECT_EQ(result, lval_out);
 }
 
 TEST_F(MQTTConvertersTest, SignedIntTest)
@@ -245,76 +247,78 @@ TEST_F(MQTTConvertersTest, SignedIntTest)
     
     string sval = "-1234"; // * 2.0 == 0xF65C
 
-    uint8_t sbuf[2];
+    uint16_t sbuf[1];
 
     s.Pack(sval, &sbuf, 2);
-    EXPECT_THAT(sbuf, ElementsAre(0xF6, 0x5C));
+    EXPECT_THAT(sbuf, ElementsAre(0xF65C));
     result = s.Unpack(sbuf, 2);
     EXPECT_EQ(result, sval);
     
     sb.Pack(sval, &sbuf, 2);
-    EXPECT_THAT(sbuf, ElementsAre(0x5C, 0xF6));
+    EXPECT_THAT(sbuf, ElementsAre(0x5CF6));
     result = sb.Unpack(sbuf, 2);
     EXPECT_EQ(result, sval);
     
     sw.Pack(sval, &sbuf, 2);
-    EXPECT_THAT(sbuf, ElementsAre(0xF6, 0x5C));
+    EXPECT_THAT(sbuf, ElementsAre(0xF65C));
     result = sw.Unpack(sbuf, 2);
     EXPECT_EQ(result, sval);
     
     sbw.Pack(sval, &sbuf, 2);
-    EXPECT_THAT(sbuf, ElementsAre(0x5C, 0xF6));
+    EXPECT_THAT(sbuf, ElementsAre(0x5CF6));
     result = sbw.Unpack(sbuf, 2);
     EXPECT_EQ(result, sval);
     
 
     string ival = "-12345678"; // * 2.0 == 0xFE873D64
-    uint8_t ibuf[4];
+    string ival_out = "-1.23457e+07";
+    uint16_t ibuf[2];
 
     i.Pack(ival, &ibuf, 4);
-    EXPECT_THAT(ibuf, ElementsAre(0xFE, 0x87, 0x3D, 0x64));
+    EXPECT_THAT(ibuf, ElementsAre(0xFE87, 0x3D64));
     result = i.Unpack(ibuf, 4);
-    EXPECT_EQ(result, ival);
+    EXPECT_EQ(result, ival_out);
     
     ib.Pack(ival, &ibuf, 4);
-    EXPECT_THAT(ibuf, ElementsAre(0x87, 0xFE, 0x64, 0x3D));
+    EXPECT_THAT(ibuf, ElementsAre(0x87FE, 0x643D));
     result = ib.Unpack(ibuf, 4);
-    EXPECT_EQ(result, ival);
+    EXPECT_EQ(result, ival_out);
     
     iw.Pack(ival, &ibuf, 4);
-    EXPECT_THAT(ibuf, ElementsAre(0x3D, 0x64, 0xFE, 0x87));
+    EXPECT_THAT(ibuf, ElementsAre(0x3D64, 0xFE87));
     result = iw.Unpack(ibuf, 4);
-    EXPECT_EQ(result, ival);
+    EXPECT_EQ(result, ival_out);
     
     ibw.Pack(ival, &ibuf, 4);
-    EXPECT_THAT(ibuf, ElementsAre(0x64, 0x3D, 0x87, 0xFE));
+    EXPECT_THAT(ibuf, ElementsAre(0x643D, 0x87FE));
     result = ibw.Unpack(ibuf, 4);
-    EXPECT_EQ(result, ival);
+    EXPECT_EQ(result, ival_out);
     
 
 
     string lval = "-12345678"; // * 2.0 == 0x0178C29C
-    uint8_t lbuf[8];
+    string lval_out = "-1.23457e+07";
+    uint16_t lbuf[4];
 
     l.Pack(lval, &lbuf, 8);
-    EXPECT_THAT(lbuf, ElementsAre(0xFF, 0xFF, 0xFF, 0xFF, 0xFE, 0x87, 0x3D, 0x64));
+    EXPECT_THAT(lbuf, ElementsAre(0xFFFF, 0xFFFF, 0xFE87, 0x3D64));
     result = l.Unpack(lbuf, 8);
-    EXPECT_EQ(result, lval);
+    EXPECT_EQ(result, lval_out);
     
     lb.Pack(lval, &lbuf, 8);
-    EXPECT_THAT(lbuf, ElementsAre(0xFF, 0xFF, 0xFF, 0xFF, 0x87, 0xFE, 0x64, 0x3D));
+    EXPECT_THAT(lbuf, ElementsAre(0xFFFF, 0xFFFF, 0x87FE, 0x643D));
     result = lb.Unpack(lbuf, 8);
-    EXPECT_EQ(result, lval);
+    EXPECT_EQ(result, lval_out);
     
     lw.Pack(lval, &lbuf, 8);
-    EXPECT_THAT(lbuf, ElementsAre(0x3D, 0x64, 0xFE, 0x87, 0xFF, 0xFF, 0xFF, 0xFF));
+    EXPECT_THAT(lbuf, ElementsAre(0x3D64, 0xFE87, 0xFFFF, 0xFFFF));
     result = lw.Unpack(lbuf, 8);
-    EXPECT_EQ(result, lval);
+    EXPECT_EQ(result, lval_out);
     
     lbw.Pack(lval, &lbuf, 8);
-    EXPECT_THAT(lbuf, ElementsAre(0x64, 0x3D, 0x87, 0xFE, 0xFF, 0xFF, 0xFF, 0xFF));
+    EXPECT_THAT(lbuf, ElementsAre(0x643D, 0x87FE, 0xFFFF, 0xFFFF));
     result = lbw.Unpack(lbuf, 8);
-    EXPECT_EQ(result, lval);
+    EXPECT_EQ(result, lval_out);
 }
 
 TEST_F(MQTTConvertersTest, BcdTest)
@@ -338,95 +342,93 @@ TEST_F(MQTTConvertersTest, BcdTest)
     
     string sval = "1234"; // * 2.0 => 0x2468
 
-    uint8_t sbuf[2];
+    uint16_t sbuf[1];
 
     s.Pack(sval, &sbuf, 2);
-    EXPECT_THAT(sbuf, ElementsAre(0x24, 0x68));
+    EXPECT_THAT(sbuf, ElementsAre(0x2468));
     result = s.Unpack(sbuf, 2);
     EXPECT_EQ(result, sval);
     
     sb.Pack(sval, &sbuf, 2);
-    EXPECT_THAT(sbuf, ElementsAre(0x68, 0x24));
+    EXPECT_THAT(sbuf, ElementsAre(0x6824));
     result = sb.Unpack(sbuf, 2);
     EXPECT_EQ(result, sval);
     
     sw.Pack(sval, &sbuf, 2);
-    EXPECT_THAT(sbuf, ElementsAre(0x24, 0x68));
+    EXPECT_THAT(sbuf, ElementsAre(0x2468));
     result = sw.Unpack(sbuf, 2);
     EXPECT_EQ(result, sval);
     
     sbw.Pack(sval, &sbuf, 2);
-    EXPECT_THAT(sbuf, ElementsAre(0x68, 0x24));
+    EXPECT_THAT(sbuf, ElementsAre(0x6824));
     result = sbw.Unpack(sbuf, 2);
     EXPECT_EQ(result, sval);
     
 
     string ival = "12345678"; // * 2.0 => 0x24691356
-    uint8_t ibuf[4];
+    string ival_out = "1.23457e+07";
+    uint16_t ibuf[2];
 
     i.Pack(ival, &ibuf, 4);
-    EXPECT_THAT(ibuf, ElementsAre(0x24, 0x69, 0x13, 0x56));
+    EXPECT_THAT(ibuf, ElementsAre(0x2469, 0x1356));
     result = i.Unpack(ibuf, 4);
-    EXPECT_EQ(result, ival);
+    EXPECT_EQ(result, ival_out);
     
     ib.Pack(ival, &ibuf, 4);
-    EXPECT_THAT(ibuf, ElementsAre(0x69, 0x24, 0x56, 0x13));
+    EXPECT_THAT(ibuf, ElementsAre(0x6924, 0x5613));
     result = ib.Unpack(ibuf, 4);
-    EXPECT_EQ(result, ival);
+    EXPECT_EQ(result, ival_out);
     
     iw.Pack(ival, &ibuf, 4);
-    EXPECT_THAT(ibuf, ElementsAre(0x13, 0x56, 0x24, 0x69));
+    EXPECT_THAT(ibuf, ElementsAre(0x1356, 0x2469));
     result = iw.Unpack(ibuf, 4);
-    EXPECT_EQ(result, ival);
+    EXPECT_EQ(result, ival_out);
     
     ibw.Pack(ival, &ibuf, 4);
-    EXPECT_THAT(ibuf, ElementsAre(0x56, 0x13, 0x69, 0x24));
+    EXPECT_THAT(ibuf, ElementsAre(0x5613, 0x6924));
     result = ibw.Unpack(ibuf, 4);
-    EXPECT_EQ(result, ival);
+    EXPECT_EQ(result, ival_out);
     
 
 
     string lval = "12345678"; // * 2.0 => 0x24691356
-    uint8_t lbuf[8];
+    string lval_out = "1.23457e+07";
+    uint16_t lbuf[4];
 
     l.Pack(lval, &lbuf, 8);
-    EXPECT_THAT(lbuf, ElementsAre(0, 0, 0, 0, 0x24, 0x69, 0x13, 0x56));
+    EXPECT_THAT(lbuf, ElementsAre(0, 0, 0x2469, 0x1356));
     result = l.Unpack(lbuf, 8);
-    EXPECT_EQ(result, lval);
+    EXPECT_EQ(result, lval_out);
     
     lb.Pack(lval, &lbuf, 8);
-    EXPECT_THAT(lbuf, ElementsAre(0, 0, 0, 0, 0x69, 0x24, 0x56, 0x13));
+    EXPECT_THAT(lbuf, ElementsAre(0, 0, 0x6924, 0x5613));
     result = lb.Unpack(lbuf, 8);
-    EXPECT_EQ(result, lval);
+    EXPECT_EQ(result, lval_out);
     
     lw.Pack(lval, &lbuf, 8);
-    EXPECT_THAT(lbuf, ElementsAre(0x13, 0x56, 0x24, 0x69, 0, 0, 0, 0));
+    EXPECT_THAT(lbuf, ElementsAre(0x1356, 0x2469, 0, 0));
     result = lw.Unpack(lbuf, 8);
-    EXPECT_EQ(result, lval);
+    EXPECT_EQ(result, lval_out);
     
     lbw.Pack(lval, &lbuf, 8);
-    EXPECT_THAT(lbuf, ElementsAre(0x56, 0x13, 0x69, 0x24, 0, 0, 0, 0));
+    EXPECT_THAT(lbuf, ElementsAre(0x5613, 0x6924, 0, 0));
     result = lbw.Unpack(lbuf, 8);
-    EXPECT_EQ(result, lval);
+    EXPECT_EQ(result, lval_out);
 }
 
 TEST_F(MQTTConvertersTest, IntFormatsTest)
 {
-    TMQTTIntConverter conv(TMQTTIntConverter::SIGNED, 1.0, 4);
+    TMQTTIntConverter conv(TMQTTIntConverter::SIGNED, 100.0, 4);
+    TMQTTIntConverter bcd_conv(TMQTTIntConverter::BCD, 10.0, 4);
 
-    string val1 = "0703"; // oct
-    string val2 = "0x12345"; // hex
+    string val1 = "0.125"; // floating point number
+    string val2 = "23.1875";
 
     string result;
-    uint8_t buf[4];
+    uint16_t buf[2];
     
     conv.Pack(val1, buf, 4);
-    EXPECT_THAT(buf, ElementsAre(0, 0, 0x01, 0xC3));
+    EXPECT_THAT(buf, ElementsAre(0, 12));
     result = conv.Unpack(buf, 4);
-    EXPECT_EQ(result, string("451"));
-    
-    conv.Pack(val2, buf, 4);
-    EXPECT_THAT(buf, ElementsAre(0, 0x01, 0x23, 0x45));
-    result = conv.Unpack(buf, 4);
-    EXPECT_EQ(result, string("74565"));
+    EXPECT_EQ(result, string("0.12"));
 }
