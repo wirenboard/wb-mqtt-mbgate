@@ -138,7 +138,7 @@ void TModbusServer::_ProcessQuery(const TModbusQuery &query)
         void *values;
 
         if (_IsCoilWriteCmd(command)) {
-            uint8_t *raw_data = &(query.data[query.header_length + 6]);
+            uint8_t *raw_data = &(query.data[query.header_length + (_IsSingleWriteCmd(command) ? 3 : 6)]);
             uint8_t *int_values = new uint8_t[count];
 
             uint8_t bits = 1;
@@ -155,7 +155,7 @@ void TModbusServer::_ProcessQuery(const TModbusQuery &query)
 
             values = int_values;
         } else {
-            uint8_t *raw_data = &(query.data[query.header_length + 6]);
+            uint8_t *raw_data = &(query.data[query.header_length + (_IsSingleWriteCmd(command) ? 3 : 6)]);
             uint16_t *int_values = new uint16_t[count];
 
             for (int i = 0; i < count; i++)

@@ -52,9 +52,18 @@ TEST_F(GatewayTest, SingleWriteTest)
     // Write 1 register via Preset Single Register
     // Register 0 with value 0x1234 (4660d)
     uint8_t q1[] = {
-        0x10
+        0x06,
+        0x00, 0x00,
+        0x12, 0x34
     };
     TModbusQuery query1(q1, sizeof (q1), 0);
+
+    ModbusBackend->PushQuery(query1);
+
+    EXPECT_CALL(*Mqtt, Publish(_, string("/devices/device1/controls/topic1"), string("4660"), _, _)).WillOnce(Return(0));
+
+    while (!ModbusBackend->IncomingQueries.empty())
+        ModbusServer->Loop();
 }
 
 TEST_F(GatewayTest, MultiWriteTest)
