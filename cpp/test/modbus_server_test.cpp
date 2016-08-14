@@ -11,6 +11,13 @@ using namespace std;
 using ::testing::_;
 using ::testing::AtLeast;
 using ::testing::Return;
+using ::testing::Pointee;
+using ::testing::ElementsAre;
+using ::testing::Expectation;
+
+MATCHER_P(Pointee16, value, "") { return *(static_cast<const uint16_t *>(arg)) == value; }
+MATCHER_P2(Pointee16_2, value1, value2, "") { auto p  = static_cast<const uint16_t *>(arg); return p[0] == value1 && p[1] == value2; }
+MATCHER_P(Pointee8, value, "") { return *(static_cast<const uint8_t *>(arg)) == value; }
 
 class ModbusServerTest : public ::testing::Test
 {
@@ -21,7 +28,7 @@ public:
     void SetUp() 
     {
         Backend = make_shared<TFakeModbusBackend>();
-        Server = shared_ptr<TModbusServer>(new TModbusServer(Backend));  
+        Server = make_shared<TModbusServer>(Backend);
     
         // pre-allocate caches to get valid pointers everywhere
         Backend->AllocateCache(100, 100, 100, 100);
@@ -125,7 +132,14 @@ TEST_F(ModbusServerTest, WriteCallbackTest)
     Server->AllocateCache();
 
     // form read requests and send them to server
-    uint8_t q1[] = { 0x10, 0x00, 40, 0x00, 0x02, 0x12, 0x34, 0x56, 0x78 };
+    uint8_t q1[] = { 
+        0x10, 
+        0x00, 40, 
+        0x00, 0x02, 
+        0x04,
+        0x12, 0x34, 
+        0x56, 0x78 
+    };
     /* uint8_t q2[] = { 0x10, 0x00, 0x0A, 0x00, 0x02 }; */
     TModbusQuery write1(q1, sizeof (q1), 0);
     /* TModbusQuery read2(q2, sizeof (q2), 0); */
@@ -133,7 +147,7 @@ TEST_F(ModbusServerTest, WriteCallbackTest)
     Backend->PushQuery(write1);
     /* Backend->PushQuery(read2); */
 
-    EXPECT_CALL(*obs1, OnSetValue(HOLDING_REGISTER, 0x42, 40, 2, static_cast<uint16_t *>(Backend->GetCache(HOLDING_REGISTER)) + 40)).WillOnce(Return(REPLY_CACHED));
+    EXPECT_CALL(*obs1, OnSetValue(HOLDING_REGISTER, 0x42, 40, 2, Pointee16_2(0x1234, 0x5678))).WillOnce(Return(REPLY_OK));
 
     Backend->SetSlave(0x42);
 

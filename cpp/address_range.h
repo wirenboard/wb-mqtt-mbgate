@@ -1,21 +1,44 @@
 #pragma once
 
 #include <map>
+#include <vector>
 #include <string>
+#include <sstream>
 #include <iostream>
 #include <memory>
 #include <utility>
+#include <algorithm>
 #include <exception>
 
 
 class WrongSegmentException : std::exception
 {
     std::string msg;
+    int start;
+    unsigned count;
 public:
+    WrongSegmentException(int _start, unsigned _count): start(_start), count(_count) {}
     WrongSegmentException(const std::string &_msg): msg(_msg) {}
     virtual const char *what() const throw()
     {
-        return msg.c_str();
+        if (msg.size() > 0) {
+            return msg.c_str();
+        } else {
+            /* std::stringstream out; */
+            /* out << "Overlapping segment: [" << start << ":" << start + count - 1 << "]"; */
+            /* return out.str().c_str(); */
+            return "Overlapping segments";
+        }
+    }
+
+    virtual int GetStart() const throw()
+    {
+        return start;
+    }
+
+    virtual unsigned GetCount() const throw()
+    {
+        return count;
     }
 };
 
@@ -53,7 +76,7 @@ public:
         if (prev != m.end() && prev->second.first >= start && prev->first < start) {  // have intersection with previous segment
             if (prev->second.second != obs) {
                 if (prev->second.first > start) {
-                    throw WrongSegmentException("intersected observers don't match");
+                    throw WrongSegmentException(start, count);
                 }
             } else {
                 start = prev->first;
@@ -69,7 +92,7 @@ public:
             auto current_end = inner->second.first;
             // check if there are different observers
             if (current_observer != obs) {
-                throw WrongSegmentException("intersected observers don't match");
+                throw WrongSegmentException(start, count);
             }
 
             if (current_end > end)
@@ -134,6 +157,50 @@ public:
     }
 
     /*!
+     * Get address of first item in range
+     */
+    int getStart() const
+    {
+        auto b = m.cbegin();
+        if (b == m.cend())
+            throw WrongSegmentException("empty range");
+
+        return b->first;
+    }
+
+    /*! 
+     * Get upper bound of range (maximum address + 1)
+     */
+    int getEnd() const
+    {
+        auto b = m.cend();
+        if (b == m.cbegin())
+            throw WrongSegmentException("empty range");
+
+        --b;
+        return b->second.first;
+    }
+
+    /*!
+     * Get number of items between start and end
+     */
+    int getCount() const
+    {
+        return getEnd() - getStart();
+    }
+
+    /*!
+     * Get single param in case of single-segment range
+     */
+    T getParam() const
+    {
+        if (m.size() != 1)
+            throw WrongSegmentException("range is not single-segment");
+
+        return m.cbegin()->second.second;
+    }
+
+    /*!
      * Get user param for given segment
      * \param start First address in segment
      * \param count Number of units in segment
@@ -144,7 +211,7 @@ public:
         auto prev = m.lower_bound(start);
         if (prev->first != start) {
             if (prev != m.begin())
-                prev--;
+                --prev;
             else
                 throw WrongSegmentException("incorrect segment");
         }
@@ -153,6 +220,45 @@ public:
             return prev->second.second;
 
         throw WrongSegmentException("incorrect segment");
+    }
+
+    /*!
+     * Get list of segments for bound segments.
+     * If segments in given area aren't bound (follows one another)
+     * exception will be thrown.
+     * \param start First address in area
+     * \param count Number of units in area
+     * \return Vector of single-segment ranges
+     */
+    std::vector<TAddressRange<T>> getSegments(int start, int count = 1) const
+    {
+        std::vector<TAddressRange<T>> reply;
+
+        auto prev = m.lower_bound(start);
+        if (prev->first != start) {
+            if (prev != m.begin())
+                --prev;
+            else
+                throw WrongSegmentException("area out of bounds");
+        }
+
+        while (count > 0 && prev != m.end()) {
+            const int s_size = prev->second.first - start;
+
+            reply.push_back(TAddressRange<T>(start, std::min(s_size, count), prev->second.second));
+
+            start += s_size;
+            count -= s_size;
+            ++prev;
+
+            if (count > 0 && prev->first != start)
+                throw WrongSegmentException("sparce area");
+        }
+
+        if (count > 0)
+            throw WrongSegmentException("area out of bounds");
+
+        return reply;
     }
 
     bool operator==(const TAddressRange<T>& r) const

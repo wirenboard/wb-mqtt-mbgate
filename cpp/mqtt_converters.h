@@ -8,6 +8,8 @@
 #include <memory>
 #include <string>
 
+#include <iostream>
+
 /*! MQTT data type converter interface */
 class IMQTTConverter : public std::enable_shared_from_this<IMQTTConverter>
 {
@@ -85,6 +87,8 @@ public:
             Size = 4;
         else
             Size = 2;
+
+        /* std::cerr << "Integer converter, type " << type << ", scale " << scale << ", size" << size << std::endl; */
     }
 
     std::string Unpack(const void *data, size_t size);

@@ -431,4 +431,9 @@ TEST_F(MQTTConvertersTest, IntFormatsTest)
     EXPECT_THAT(buf, ElementsAre(0, 12));
     result = conv.Unpack(buf, 4);
     EXPECT_EQ(result, string("0.12"));
+
+
+    TMQTTIntConverter conv2(TMQTTIntConverter::SIGNED, 1.0, 2);
+    uint16_t buffer[1] = { 1234 };
+    EXPECT_EQ(conv2.Unpack(buffer, 2), string("1234"));
 }

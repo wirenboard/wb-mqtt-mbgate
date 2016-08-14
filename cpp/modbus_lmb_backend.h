@@ -73,6 +73,8 @@ public:
         // configure select() stuff
         FD_ZERO(&refset);
         FD_SET(server_socket, &refset);
+
+        std::cerr << "Modbus listening" << std::endl;
     }
 
     virtual void AllocateCache(size_t di, size_t co, size_t ir, size_t hr)

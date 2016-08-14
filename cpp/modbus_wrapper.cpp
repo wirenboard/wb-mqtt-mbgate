@@ -29,6 +29,16 @@ TModbusServer::TModbusServer(PModbusBackend backend)
     _CmdStoreTypeMap[PRESET_MULTIPLE_REGISTERS] = HOLDING_REGISTER;
 }
 
+void TModbusServer::Backend(PModbusBackend backend)
+{
+    mb = backend;
+}
+
+PModbusBackend TModbusServer::Backend()
+{
+    return mb;
+}
+
 void TModbusServer::Observe(PModbusServerObserver o, TStoreType store, const TModbusAddressRange &range)
 {
     if (store & DISCRETE_INPUT)
@@ -118,11 +128,49 @@ void TModbusServer::_ProcessQuery(const TModbusQuery &query)
     if (_IsReadCmd(command)) {
         count = _ReadU16(&(query.data[query.header_length + 3]));
         _ProcessReadQuery(_CmdStoreTypeMap[command], *_CmdRangeMap[command], start_address, count, query);
-    } else if (_IsSingleWriteCmd(command)) {
-        _ProcessWriteQuery(_CmdStoreTypeMap[command], *_CmdRangeMap[command], start_address, 1, query);
-    } else if (_IsMultiWriteCmd(command)) {
-        count = _ReadU16(&(query.data[query.header_length + 3]));
-        _ProcessWriteQuery(_CmdStoreTypeMap[command], *_CmdRangeMap[command], start_address, count, query);
+    } else {
+        if (_IsSingleWriteCmd(command)) {
+            count = 1;
+        } else if (_IsMultiWriteCmd(command)) {
+            count = _ReadU16(&(query.data[query.header_length + 3]));
+        }
+
+        void *values;
+
+        if (_IsCoilWriteCmd(command)) {
+            uint8_t *raw_data = &(query.data[query.header_length + 6]);
+            uint8_t *int_values = new uint8_t[count];
+
+            uint8_t bits = 1;
+            int q = 0;
+
+            for (int i = 0; i < count; i++) {
+                int_values[i] = raw_data[q] & bits ? 0xFF : 0;
+                bits <<= 1;
+                if (bits == 0) {
+                    q++;
+                    bits = 1;
+                }
+            }
+
+            values = int_values;
+        } else {
+            uint8_t *raw_data = &(query.data[query.header_length + 6]);
+            uint16_t *int_values = new uint16_t[count];
+
+            for (int i = 0; i < count; i++)
+                int_values[i] = (raw_data[2 * i] << 8) | (raw_data[2 * i + 1]);
+
+            values = int_values;
+        }
+        
+        _ProcessWriteQuery(_CmdStoreTypeMap[command], *_CmdRangeMap[command], start_address, count, query, values);
+
+        if (_IsCoilWriteCmd(command)) {
+            delete [] static_cast<uint8_t*>(values);
+        } else {
+            delete [] static_cast<uint16_t *>(values);
+        }
     }
 }
 
@@ -131,40 +179,83 @@ void TModbusServer::_ProcessReadQuery(TStoreType type, TModbusAddressRange &rang
     // ask callback, then reply
     try {
         void *cache_ptr;
-        if (type == COIL || type == DISCRETE_INPUT)
-            cache_ptr = static_cast<uint8_t *>(mb->GetCache(type)) + start;
-        else
-            cache_ptr = static_cast<uint16_t *>(mb->GetCache(type)) + start;
+        int item_size;
 
-        TReplyState ret = range.getParam(start, count)->OnGetValue(type, mb->GetSlave(), start, count, cache_ptr);
+        if (type == COIL || type == DISCRETE_INPUT) {
+            cache_ptr = static_cast<uint8_t *>(mb->GetCache(type)) + start;
+            item_size = sizeof (uint8_t);
+        } else {
+            cache_ptr = static_cast<uint16_t *>(mb->GetCache(type)) + start;
+            item_size = sizeof (uint16_t);
+        }
+
+        auto segments = range.getSegments(start, count);//->OnGetValue(type, mb->GetSlave(), start, count, cache_ptr);
+        TReplyState reply;
+
+        for (auto &s : segments) {
+            const int count = s.getCount();
+            reply = s.getParam()->OnGetValue(type, mb->GetSlave(), s.getStart(), count, cache_ptr);
+            
+            if (item_size == sizeof (uint16_t)) {
+                cache_ptr = static_cast<uint16_t *>(cache_ptr) + count;
+            } else {
+                cache_ptr = static_cast<uint8_t *>(cache_ptr) + count;
+            }
+
+            if (reply > 0)
+                break;
+        }
         
-        if (ret <= 0)
+        if (reply <= 0)
             mb->Reply(query);
         else
-            mb->ReplyException(ret, query);
+            mb->ReplyException(reply, query);
     } catch (const WrongSegmentException &e) {
         mb->ReplyException(TReplyState::REPLY_ILLEGAL_ADDRESS, query);
     }
 }
 
-void TModbusServer::_ProcessWriteQuery(TStoreType type, TModbusAddressRange &range, int start, unsigned count, const TModbusQuery &query)
+void TModbusServer::_ProcessWriteQuery(TStoreType type, TModbusAddressRange &range, int start, unsigned count, const TModbusQuery &query, const void *data_ptr)
 {
     // reply then ask callback (modbus cache will contain required value)
     PModbusServerObserver obs;
 
     try {
-        obs = range.getParam(start, count);
+        int item_size;
+
+        if (type == COIL || type == DISCRETE_INPUT) {
+            item_size = sizeof (uint8_t);
+        } else {
+            item_size = sizeof (uint16_t);
+        }
+
+        auto segments = range.getSegments(start, count);
+        
+        TReplyState reply;
+
+        for (auto &s : segments) {
+            const int count = s.getCount();
+            reply = s.getParam()->OnSetValue(type, mb->GetSlave(), s.getStart(), count, data_ptr);
+            
+            if (item_size == sizeof (uint16_t)) {
+                data_ptr = static_cast<const uint16_t *>(data_ptr) + count;
+            } else {
+                data_ptr = static_cast<const uint8_t *>(data_ptr) + count;
+            }
+
+            if (reply > 0)
+                break;
+        }
+        
+        if (reply <= 0) {
+            mb->Reply(query);
+        } else {
+            mb->ReplyException(reply, query);
+            throw 10; // just to exit from try {} block
+        }
     } catch (const WrongSegmentException &e) {
         mb->ReplyException(TReplyState::REPLY_ILLEGAL_ADDRESS, query);
+    } catch (const int &) {
+        // dummy, just to get away
     }
-    
-    mb->Reply(query);
-
-    void *cache_ptr;
-    if (type == COIL || type == DISCRETE_INPUT)
-        cache_ptr = static_cast<uint8_t *>(mb->GetCache(type)) + start;
-    else
-        cache_ptr = static_cast<uint16_t *>(mb->GetCache(type)) + start;
-
-    obs->OnSetValue(type, mb->GetSlave(), start, count, cache_ptr);
 }

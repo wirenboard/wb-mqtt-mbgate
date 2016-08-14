@@ -44,6 +44,7 @@ public:
     virtual ~IModbusServerObserver();
 
     /*! Callback for READ_* functions
+     * Called before replying to Modbus client
      * May be ignored if observer stores cached value in server context
      * \param type      Type of store
      * \param unit_id   Modbus TCP unit ID (or ID of serial device in case of RTU)
@@ -55,12 +56,13 @@ public:
     virtual TReplyState OnGetValue(TStoreType type, uint8_t unit_id, uint16_t start, unsigned count, void *data);
     
     /*! Callback for WRITE_* functions
+     * Called before write action, may refuse writing if don't return REPLY_OK
      * May be ignored if observer stores cached value in server context
      * \param type      Type of store
      * \param unit_id   Modbus TCP unit ID (or ID of serial device in case of RTU)
      * \param start     First element address
      * \param count     Number of elements required
-     * \param data      Pointer to request data
+     * \param data      Pointer to query data
      * \return Reply state
      */
     virtual TReplyState OnSetValue(TStoreType type, uint8_t unit_id, uint16_t start, unsigned count, const void *data);
@@ -120,8 +122,10 @@ struct TModbusQuery
         if (data)
             delete [] data;
 
-        data = new uint8_t[size];
-        std::memcpy(data, q.data, size);
+        if (size > 0) {
+            data = new uint8_t[size];
+            std::memcpy(data, q.data, size);
+        }
     }
 
     ~TModbusQuery()
@@ -250,6 +254,11 @@ class TModbusServer
         return _IsSingleWriteCmd(cmd) || _IsMultiWriteCmd(cmd);
     }
 
+    inline bool _IsCoilWriteCmd(Command cmd)
+    {
+        return (cmd == FORCE_SINGLE_COIL) || (cmd == FORCE_MULTIPLE_COILS);
+    }
+
     inline uint16_t _ReadU16(const uint8_t *data) const
     {
         return (*data << 8) | (*(data + 1));
@@ -257,10 +266,16 @@ class TModbusServer
 
 public:
     /*! Modbus server constructor */
-    TModbusServer(PModbusBackend backend);
+    TModbusServer(PModbusBackend backend = PModbusBackend());
 
     /*! Virtual destructor */
     virtual ~TModbusServer() {}
+
+    /*! Set backend */
+    void Backend(PModbusBackend backend);
+
+    /*! Get backend */
+    PModbusBackend Backend();
 
     /*! Modbus main loop function
      */
@@ -282,7 +297,7 @@ public:
 private:
     void _ProcessQuery(const TModbusQuery &query);
     void _ProcessReadQuery(TStoreType type, TModbusAddressRange &range, int start, unsigned count, const TModbusQuery &query);
-    void _ProcessWriteQuery(TStoreType type, TModbusAddressRange &range, int start, unsigned count, const TModbusQuery &query);
+    void _ProcessWriteQuery(TStoreType type, TModbusAddressRange &range, int start, unsigned count, const TModbusQuery &query, const void *data);
 
     std::map<Command, TModbusAddressRange *> _CmdRangeMap;
     std::map<Command, TStoreType> _CmdStoreTypeMap;

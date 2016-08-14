@@ -1,7 +1,16 @@
 #include <gtest/gtest.h>
+#include <gmock/gmock.h>
 
 #include "address_range.h"
 #include <memory>
+#include <iostream>
+#include <exception>
+
+using namespace std;
+
+using ::testing::_;
+using ::testing::ElementsAre;
+
 
 typedef TAddressRange<int> TestAddressRange;
 typedef TAddressRange<std::shared_ptr<int>> TestPtrAddressRange;
@@ -196,8 +205,6 @@ TEST_F(TAddressRangeTest, InRangeTest)
     EXPECT_EQ(r1.inRange(8, 4), false);
 }
 
-#define EXPECT_EXCEPTION(a, b) try { a; FAIL(); } catch (const b&) { }
-
 TEST_F(TAddressRangeTest, GetParamTest)
 {
     TestAddressRange r1(0, 10, 1), r2(10, 10, 2), r3(100, 25, -1);
@@ -209,15 +216,51 @@ TEST_F(TAddressRangeTest, GetParamTest)
     EXPECT_EQ(r1.getParam(100), -1);
     EXPECT_EQ(r1.getParam(9), 1);
     
-    EXPECT_EXCEPTION(r1.getParam(20), WrongSegmentException);
-    EXPECT_EXCEPTION(r1.getParam(8, 4), WrongSegmentException);
-    EXPECT_EXCEPTION(r1.getParam(0, 11), WrongSegmentException);
+    EXPECT_THROW(r1.getParam(20), WrongSegmentException);
+    EXPECT_THROW(r1.getParam(8, 4), WrongSegmentException);
+    EXPECT_THROW(r1.getParam(0, 11), WrongSegmentException);
 }
 
 TEST_F(TAddressRangeTest, InsertFailureTest)
 {
     TestAddressRange r(0, 20, 1);
     
-    EXPECT_EXCEPTION(r + TestAddressRange(10, 20, 2), WrongSegmentException);
-    EXPECT_EXCEPTION(r.insert(10, 20, 2), WrongSegmentException);
+    EXPECT_THROW(r + TestAddressRange(10, 20, 2), WrongSegmentException);
+    EXPECT_THROW(r.insert(10, 20, 2), WrongSegmentException);
+    EXPECT_THROW(TestAddressRange(2, 1, 1) + TestAddressRange(0, 15, 2), WrongSegmentException);
+}
+
+TEST_F(TAddressRangeTest, DiffIntersectionTest)
+{
+    TestAddressRange test_range;
+    TestAddressRange result_range;
+
+    test_range.insert(0, 1, 1);
+    test_range.insert(1, 1, 2);
+}
+
+TEST_F(TAddressRangeTest, MultiSegmentsTest)
+{
+    TestAddressRange r, r1, r2, r3, r4, r5;
+
+    r1 = TestAddressRange(0, 5, 1);
+    r2 = TestAddressRange(5, 5, 2);
+    r3 = TestAddressRange(10, 5, 1);
+    r4 = TestAddressRange(15, 5, 3);
+
+    r5 = TestAddressRange(40, 5, 1);
+
+
+    r = r1 + r2 + r3 + r4 + r5;
+    auto list1 = r.getSegments(1, 14);
+    EXPECT_THAT(list1, ElementsAre(TestAddressRange(1, 4, 1), r2, TestAddressRange(10, 5, 1)));
+    
+    try {
+    auto list2 = r.getSegments(4, 2);
+    EXPECT_THAT(list2, ElementsAre(TestAddressRange(4, 1, 1), TestAddressRange(5, 1, 2)));
+    } catch (const WrongSegmentException &e) {
+        cerr << e.what() << endl;
+    }
+
+    EXPECT_THROW(r.getSegments(13, 40), WrongSegmentException);
 }
