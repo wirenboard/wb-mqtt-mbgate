@@ -3,6 +3,8 @@
 #include <string>
 
 #include <unistd.h>
+#include <signal.h>
+#include <cstring>
 
 #include "modbus_wrapper.h"
 #include "modbus_lmb_backend.h"
@@ -103,8 +105,33 @@ public:
     }
 };
 
+bool running = true;
+
+void sighndlr(int signal)
+{
+    running = false;
+}
+
+void set_sighandler()
+{
+    struct sigaction act;
+    memset(&act, 0, sizeof (act));
+    act.sa_handler = sighndlr;
+
+    sigset_t set;
+    sigemptyset(&set);
+    sigaddset(&set, SIGINT);
+    sigaddset(&set, SIGTERM);
+    act.sa_mask = set;
+
+    sigaction(SIGINT, &act, 0);
+    sigaction(SIGTERM, &act, 0);
+}
+
 int main(int argc, char *argv[])
 {
+    set_sighandler();
+
     int opt = 0;
 
     string hostname = "127.0.0.1";
@@ -135,9 +162,12 @@ int main(int argc, char *argv[])
 
     t->StartLoop();
 
-    while (1) {
-        s->Loop();
+    while (running) {
+        if (s->Loop() == -1)
+            break;
     }
+
+    cerr << "Shutting down..." << endl;
 
     t->StopLoop();
 

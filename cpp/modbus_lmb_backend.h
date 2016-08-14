@@ -120,7 +120,8 @@ public:
         tv.tv_sec = timeout / 1000;
 
         if (select(fd_max + 1, &rdset, NULL, NULL, timeout == -1 ? NULL : &tv) == -1) {
-            throw ModbusException(std::string("Error while select(): ") + strerror(errno));
+            if (errno != EINTR)
+                throw ModbusException(std::string("Error while select(): ") + strerror(errno));
             return -1; // TODO: error handling
         }
 

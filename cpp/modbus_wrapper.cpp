@@ -105,15 +105,19 @@ void TModbusServer::AllocateCache()
     _callCacheAllocate(_hr, HOLDING_REGISTER, mb->GetCache(HOLDING_REGISTER));
 }
 
-void TModbusServer::Loop(int timeout)
+int TModbusServer::Loop(int timeout)
 {
-    mb->WaitForMessages(timeout);
+    if (mb->WaitForMessages(timeout) == -1)
+        return -1;
+
     // receive message, process, run callback
     while (mb->Available()) {
         TModbusQuery q = mb->ReceiveQuery();
         if (q.size > 0)
             _ProcessQuery(q);
     }
+
+    return 0;
 }
 
 void TModbusServer::_ProcessQuery(const TModbusQuery &query)

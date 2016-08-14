@@ -278,8 +278,9 @@ public:
     PModbusBackend Backend();
 
     /*! Modbus main loop function
+     * \return 0 on success, -1 on error
      */
-    virtual void Loop(int timeout = -1);
+    virtual int Loop(int timeout = -1);
 
     /*! Cache allocation request
      * (Re)allocate cache values and tell observers about it
