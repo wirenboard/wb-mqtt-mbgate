@@ -45,6 +45,7 @@ def modbus_poller(id, stop_event, config):
                 break
             elif result.function_code == 132:
                 print "Server fault: " + str(result)
+                sleep(1)
                 break
 
         t = time() - t0

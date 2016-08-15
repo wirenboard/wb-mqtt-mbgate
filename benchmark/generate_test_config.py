@@ -6,6 +6,7 @@ import argparse
 
 output_file = sys.stdout
 
+
 def main():
     global output_file
 
@@ -13,7 +14,7 @@ def main():
 
     parser.add_argument("-c", "--config", help="Output file name", type=str, default="")
     parser.add_argument("-n", "--ncontrols", help="Number of flooding controls", type=int, required=True)
-    parser.add_argument("-s", "--server", help="Modbus TCP server listen address", type=str, default="127.0.0.1")
+    parser.add_argument("-s", "--server", help="Modbus TCP server listen address", type=str, default="*")
     parser.add_argument("-p", "--port", help="Modbus TCP port", type=int, default=502)
     parser.add_argument("--mqtt-server", help="MQTT hostname", type=str, default="localhost")
     parser.add_argument("--mqtt-port", help="MQTT port", default=1883)
@@ -23,8 +24,9 @@ def main():
     if args.config != "":
         output_file = open(args.config, "w")
 
-    config = {"debug": False, "address": args.server, "port": args.port}
-    config["mqtt"] = {"address": args.mqtt_server, "port": args.mqtt_port}
+    config = {"debug": False}
+    config["modbus"] = {"host": args.server, "port": args.port}
+    config["mqtt"] = {"host": args.mqtt_server, "port": args.mqtt_port}
 
     # fill registers
     config["registers"] = {"coils": [], "discretes": [], "inputs": [], "holdings": []}
