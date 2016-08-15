@@ -29,10 +29,10 @@ public:
     
 protected:
     /*! Pointer to Modbus cache area */
-    void* Cache = nullptr;
+    void* Cache;
 
     /*! Size of allocated cache - safety */
-    size_t CacheSize = 0;
+    size_t CacheSize;
 
     /*! Pointer to MQTT converter */
     PMQTTConverter Conv;

@@ -30,6 +30,13 @@ class TModbusTCPBackend : public IModbusBackend
 {
 public:
     TModbusTCPBackend(const char *hostname = "127.0.0.1", int port = 502)
+        : _context(nullptr)
+        , _mapping(nullptr)
+        , _error(0)
+        , slaveId(0)
+        , queryBuffer(nullptr)
+        , fd_max(-1)
+        , server_socket(-1)
     {
         char port_buffer[6]; // 5 dec symbols + \0
         std::snprintf(port_buffer, 6, "%u", port);
@@ -234,16 +241,16 @@ public:
     }
 
 protected:
-    modbus_t *_context = nullptr;
-    modbus_mapping_t *_mapping = nullptr;
-    int _error = 0;
-    uint8_t slaveId = 0;
-    uint8_t *queryBuffer = nullptr;
+    modbus_t *_context;
+    modbus_mapping_t *_mapping;
+    int _error;
+    uint8_t slaveId;
+    uint8_t *queryBuffer;
 
     std::queue<TModbusQuery> QueuedQueries;
 
 private:
     fd_set refset;
-    int fd_max = -1;
-    int server_socket = -1;
+    int fd_max;
+    int server_socket;
 };

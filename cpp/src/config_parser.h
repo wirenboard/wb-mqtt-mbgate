@@ -23,6 +23,7 @@ public:
     {
         return msg.c_str();
     }
+    virtual ~ConfigParserException() throw() {}
 };
 
 /*! Interface of config file parser

@@ -57,10 +57,22 @@ TEST_F(GatewayTest, SingleWriteTest)
         0x12, 0x34
     };
     TModbusQuery query1(q1, sizeof (q1), 0);
-
     ModbusBackend->PushQuery(query1);
 
+    // Write 1 register via Preset Multiple Registers
+    // Register 1 with value 0x5678 (22136)
+    uint8_t q2[] = {
+        0x10,
+        0x00, 0x01,
+        0x00, 0x01,
+        0x02,
+        0x56, 0x78
+    };
+    TModbusQuery query2(q2, sizeof (q2), 0);
+    ModbusBackend->PushQuery(query2);
+
     EXPECT_CALL(*Mqtt, Publish(_, string("/devices/device1/controls/topic1"), string("4660"), _, _)).WillOnce(Return(0));
+    EXPECT_CALL(*Mqtt, Publish(_, string("/devices/device1/controls/topic2"), string("22136"), _, _)).WillOnce(Return(0));
 
     while (!ModbusBackend->IncomingQueries.empty())
         ModbusServer->Loop();
@@ -78,13 +90,6 @@ TEST_F(GatewayTest, MultiWriteTest)
         0x56, 0x78
     };
     TModbusQuery query1(q1, sizeof (q1), 0);
-
-    uint8_t q2[] = {
-        0x10,
-        0x00, 0x00,
-        0x00, 0x02,
-    };
-    TModbusQuery query2(q2, sizeof (q2), 0);
 
     ModbusBackend->PushQuery(query1);
 

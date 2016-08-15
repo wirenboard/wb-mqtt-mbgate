@@ -98,13 +98,14 @@ struct TModbusQuery
         return TModbusQuery::emptyQuery();
     }
 
-    uint8_t *data = nullptr; /*!< Query raw data */
-    int size = 0; /*!< Query size */
-    int header_length = 0; /*!< Query header length - from Modbus context */
-    int socket_fd = -1; /*!< Reply socket descriptor (for TCP) */
+    uint8_t *data; /*!< Query raw data */
+    int size; /*!< Query size */
+    int header_length; /*!< Query header length - from Modbus context */
+    int socket_fd; /*!< Reply socket descriptor (for TCP) */
 
     TModbusQuery(uint8_t *_data, int _size, int _header_length, int _fd = -1)
-        : size(_size)
+        : data(nullptr)
+        , size(_size)
         , header_length(_header_length)
         , socket_fd(_fd)
     {
@@ -115,7 +116,8 @@ struct TModbusQuery
     }
 
     TModbusQuery(const TModbusQuery &q)
-        : size(q.size)
+        : data(nullptr)
+        , size(q.size)
         , header_length(q.header_length)
         , socket_fd(q.socket_fd)
     {
@@ -145,6 +147,7 @@ public:
     {
         return msg.c_str();
     }
+    virtual ~ModbusException() throw() {}
 };
 
 /*! Modbus backend interface

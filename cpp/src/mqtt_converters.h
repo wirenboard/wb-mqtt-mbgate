@@ -57,21 +57,21 @@ public:
         BCD         /*!< Binary-coded decimal */
     };
 protected:
-    IntegerType Type = SIGNED;
+    IntegerType Type;
 
     /*! Swap bytes in each register */
-    bool ByteSwap = false;
+    bool ByteSwap;
 
     /*! Swap registers (reverse order) */
-    bool WordSwap = false;
+    bool WordSwap;
 
     /*! Data scale multiplier (e.g. for "fixed point") */
-    double Scale = 1.0;
+    double Scale;
 
     /*! Size of resulting integer in bytes 
      * Values will be rounded up to nearest power of 2 (<= 8) 
      */
-    unsigned Size = 2;
+    unsigned Size;
 
 public:
     TMQTTIntConverter(IntegerType type = SIGNED, double scale = 1.0, unsigned size = 2,
@@ -100,13 +100,13 @@ class TMQTTFloatConverter : public IMQTTConverter
 {
 protected:
     /*! Value size in bytes, may be 4 or 8 for either "float" or "double" */
-    unsigned Size = 4;
+    unsigned Size;
 
     /*! Swap bytes in registers */
-    bool ByteSwap = false;
+    bool ByteSwap;
 
     /*! Swap words (reverse order) */
-    bool WordSwap = false;
+    bool WordSwap;
 
 public:
     TMQTTFloatConverter(unsigned size = 4, bool byteswap = false, bool wordswap = false)
@@ -128,13 +128,13 @@ class TMQTTTextConverter : public IMQTTConverter
 {
 protected:
     /*! String length in bytes (will be presented as 1 symbol per register) */
-    unsigned Size = 0;
+    unsigned Size;
 
     /*! Swap bytes in registers */
-    bool ByteSwap = false;
+    bool ByteSwap;
 
     /*! Swap words (reverse order) */
-    bool WordSwap = false;
+    bool WordSwap;
 
 public:
     TMQTTTextConverter(unsigned size = 0, bool byteswap = false, bool wordswap = false)

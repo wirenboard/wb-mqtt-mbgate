@@ -40,6 +40,8 @@ public:
     {
         return count;
     }
+
+    virtual ~WrongSegmentException() throw() {}
 };
 
 /*!

@@ -10,8 +10,11 @@
 using namespace std;
 
 TGatewayObserver::TGatewayObserver(const string &topic, PMQTTConverter conv, weak_ptr<TMQTTClientBase> mqtt)
-    : Conv(conv)
+    : Cache(nullptr)
+    , CacheSize(0)
+    , Conv(conv)
     , Mqtt(mqtt)
+
 {
     auto pieces = StringSplit(topic, '/');
     Topic = string("/devices/") + pieces[0] + string("/controls/") + pieces[1];

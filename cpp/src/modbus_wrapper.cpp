@@ -135,7 +135,7 @@ void TModbusServer::_ProcessQuery(const TModbusQuery &query)
     } else {
         if (_IsSingleWriteCmd(command)) {
             count = 1;
-        } else if (_IsMultiWriteCmd(command)) {
+        } else {
             count = _ReadU16(&(query.data[query.header_length + 3]));
         }
 
@@ -194,7 +194,7 @@ void TModbusServer::_ProcessReadQuery(TStoreType type, TModbusAddressRange &rang
         }
 
         auto segments = range.getSegments(start, count);//->OnGetValue(type, mb->GetSlave(), start, count, cache_ptr);
-        TReplyState reply;
+        TReplyState reply = REPLY_ILLEGAL_ADDRESS;
 
         for (auto &s : segments) {
             const int count = s.getCount();
@@ -235,7 +235,7 @@ void TModbusServer::_ProcessWriteQuery(TStoreType type, TModbusAddressRange &ran
 
         auto segments = range.getSegments(start, count);
         
-        TReplyState reply;
+        TReplyState reply = REPLY_ILLEGAL_ADDRESS;
 
         for (auto &s : segments) {
             const int count = s.getCount();
