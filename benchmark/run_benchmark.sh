@@ -29,7 +29,7 @@ TMPDIR=`mktemp -d`
 # copy it on remote device, stop remote daemon and start our instance
 scp $TMPDIR/gw-bench.conf root@$HOST\:/tmp/gw-bench.conf
 
-ssh root@$HOST "rm -rf /tmp/gw-profile.out && service wb-mqtt-mbgate stop && /usr/bin/wb-mqtt-mbgate -c /tmp/gw-bench.conf" &
+ssh root@$HOST "rm -rf /tmp/gw-profile.out && service wb-mqtt-mbgate stop && /usr/bin/wb-mqtt-mbgate -c /tmp/gw-bench.conf" >daemon.out 2>daemon.err &
 SSH_MBGATE_PID=$!
 
 # start flooder on given frequency
@@ -63,5 +63,10 @@ wait $FLOODER_PID
 ssh root@$HOST $'PID=`ps aux | grep "[w]b-mqtt-mbgate" | grep -v "bash" | head -1 | awk \'{print $2}\'` && kill $PID && while kill -0 $PID 2>/dev/null; do sleep 1; done  && rm -rf /tmp/gw-bench.conf'
 
 scp root@$HOST:./gmon.out ./gmon.out
+cp ../cpp/wb-mqtt-mbgate ./
+
+gprof ./wb-mqtt-mbgate ./gmon.out > prof.out
+
+less ./prof.out
 
 rm -rf TMPDIR

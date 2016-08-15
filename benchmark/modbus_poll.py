@@ -38,15 +38,16 @@ def modbus_poller(id, stop_event, config):
         for i in poll_range(config["num_controls"], config["chunk_size"]):
             result = client.read_input_registers(address=address, count=i, unit=1)
             address += i
-            if result.function_code >= 0x80 and result.function_code != 132:
-                log.warn("Server returned error!")
-                print result
-                stop_event.set()
-                break
-            elif result.function_code == 132:
-                print "Server fault: " + str(result)
-                sleep(1)
-                break
+            if result is not None:
+                if result.function_code >= 0x80 and result.function_code != 132:
+                    log.warn("Server returned error!")
+                    print result
+                    stop_event.set()
+                    break
+                elif result.function_code == 132:
+                    print "Server fault: " + str(result)
+                    sleep(1)
+                    break
 
         t = time() - t0
         log.info("Request took " + str(t) + " s")
