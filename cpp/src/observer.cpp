@@ -27,7 +27,7 @@ void TGatewayObserver::OnConnect(int rc)
         return;
 
     _Mqtt->Subscribe(nullptr, Topic, 0);
-    cerr << "Connected to MQTT server" << endl;
+    /* cerr << "Connected to MQTT server" << endl; */
 }
 
 void TGatewayObserver::OnMessage(const struct mosquitto_message *msg)
@@ -40,7 +40,7 @@ void TGatewayObserver::OnMessage(const struct mosquitto_message *msg)
     if (Topic != static_cast<char *>(msg->topic))
         return;
 
-    cerr << "Received message from " << static_cast<char *>(msg->topic) << ": " << static_cast<char *>(msg->payload) << endl;
+    /* cerr << "Received message from " << static_cast<char *>(msg->topic) << ": " << static_cast<char *>(msg->payload) << endl; */
 
     // pack incoming message into Modbus cache
     Conv->Pack(static_cast<char *>(msg->payload), Cache, CacheSize);
@@ -48,14 +48,14 @@ void TGatewayObserver::OnMessage(const struct mosquitto_message *msg)
 
 void TGatewayObserver::OnSubscribe(int mid, int qos_count, const int *granted_qos)
 {
-    cerr << "Subscribed on topic" << endl;
+    /* cerr << "Subscribed on topic" << endl; */
 }
 
 void TGatewayObserver::OnCacheAllocate(TStoreType type, const TModbusCacheAddressRange &range)
 {
     Cache = range.cbegin()->second.second;
     CacheSize = range.cbegin()->second.first;
-    cerr << "Cache allocated" << endl;
+    /* cerr << "Cache allocated" << endl; */
 }
 
 TReplyState TGatewayObserver::OnSetValue(TStoreType type, uint8_t unit_id, uint16_t start, unsigned count, const void *data)
@@ -68,7 +68,7 @@ TReplyState TGatewayObserver::OnSetValue(TStoreType type, uint8_t unit_id, uint1
 
     string res = Conv->Unpack(data, count);
     _Mqtt->Publish(nullptr, Topic, res);
-    cerr << "Set value w/Modbus: " << Topic << " : " << res << endl;
+    /* cerr << "Set value w/Modbus: " << Topic << " : " << res << endl; */
 
     return REPLY_OK;
 }
