@@ -29,7 +29,7 @@ TMPDIR=`mktemp -d`
 # copy it on remote device, stop remote daemon and start our instance
 scp $TMPDIR/gw-bench.conf root@$HOST\:/tmp/gw-bench.conf
 
-ssh root@$HOST "service wb-mqtt-mbgate stop && wb-mqtt-mbgate -c /tmp/gw-bench.conf" 2>./mbgate-stderr.out >./mbgate.out &
+ssh root@$HOST "rm -rf /tmp/gw-profile.out && service wb-mqtt-mbgate stop && python -m cProfile -o /tmp/gw-profile.out /usr/bin/wb-mqtt-mbgate -c /tmp/gw-bench.conf" &
 SSH_MBGATE_PID=$!
 
 # start flooder on given frequency
@@ -60,6 +60,16 @@ wait $SSH_MBGATE_PID
 # kill $FLOODER_PID
 wait $FLOODER_PID
 
-ssh root@$HOST "pkill -KILL wb-mqtt-mbgate && rm -rf /tmp/gw-bench.conf"
+ssh root@$HOST $'PID=`ps aux | grep "[w]b-mqtt-mbgate" | grep -v "bash" | head -1 | awk \'{print $2}\'` && kill $PID && while kill -0 $PID 2>/dev/null; do sleep 1; done  && rm -rf /tmp/gw-bench.conf'
+scp root@$HOST:/tmp/gw-profile.out ./
+
+
+# check if there is pyprof2calltree script and call it
+pp2ct=`which pyprof2calltree`
+
+if [ -x $pp2ct ]; then
+    pyprof2calltree -i ./gw-profile.out -o ./gw-profile.graph
+    echo "Converted cProfile to call graph into ./gw-profile.graph"
+fi
 
 rm -rf TMPDIR
