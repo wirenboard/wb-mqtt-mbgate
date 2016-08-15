@@ -109,6 +109,11 @@ bool running = true;
 
 void sighndlr(int signal)
 {
+    if (signal == SIGINT)
+        cerr << "SIGINT caught" << endl;
+    else
+        cerr << "SIGTERM caught" << endl;
+
     running = false;
 }
 
@@ -163,8 +168,13 @@ int main(int argc, char *argv[])
     t->StartLoop();
 
     while (running) {
-        if (s->Loop() == -1)
+        try {
+            if (s->Loop() == -1)
+                break;
+        } catch (const ModbusException &e) {
+            cerr << "Modbus loop error: " << e.what() << endl;
             break;
+        }
     }
 
     cerr << "Shutting down..." << endl;

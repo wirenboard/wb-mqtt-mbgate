@@ -6,6 +6,7 @@
 #include "mqtt_converters.h"
 #include <wbmqtt/mqtt_wrapper.h>
 #include "modbus_wrapper.h"
+#include "mqtt_fastwrapper.h"
 
 #include <jsoncpp/json/json.h>
 #include <string>
@@ -55,7 +56,7 @@ public:
     virtual bool Debug();
 
 private:
-    void _BuildStore(TStoreType type, Json::Value &list, PModbusServer modbus, PMQTTClient mqtt);
+    void _BuildStore(TStoreType type, Json::Value &list, PModbusServer modbus, PMQTTClient mqtt, PMQTTFastObserver obs);
 
 protected:
     Json::Value Root;

@@ -9,11 +9,22 @@
 #include "mqtt_converters.h"
 #include "modbus_lmb_backend.h"
 #include <wbmqtt/mqtt_wrapper.h>
+#include <wbmqtt/utils.h>
 #include "observer.h"
+#include "mqtt_fastwrapper.h"
 
 #include <tuple>
 
 using namespace std;
+
+namespace {
+    string expandTopic(const string &t)
+    {
+        auto lst = StringSplit(t, '/');
+        return string("/devices/") + lst[0] + "/controls/" + lst[1];
+    }
+};
+
 
 IConfigParser::~IConfigParser()
 {
@@ -58,17 +69,20 @@ tuple<PModbusServer, PMQTTClient> TJSONConfigParser::Build()
     mqtt_config.Port = mqtt_port;
 
     PMQTTClient mqtt = make_shared<TMQTTClient>(mqtt_config);
+    PMQTTFastObserver fobs = make_shared<TMQTTFastObserver>();
+
+    mqtt->Observe(fobs);
 
     // create observers and link'em with MQTT and Modbus
-    _BuildStore(COIL, Root["registers"]["coils"], modbus, mqtt);
-    _BuildStore(DISCRETE_INPUT, Root["registers"]["discretes"], modbus, mqtt);
-    _BuildStore(HOLDING_REGISTER, Root["registers"]["holdings"], modbus, mqtt);
-    _BuildStore(INPUT_REGISTER, Root["registers"]["inputs"], modbus, mqtt);
+    _BuildStore(COIL, Root["registers"]["coils"], modbus, mqtt, fobs);
+    _BuildStore(DISCRETE_INPUT, Root["registers"]["discretes"], modbus, mqtt, fobs);
+    _BuildStore(HOLDING_REGISTER, Root["registers"]["holdings"], modbus, mqtt, fobs);
+    _BuildStore(INPUT_REGISTER, Root["registers"]["inputs"], modbus, mqtt, fobs);
 
     return make_tuple(modbus, mqtt);
 }
 
-void TJSONConfigParser::_BuildStore(TStoreType type, Json::Value &list, PModbusServer modbus, PMQTTClient mqtt)
+void TJSONConfigParser::_BuildStore(TStoreType type, Json::Value &list, PModbusServer modbus, PMQTTClient mqtt, PMQTTFastObserver fobs)
 {
     cerr << "Processing store " << type << endl;
 
@@ -118,10 +132,10 @@ void TJSONConfigParser::_BuildStore(TStoreType type, Json::Value &list, PModbusS
             }
         }
 
-        obs = make_shared<TGatewayObserver>(topic, conv, mqtt);
+        obs = make_shared<TGatewayObserver>(expandTopic(topic), conv, mqtt);
 
-        cerr << "Creating observer on " << address << ":" << size << endl;
+        /* cerr << "Creating observer on " << address << ":" << size << endl; */
         modbus->Observe(obs, type, TModbusAddressRange(address, size));
-        mqtt->Observe(obs);
+        fobs->Observe(obs, expandTopic(topic));
     }
 }

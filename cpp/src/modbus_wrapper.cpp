@@ -107,7 +107,8 @@ void TModbusServer::AllocateCache()
 
 int TModbusServer::Loop(int timeout)
 {
-    if (mb->WaitForMessages(timeout) == -1)
+    int rc;
+    if ((rc = mb->WaitForMessages(timeout)) == -1)
         return -1;
 
     // receive message, process, run callback

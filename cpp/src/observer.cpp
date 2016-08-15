@@ -13,12 +13,9 @@ TGatewayObserver::TGatewayObserver(const string &topic, PMQTTConverter conv, wea
     : Cache(nullptr)
     , CacheSize(0)
     , Conv(conv)
+    , Topic(topic)
     , Mqtt(mqtt)
-
-{
-    auto pieces = StringSplit(topic, '/');
-    Topic = string("/devices/") + pieces[0] + string("/controls/") + pieces[1];
-}
+{}
 
 void TGatewayObserver::OnConnect(int rc)
 {

@@ -5,13 +5,13 @@ TARGET = wb-mqtt-mbgate
 OBJS = main.o
 SRC_DIR = src
 
-COMMON_OBJS = i_modbus_server_observer.o i_modbus_backend.o modbus_wrapper.o mqtt_converters.o observer.o config_parser.o
+COMMON_OBJS = i_modbus_server_observer.o i_modbus_backend.o modbus_wrapper.o mqtt_converters.o observer.o config_parser.o mqtt_fastwrapper.o
 
 TEST_DIR = test
-TEST_OBJS = main.o address_range_test.o modbus_server_test.o mock_modbus_observer.o converters_test.o mock_mqtt_client.o gateway_test.o
+TEST_OBJS = main.o address_range_test.o modbus_server_test.o mock_modbus_observer.o converters_test.o mock_mqtt_client.o gateway_test.o mqtt_fastwrapper_test.o
 TEST_TARGET = test-app
 TEST_LDFLAGS = -lgtest -lpthread -lgmock
-TEST_CXXFLAGS = -I. -O0
+TEST_CXXFLAGS = -I. -O0 -I$(SRC_DIR)
 
 TEST_OBJS := $(patsubst %, $(TEST_DIR)/%, $(TEST_OBJS))
 COMMON_OBJS := $(patsubst %, $(SRC_DIR)/%, $(COMMON_OBJS))
@@ -20,7 +20,7 @@ OBJS := $(patsubst %, $(SRC_DIR)/%, $(OBJS))
 CXX=g++
 LD=g++
 LDFLAGS=-lmodbus -lmosquittopp -lwbmqtt -ljsoncpp -pthread -pg
-CXXFLAGS=-std=c++0x -Wall -Werror -Os -pg #-ggdb
+CXXFLAGS=-std=c++0x -Wall -Werror -Os -pg
 
 all: $(TARGET)
 
