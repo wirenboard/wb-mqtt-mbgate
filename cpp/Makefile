@@ -51,9 +51,10 @@ install: all
 	install -d $(DESTDIR)
 	install -d $(DESTDIR)/etc
 	install -d $(DESTDIR)/usr/bin
-	install -d $(DESTDIR)/usr/share/wb-mqtt-mbgate
 
 	install -m 0644 wb-mqtt-mbgate.schema.json $(DESTDIR)/usr/share/wb-mqtt-confed/schemas/wb-mqtt-mbgate.schema.json
+	
+	install -m 0755 utils/generate_config.py $(DESTDIR)/usr/bin/wb-mqtt-mbgate-confgen
 	install -m 0755 $(TARGET) $(DESTDIR)/usr/bin/$(TARGET)
 
 
