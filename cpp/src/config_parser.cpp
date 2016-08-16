@@ -124,12 +124,20 @@ tuple<PModbusServer, PMQTTClient> TJSONConfigParser::Build()
     // create MQTT client
     string mqtt_host = Root["mqtt"]["host"].asString();
     int mqtt_port = Root["mqtt"]["port"].asInt();
+    int mqtt_keepalive;
+    if (!Root["mqtt"]["keepalive"]) {
+        mqtt_keepalive = 60;
+    } else {
+        mqtt_keepalive = Root["mqtt"]["keepalive"].asInt();
+    }
 
-    LOG(DEBUG) << "MQTT configuration: host " << mqtt_host << ", port " << mqtt_port;
+    LOG(DEBUG) << "MQTT configuration: host " << mqtt_host << ", port " << mqtt_port << ", keepalive " << mqtt_keepalive;
 
     TMQTTClient::TConfig mqtt_config;
     mqtt_config.Host = mqtt_host;
     mqtt_config.Port = mqtt_port;
+    mqtt_config.Keepalive = mqtt_keepalive;
+    mqtt_config.Id = "mqtt-mbgate";
 
     PMQTTClient mqtt = make_shared<TMQTTClient>(mqtt_config);
     PMQTTFastObserver fobs = make_shared<TMQTTFastObserver>();

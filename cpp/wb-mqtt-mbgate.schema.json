@@ -185,6 +185,13 @@
           "propertyOrder": 20
         },
 
+        "keepalive": {
+          "type": "integer",
+          "title": "Keep-alive interval",
+          "default": 60,
+          "propertyOrder": 25
+        },
+
         "auth": {
           "type": "boolean",
           "title": "Enable username+password authentification",
@@ -208,7 +215,7 @@
 
       },
 
-      "required": ["address", "port"],
+      "required": ["host", "port"],
       "propertyOrder": 35
     },
 
