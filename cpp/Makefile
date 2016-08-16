@@ -19,8 +19,8 @@ OBJS := $(patsubst %, $(SRC_DIR)/%, $(OBJS))
 
 CXX=g++
 LD=g++
-LDFLAGS=-lmodbus -lmosquittopp -lwbmqtt -ljsoncpp -llog4cpp -pthread -pg
-CXXFLAGS=-std=c++0x -Wall -Werror -Os -pg
+LDFLAGS=-lmodbus -lmosquittopp -lwbmqtt -ljsoncpp -llog4cpp -pthread 
+CXXFLAGS=-std=c++0x -Wall -Werror -O0 -ggdb
 
 all: $(TARGET)
 

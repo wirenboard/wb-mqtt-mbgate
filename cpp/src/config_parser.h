@@ -14,6 +14,9 @@
 #include <memory>
 #include <tuple>
 
+#include <log4cpp/Appender.hh>
+#include <log4cpp/PatternLayout.hh>
+
 /*! Config parser exception */
 class ConfigParserException : public std::exception
 {
@@ -51,6 +54,7 @@ class TJSONConfigParser : public IConfigParser
 {
 public:
     TJSONConfigParser(int argc, char *argv[]);
+    ~TJSONConfigParser();
 
     virtual std::tuple<PModbusServer, PMQTTClient> Build();
     virtual bool Debug();
@@ -60,4 +64,7 @@ private:
 
 protected:
     Json::Value Root;
+
+    log4cpp::PatternLayout *log_layout;
+    log4cpp::Appender *appender;
 };

@@ -19,6 +19,7 @@
 #include <log4cpp/RollingFileAppender.hh>
 #include <log4cpp/SyslogAppender.hh>
 #include <log4cpp/OstreamAppender.hh>
+#include <log4cpp/PatternLayout.hh>
 
 #include "logging.h"
 
@@ -63,6 +64,8 @@ TJSONConfigParser::TJSONConfigParser(int argc, char *argv[])
     Json::Reader reader;
 
     std::ifstream fileStream(config_file);
+    if (!fileStream.is_open())
+        throw ConfigParserException("Can't open configuration file");
 
     if (!reader.parse(fileStream, Root, false))
         throw ConfigParserException(string("Can't parse input JSON file: ") 
@@ -77,6 +80,9 @@ TJSONConfigParser::TJSONConfigParser(int argc, char *argv[])
 
     log4cpp::Category &log_root = log4cpp::Category::getRoot();
     long pid = getpid();
+
+    log_layout = new log4cpp::PatternLayout;
+    log_layout->setConversionPattern("%d{%Y-%m-%d %H:%M:%S.%l} %p: %m%n");
 
     log4cpp::Priority::PriorityLevel priority = log4cpp::Priority::WARN;
 
@@ -94,15 +100,23 @@ TJSONConfigParser::TJSONConfigParser(int argc, char *argv[])
             priority = log4cpp::Priority::DEBUG;
         }
         
+        appender = new log4cpp::OstreamAppender("cerr", &std::cerr);
+
         log_root.addAppender(new log4cpp::OstreamAppender("cerr", &std::cerr));
     } else if (Root["debug"].asBool()) {
         priority = log4cpp::Priority::INFO;
-        log_root.addAppender(new log4cpp::RollingFileAppender("default_log", logfile, max_logsize));
+        appender = new log4cpp::RollingFileAppender("default_log", logfile, max_logsize);
     } else {
-        log_root.addAppender(new log4cpp::SyslogAppender("syslog", "wb-mqtt-mbgate[" + to_string(pid) + "]"));
+        appender = new log4cpp::SyslogAppender("syslog", "wb-mqtt-mbgate[" + to_string(pid) + "]");
     }
 
+    appender->setLayout(log_layout);
+    log_root.addAppender(appender);
     log_root.setPriority(priority);
+}
+
+TJSONConfigParser::~TJSONConfigParser()
+{
 }
 
 bool TJSONConfigParser::Debug()
@@ -113,6 +127,11 @@ bool TJSONConfigParser::Debug()
 tuple<PModbusServer, PMQTTClient> TJSONConfigParser::Build()
 {
     // create Modbus server
+    if (!Root["mqtt"]["host"])
+        throw ConfigParserException("Modbus TCP server bind address is necessary but is not defined");
+    if (!Root["mqtt"]["port"])
+        throw ConfigParserException("Modbus TCP bind port is necessary but is not defined");
+
     string modbus_host = Root["modbus"]["host"].asString();
     int modbus_port = Root["modbus"]["port"].asInt();
 
@@ -122,6 +141,11 @@ tuple<PModbusServer, PMQTTClient> TJSONConfigParser::Build()
     PModbusServer modbus = make_shared<TModbusServer>(modbusBackend);
 
     // create MQTT client
+    if (!Root["mqtt"]["host"])
+        throw ConfigParserException("MQTT server address is necessary but is not defined");
+    if (!Root["mqtt"]["port"])
+        throw ConfigParserException("MQTT server port is necessary but is not defined");
+
     string mqtt_host = Root["mqtt"]["host"].asString();
     int mqtt_port = Root["mqtt"]["port"].asInt();
     int mqtt_keepalive;
