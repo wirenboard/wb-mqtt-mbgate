@@ -31,11 +31,11 @@ public:
         ModbusBackend->AllocateCache(100, 100, 100, 100);
     
         PMQTTConverter conv1 = make_shared<TMQTTIntConverter>(TMQTTIntConverter::SIGNED, 1.0, 2);
-        observers[0] = make_shared<TGatewayObserver>("device1/topic1", conv1, Mqtt);
+        observers[0] = make_shared<TGatewayObserver>("/devices/device1/controls/topic1", conv1, Mqtt);
         ModbusServer->Observe(observers[0], TStoreType::HOLDING_REGISTER, TModbusAddressRange(0, 1));
         Mqtt->Observe(observers[0]);
 
-        observers[1] = make_shared<TGatewayObserver>("device1/topic2", conv1, Mqtt);
+        observers[1] = make_shared<TGatewayObserver>("/devices/device1/controls/topic2", conv1, Mqtt);
         ModbusServer->Observe(observers[1], TStoreType::HOLDING_REGISTER, TModbusAddressRange(1, 1));
         Mqtt->Observe(observers[1]);
 
