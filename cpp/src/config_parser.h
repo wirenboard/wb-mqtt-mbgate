@@ -50,7 +50,7 @@ typedef std::shared_ptr<IConfigParser> PConfigParser;
 class TJSONConfigParser : public IConfigParser
 {
 public:
-    TJSONConfigParser(const std::string &filename);
+    TJSONConfigParser(int argc, char *argv[]);
 
     virtual std::tuple<PModbusServer, PMQTTClient> Build();
     virtual bool Debug();

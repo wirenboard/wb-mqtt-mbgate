@@ -87,8 +87,6 @@ public:
             Size = 4;
         else
             Size = 2;
-
-        /* std::cerr << "Integer converter, type " << type << ", scale " << scale << ", size" << size << std::endl; */
     }
 
     std::string Unpack(const void *data, size_t size);

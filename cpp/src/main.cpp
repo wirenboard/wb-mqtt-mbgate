@@ -2,7 +2,6 @@
 #include <memory>
 #include <string>
 
-#include <unistd.h>
 #include <signal.h>
 #include <cstring>
 
@@ -137,33 +136,15 @@ int main(int argc, char *argv[])
 {
     set_sighandler();
 
-    int opt = 0;
-
-    string hostname = "127.0.0.1";
-    string config_file = "";
-    /* int port = 502; */
-
-    while ((opt = getopt(argc, argv, "hs:p:c:")) != -1) {
-        switch (opt) {
-        case 's':
-            hostname = optarg;
-            break;
-        case 'p':
-            /* port = atoi(optarg); */
-            break;
-        case 'c':
-            config_file = optarg;
-            break;
-        case 'h':
-        default:
-            cerr << "Usage: " << argv[0] << " -s hostname -p port" << endl;
-            return 1;
-        }
-    }
-
     PModbusServer s;
     PMQTTClient t;
-    tie(s, t) = ModbusGatewayBuilder::fromConfig(make_shared<TJSONConfigParser>(config_file));
+
+    try {
+        tie(s, t) = ModbusGatewayBuilder::fromConfig(make_shared<TJSONConfigParser>(argc, argv));
+    } catch (const ConfigParserException& e) {
+        cerr << e.what() << endl;
+        return 1;
+    }
 
     t->StartLoop();
 

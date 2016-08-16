@@ -21,6 +21,8 @@
 #include <arpa/inet.h>
 #include <cstring>
 
+#include "logging.h"
+
 // Maximum number of connections
 #define NB_CONNECTIONS 2 
 
@@ -69,7 +71,7 @@ public:
     virtual void Listen()
     {
         if (server_socket >= 0)
-            return; // TODO: error handling
+            throw ModbusException("No opened socket to listen");
 
         server_socket = modbus_tcp_pi_listen(_context, NB_CONNECTIONS);
         if (server_socket < 1)
@@ -81,7 +83,7 @@ public:
         FD_ZERO(&refset);
         FD_SET(server_socket, &refset);
 
-        std::cerr << "Modbus listening" << std::endl;
+        LOG(INFO) << "Modbus listening";
     }
 
     virtual void AllocateCache(size_t di, size_t co, size_t ir, size_t hr)
@@ -94,7 +96,7 @@ public:
     virtual void *GetCache(TStoreType type)
     {
         if (!_mapping) {
-            return nullptr; // TODO: error handling
+            throw ModbusException("Cache is not allocated");
         }
 
         switch (type) {
@@ -107,7 +109,7 @@ public:
         case HOLDING_REGISTER:
             return _mapping->tab_registers;
         default:
-            return nullptr; // TODO: error handling
+            throw ModbusException("Unknown store type: " + std::to_string(type));
         }
     }
     
@@ -144,15 +146,14 @@ public:
 
                 int newfd = accept(server_socket, (struct sockaddr *) &client, &addrlen);
                 if (newfd == -1) {
-                    return -1; // TODO: error handling
+                    throw ModbusException(std::string("Error while accept(): ") + strerror(errno));
                 }
 
                 FD_SET(newfd, &refset);
                 if (newfd > fd_max)
                     fd_max = newfd;
 
-                // TODO: log incoming connection
-                /* std::cerr << "Modbus incoming connection" << std::endl; */
+                LOG(DEBUG) << "Modbus incoming connection";
             } else { // receiving new query
                 modbus_set_socket(_context, s);
 
@@ -161,8 +162,8 @@ public:
                     QueuedQueries.push(TModbusQuery(queryBuffer, rc, modbus_get_header_length(_context), s));
                     num_msgs++;
                 } else {
-                    // TODO: error handling + log disconnection
-                    /* std::cerr << "Modbus closed connection" << std::endl; */
+                    // TODO: error handling
+                    LOG(DEBUG) << "Modbus closed connection";
                     close(s);
                     FD_CLR(s, &refset);
 

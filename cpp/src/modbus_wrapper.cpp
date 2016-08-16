@@ -1,4 +1,5 @@
 #include "modbus_wrapper.h"
+#include "logging.h"
 
 #include <map>
 
@@ -103,6 +104,8 @@ void TModbusServer::AllocateCache()
     _callCacheAllocate(_co, COIL, mb->GetCache(COIL));
     _callCacheAllocate(_ir, INPUT_REGISTER, mb->GetCache(INPUT_REGISTER));
     _callCacheAllocate(_hr, HOLDING_REGISTER, mb->GetCache(HOLDING_REGISTER));
+
+    LOG(DEBUG) << "Modbus cache allocated";
 }
 
 int TModbusServer::Loop(int timeout)
