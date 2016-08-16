@@ -5,3 +5,6 @@
 *.changes
 *.dsc
 *.log
+.debhelper
+.ropeproject
+*/debian/wb-mqtt-mbgate
