@@ -33,7 +33,6 @@ class TModbusTCPBackend : public IModbusBackend
 public:
     TModbusTCPBackend(const char *hostname = "127.0.0.1", int port = 502)
         : _context(nullptr)
-        , _mapping(nullptr)
         , _error(0)
         , slaveId(0)
         , queryBuffer(nullptr)
@@ -52,8 +51,8 @@ public:
 
     ~TModbusTCPBackend()
     {
-        if (_mapping)
-            modbus_mapping_free(_mapping);
+        for (auto &p : _mappings)
+            modbus_mapping_free(p.second);
 
         if (_context)
             modbus_free(_context);
@@ -86,28 +85,32 @@ public:
         LOG(INFO) << "Modbus listening";
     }
 
-    virtual void AllocateCache(size_t di, size_t co, size_t ir, size_t hr)
+    virtual void AllocateCache(uint8_t slave_id, size_t di, size_t co, size_t ir, size_t hr)
     {
-        _mapping = modbus_mapping_new(co, di, hr, ir);
-        if (!_mapping)
+        if (_mappings[slave_id])
+            return; // TODO: reallocations?
+
+        _mappings[slave_id] = modbus_mapping_new(co, di, hr, ir);
+        
+        if (!_mappings[slave_id])
             _error = errno;
     }
 
-    virtual void *GetCache(TStoreType type)
+    virtual void *GetCache(TStoreType type, uint8_t slave_id = 0)
     {
-        if (!_mapping) {
-            throw ModbusException("Cache is not allocated");
+        if (!_mappings[slave_id]) {
+            throw ModbusException(std::string("Cache for slave ID ") + std::to_string(slave_id) + " is not allocated");
         }
 
         switch (type) {
         case DISCRETE_INPUT:
-            return _mapping->tab_input_bits;
+            return _mappings[slave_id]->tab_input_bits;
         case COIL:
-            return _mapping->tab_bits;
+            return _mappings[slave_id]->tab_bits;
         case INPUT_REGISTER:
-            return _mapping->tab_input_registers;
+            return _mappings[slave_id]->tab_input_registers;
         case HOLDING_REGISTER:
-            return _mapping->tab_registers;
+            return _mappings[slave_id]->tab_registers;
         default:
             throw ModbusException("Unknown store type: " + std::to_string(type));
         }
@@ -202,7 +205,7 @@ public:
 
         modbus_set_socket(_context, q.socket_fd);
 
-        if (modbus_reply(_context, q.data, q.size, _mapping) < 0)
+        if (modbus_reply(_context, q.data, q.size, _mappings[slaveId]) < 0)
             _error = errno;
     }
 
@@ -243,7 +246,7 @@ public:
 
 protected:
     modbus_t *_context;
-    modbus_mapping_t *_mapping;
+    std::map<uint8_t, modbus_mapping_t *> _mappings;
     int _error;
     uint8_t slaveId;
     uint8_t *queryBuffer;

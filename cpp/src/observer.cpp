@@ -42,7 +42,7 @@ void TGatewayObserver::OnSubscribe(int mid, int qos_count, const int *granted_qo
 {
 }
 
-void TGatewayObserver::OnCacheAllocate(TStoreType type, const TModbusCacheAddressRange &range)
+void TGatewayObserver::OnCacheAllocate(TStoreType type, uint8_t slave_id, const TModbusCacheAddressRange &range)
 {
     Cache = range.cbegin()->second.second;
     CacheSize = range.cbegin()->second.first;

@@ -71,8 +71,9 @@ public:
      * Modbus server tells about allocated cache memory
      * \param type      Type of store
      * \param cache     Cache address range with area begin pointers
+     * \param unit_id   Unit (slave) ID
      */
-    virtual void OnCacheAllocate(TStoreType type, const TModbusCacheAddressRange& cache);
+    virtual void OnCacheAllocate(TStoreType type, uint8_t unit_id, const TModbusCacheAddressRange& cache);
 };
 
 /*! Shared pointer to IModbusServerObserver */
@@ -157,9 +158,9 @@ class IModbusBackend : public std::enable_shared_from_this<IModbusBackend>
 {
 public:
     /*! Set slave ID for this instance 
-     * \param slave_id Slave ID (from 1 to 254) 
+     * \param slave_id Slave ID (from 1 to 254, 255 == 0xFF - for broadcast receives) 
      */
-    virtual void SetSlave(uint8_t slave_id) = 0;
+    virtual void SetSlave(uint8_t slave_id = 0xFF) = 0;
 
     /*! Get current slave ID */
     virtual uint8_t GetSlave() = 0;
@@ -168,18 +169,19 @@ public:
     virtual void Listen() = 0;
 
     /*! Allocate cache areas for this instance
+     * \param unit_id   Unit ID to allocate cache for
      * \param di Number of discrete inputs
      * \param co Number of coils
      * \param ir Number of input registers (2 bytes per register, so ir * 2 bytes will be allocated)
      * \param hr Number of holding registers
      */
-    virtual void AllocateCache(size_t di, size_t co, size_t ir, size_t hr) = 0;
+    virtual void AllocateCache(uint8_t unit_id, size_t di, size_t co, size_t ir, size_t hr) = 0;
     
     /*! Get cache base address
      * \param type Store type we want to get cache for
      * \return Pointer to cache base address
      */
-    virtual void *GetCache(TStoreType type) = 0;
+    virtual void *GetCache(TStoreType type, uint8_t slave_id = 0) = 0;
 
     /*! Poll new queries and fill queue
      * \param timeout Poll timeout (in ms)
@@ -290,12 +292,13 @@ public:
      */
     virtual void AllocateCache();
 
-    /*! Register observer for given store type and range
+    /*! Register observer for given slave ID, store type and range
      * \param o Pointer to observer object
+     * \param slave Slave ID
      * \param store Store type (member of TStoreType)
      * \param range Address range to handle
      */
-    virtual void Observe(PModbusServerObserver o, TStoreType store, const TModbusAddressRange &range);
+    virtual void Observe(PModbusServerObserver o, TStoreType store, const TModbusAddressRange &range, uint8_t slave_id=0);
     /* virtual void Unobserve(PModbusServerObserver o) = 0; */
 
 private:
@@ -306,9 +309,15 @@ private:
     std::map<Command, TModbusAddressRange *> _CmdRangeMap;
     std::map<Command, TStoreType> _CmdStoreTypeMap;
 
+    struct TRSet {
+        int di, co, ir, hr;
+    };
+    std::map<uint8_t, TRSet> _maxSlaveAddresses;
+
 protected:
     /*! Modbus address ranges */
     TModbusAddressRange _di, _co, _ir, _hr;
+
 
     PModbusBackend mb;
 };

@@ -10,7 +10,7 @@ TReplyState IModbusServerObserver::OnSetValue(TStoreType type, uint8_t unit_id, 
     return TReplyState::REPLY_OK;
 }
 
-void IModbusServerObserver::OnCacheAllocate(TStoreType type, const TModbusCacheAddressRange& cache)
+void IModbusServerObserver::OnCacheAllocate(TStoreType type, uint8_t unit_id, const TModbusCacheAddressRange& cache)
 {
 
 }

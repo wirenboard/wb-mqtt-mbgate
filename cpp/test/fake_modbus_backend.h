@@ -9,12 +9,14 @@ class TFakeModbusBackend : public IModbusBackend
 public:
     virtual ~TFakeModbusBackend()
     {
-        for (auto &item: Caches) {
-            if (item.second) {
-                if (item.first == COIL || item.first == DISCRETE_INPUT)
-                    delete [] static_cast<uint8_t *>(item.second);
-                else
-                    delete [] static_cast<uint16_t *>(item.second);
+        for (auto &slave: Caches) {
+            for (auto &item: slave.second) {
+                if (item.second) {
+                    if (item.first == COIL || item.first == DISCRETE_INPUT)
+                        delete [] static_cast<uint8_t *>(item.second);
+                    else
+                        delete [] static_cast<uint16_t *>(item.second);
+                }
             }
         }
     }
@@ -31,30 +33,31 @@ public:
     
     virtual void Listen() {}
 
-    /*! Allocate cache areas for this instance
+    /*! Allocate cache areas for this instance and given slave ID
+     * \param slave_id Slave ID
      * \param di Number of discrete inputs
      * \param co Number of coils
      * \param ir Number of input registers (2 bytes per register, so ir * 2 bytes will be allocated)
      * \param hr Number of holding registers
      */
-    virtual void AllocateCache(size_t di, size_t co, size_t ir, size_t hr) 
+    virtual void AllocateCache(uint8_t slave_id, size_t di, size_t co, size_t ir, size_t hr) 
     {
-        if (!Caches.empty())
+        if (!Caches[slave_id].empty())
             return; // no reallocation
-
-        Caches[DISCRETE_INPUT] = new uint8_t[di];
-        Caches[COIL] = new uint8_t[co];
-        Caches[INPUT_REGISTER] = new uint16_t[ir];
-        Caches[HOLDING_REGISTER] = new uint16_t[hr];
+        
+        Caches[slave_id][DISCRETE_INPUT] = new uint8_t[di];
+        Caches[slave_id][COIL] = new uint8_t[co];
+        Caches[slave_id][INPUT_REGISTER] = new uint16_t[ir];
+        Caches[slave_id][HOLDING_REGISTER] = new uint16_t[hr];
     }
     
     /*! Get cache base address
      * \param type Store type we want to get cache for
      * \return Pointer to cache base address
      */
-    virtual void *GetCache(TStoreType type) 
+    virtual void *GetCache(TStoreType type, uint8_t slave_id = 0) 
     {
-        return Caches[type];
+        return Caches[slave_id][type];
     }
 
     virtual int WaitForMessages(int timeout = -1)
@@ -117,7 +120,7 @@ public:
     }
 
 public:
-    std::map<TStoreType, void *> Caches;
+    std::map<uint8_t, std::map<TStoreType, void *>> Caches;
     std::queue<TModbusQuery> IncomingQueries;
     std::queue<TModbusQuery> RepliedQueries;
 

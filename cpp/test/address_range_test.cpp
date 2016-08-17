@@ -264,3 +264,18 @@ TEST_F(TAddressRangeTest, MultiSegmentsTest)
 
     EXPECT_THROW(r.getSegments(13, 40), WrongSegmentException);
 }
+
+TEST_F(TAddressRangeTest, ShiftTest)
+{
+    TestAddressRange r(0, 10, 1);
+    r += TestAddressRange(40, 10, 2);
+    TestAddressRange r2 = r + 10;
+    
+    TestAddressRange result1(10, 10, 1);
+    result1.insert(50, 10, 2);
+
+    EXPECT_EQ(r2, result1);
+
+    r2 -= 10;
+    EXPECT_EQ(r, r2);
+}

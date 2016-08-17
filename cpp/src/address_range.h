@@ -274,6 +274,48 @@ public:
         return true;
     }
 
+    /*! Shift range by given offset
+     * \param offset Offset
+     */
+    void shift(int offset)
+    {
+        std::map<int, std::pair<int, T>> nmap;
+
+        for (auto &segment : m) {
+            segment.second.first += offset;
+            nmap[segment.first + offset] = segment.second;
+        }
+
+        m = nmap;
+    }
+
+    /*! Alias for shift()
+     */
+    TAddressRange operator+(int offset) const
+    {
+        TAddressRange ret;
+        ret.insert(*this);
+        ret.shift(offset);
+        return ret;
+    }
+
+    TAddressRange operator-(int offset) const
+    {
+        return operator+(-offset);
+    }
+
+    TAddressRange& operator+=(int offset)
+    {
+        shift(offset);
+        return *this;
+    }
+
+    TAddressRange& operator-=(int offset)
+    {
+        return operator+=(-offset);
+    }
+
+
     void clear()
     {
         m.clear();
@@ -297,7 +339,7 @@ template<typename T>
 std::ostream& operator<<(std::ostream& str, const TAddressRange<T>& range)
 {
         for (const auto &p : range.m) {
-                str << "[" << p.first << ", " << p.second.first << ")" << std::endl;
+                str << "[" << p.first << ", " << p.second.first << ") => " << p.second.second << std::endl;
         }
 
         return str;

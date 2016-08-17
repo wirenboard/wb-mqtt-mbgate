@@ -31,7 +31,9 @@ public:
         Server = make_shared<TModbusServer>(Backend);
     
         // pre-allocate caches to get valid pointers everywhere
-        Backend->AllocateCache(100, 100, 100, 100);
+        Backend->AllocateCache(0, 100, 100, 100, 100);
+        Backend->AllocateCache(1, 100, 100, 100, 100);
+        Backend->AllocateCache(2, 100, 100, 100, 100);
     }
     void TearDown() {}
 };
@@ -46,21 +48,22 @@ TEST_F(ModbusServerTest, AllocationTest)
     obs2 = make_shared<MockModbusServerObserver>();
     obs3 = make_shared<MockModbusServerObserver>();
 
-    Server->Observe(obs1, COIL, range1);
-    Server->Observe(obs2, COIL, range2);
-    Server->Observe(obs3, INPUT_REGISTER, range3);
+    Server->Observe(obs1, COIL, range1, 1);
+    Server->Observe(obs2, COIL, range2, 1);
+    Server->Observe(obs3, INPUT_REGISTER, range3, 2);
 
     // get cache pointers
-    TModbusCacheAddressRange cache_range1(0, 10, Backend->GetCache(COIL));
-    TModbusCacheAddressRange cache_range2(10, 10, static_cast<uint8_t *>(Backend->GetCache(COIL)) + 10);
-    TModbusCacheAddressRange cache_range3(30, 5, static_cast<uint16_t *>(Backend->GetCache(INPUT_REGISTER)) + 30);
+    TModbusCacheAddressRange cache_range1(0, 10, Backend->GetCache(COIL, 1));
+    TModbusCacheAddressRange cache_range2(10, 10, static_cast<uint8_t *>(Backend->GetCache(COIL, 1)) + 10);
+
+    TModbusCacheAddressRange cache_range3(30, 5, static_cast<uint16_t *>(Backend->GetCache(INPUT_REGISTER, 2)) + 30);
 
 
-    EXPECT_CALL(*obs1, OnCacheAllocate(COIL, cache_range1))
+    EXPECT_CALL(*obs1, OnCacheAllocate(COIL, 1, cache_range1))
         .Times(1);
-    EXPECT_CALL(*obs2, OnCacheAllocate(COIL, cache_range2))
+    EXPECT_CALL(*obs2, OnCacheAllocate(COIL, 1, cache_range2))
         .Times(1);
-    EXPECT_CALL(*obs3, OnCacheAllocate(INPUT_REGISTER, cache_range3))
+    EXPECT_CALL(*obs3, OnCacheAllocate(INPUT_REGISTER, 2, cache_range3))
         .Times(1);
 
     Server->AllocateCache();
@@ -84,9 +87,9 @@ TEST_F(ModbusServerTest, ReadCallbackTest)
     TModbusCacheAddressRange cache_range3(40, 10, static_cast<uint16_t *>(Backend->GetCache(HOLDING_REGISTER)) + 40);
 
     // test allocators again, with same allocator for different ranges
-    EXPECT_CALL(*obs1, OnCacheAllocate(DISCRETE_INPUT, cache_range1)).Times(1);
-    EXPECT_CALL(*obs1, OnCacheAllocate(HOLDING_REGISTER, cache_range3)).Times(1);
-    EXPECT_CALL(*obs2, OnCacheAllocate(DISCRETE_INPUT, cache_range2)).Times(1);
+    EXPECT_CALL(*obs1, OnCacheAllocate(DISCRETE_INPUT, _, cache_range1)).Times(1);
+    EXPECT_CALL(*obs1, OnCacheAllocate(HOLDING_REGISTER, _, cache_range3)).Times(1);
+    EXPECT_CALL(*obs2, OnCacheAllocate(DISCRETE_INPUT, _, cache_range2)).Times(1);
 
     Server->AllocateCache();
 
@@ -125,9 +128,9 @@ TEST_F(ModbusServerTest, WriteCallbackTest)
     TModbusCacheAddressRange cache_range3(40, 10, static_cast<uint16_t *>(Backend->GetCache(HOLDING_REGISTER)) + 40);
 
     // test allocators again, with same allocator for different ranges
-    EXPECT_CALL(*obs1, OnCacheAllocate(DISCRETE_INPUT, cache_range1)).Times(1);
-    EXPECT_CALL(*obs1, OnCacheAllocate(HOLDING_REGISTER, cache_range3)).Times(1);
-    EXPECT_CALL(*obs2, OnCacheAllocate(DISCRETE_INPUT, cache_range2)).Times(1);
+    EXPECT_CALL(*obs1, OnCacheAllocate(DISCRETE_INPUT, _, cache_range1)).Times(1);
+    EXPECT_CALL(*obs1, OnCacheAllocate(HOLDING_REGISTER, _, cache_range3)).Times(1);
+    EXPECT_CALL(*obs2, OnCacheAllocate(DISCRETE_INPUT, _, cache_range2)).Times(1);
 
     Server->AllocateCache();
 

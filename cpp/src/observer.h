@@ -24,7 +24,7 @@ public:
 
     // Modbus callbacks
     virtual TReplyState OnSetValue(TStoreType type, uint8_t unit_id, uint16_t start, unsigned count, const void *data);
-    virtual void OnCacheAllocate(TStoreType type, const TModbusCacheAddressRange& cache);
+    virtual void OnCacheAllocate(TStoreType type, uint8_t area, const TModbusCacheAddressRange& cache);
     // no need of OnGetValue, use cache instead
     
 protected:

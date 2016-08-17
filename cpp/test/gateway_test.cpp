@@ -28,7 +28,7 @@ public:
         ModbusBackend = make_shared<TFakeModbusBackend>();
         ModbusServer = make_shared<TModbusServer>(ModbusBackend);
 
-        ModbusBackend->AllocateCache(100, 100, 100, 100);
+        ModbusBackend->AllocateCache(0, 100, 100, 100, 100);
     
         PMQTTConverter conv1 = make_shared<TMQTTIntConverter>(TMQTTIntConverter::SIGNED, 1.0, 2);
         observers[0] = make_shared<TGatewayObserver>("/devices/device1/controls/topic1", conv1, Mqtt);

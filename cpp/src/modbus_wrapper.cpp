@@ -40,30 +40,28 @@ PModbusBackend TModbusServer::Backend()
     return mb;
 }
 
-void TModbusServer::Observe(PModbusServerObserver o, TStoreType store, const TModbusAddressRange &range)
+void TModbusServer::Observe(PModbusServerObserver o, TStoreType store, const TModbusAddressRange &range, uint8_t slave_id)
 {
-    if (store & DISCRETE_INPUT)
-        _di.insert(range, o);
-    if (store & COIL)
-        _co.insert(range, o);
-    if (store & INPUT_REGISTER)
-        _ir.insert(range, o);
-    if (store & HOLDING_REGISTER)
-        _hr.insert(range, o);
+    int offset = slave_id << 16;
+    TRSet &max_addr = _maxSlaveAddresses[slave_id];
+
+#define PROCESS(a, b) do {\
+        if (store & (a)) {\
+            _##b.insert(range + offset, o);\
+            if (range.getEnd() > max_addr.b)\
+                max_addr.b = range.getEnd();\
+        } \
+    } while (0)
+
+    PROCESS(DISCRETE_INPUT, di);
+    PROCESS(COIL, co);
+    PROCESS(INPUT_REGISTER, ir);
+    PROCESS(HOLDING_REGISTER, hr);
+
+#undef PROCESS
 }
 
-// Helpers for AllocateCache()
-static int _getMaxAddress(const TModbusAddressRange &range)
-{
-    int max = 0;
-    for (auto item = range.cbegin(); item != range.cend(); ++item)
-        if (item->second.first > max)
-            max = item->second.first;
-
-    return max;
-}
-
-static void _callCacheAllocate(const TModbusAddressRange &range, TStoreType store, void *cache_start)
+static void _callCacheAllocate(const TModbusAddressRange &range, uint8_t slave_id, TStoreType store, void *cache_start)
 {
     map<PModbusServerObserver, TModbusCacheAddressRange> observers;
 
@@ -72,6 +70,11 @@ static void _callCacheAllocate(const TModbusAddressRange &range, TStoreType stor
         int cache_offset = item->first;
         void *cache_ptr = cache_start;
 
+        if (((cache_offset >> 16) & 0xFF) != slave_id)
+            continue;
+        else
+            cache_offset &= 0xFFFF;
+
         // shift data offset for 16-bit values
         if (store == INPUT_REGISTER || store == HOLDING_REGISTER)
             cache_ptr = static_cast<uint16_t *>(cache_ptr) + cache_offset;
@@ -79,32 +82,31 @@ static void _callCacheAllocate(const TModbusAddressRange &range, TStoreType stor
             cache_ptr = static_cast<uint8_t *>(cache_ptr) + cache_offset;
 
 
-        observers[item->second.second].insert(item->first, item->second.first - item->first, cache_ptr);
+        observers[item->second.second].insert(cache_offset, item->second.first - item->first, cache_ptr);
     }
 
     // call OnCacheAllocate() for each observer
     for (auto &item: observers) {
-        item.first->OnCacheAllocate(store, item.second);
+        item.first->OnCacheAllocate(store, slave_id, item.second);
     }
 }
 
 void TModbusServer::AllocateCache()
 {
-    // get maximum address for each register type
-    int max_di = _getMaxAddress(_di);
-    int max_co = _getMaxAddress(_co);
-    int max_ir = _getMaxAddress(_ir);
-    int max_hr = _getMaxAddress(_hr);
+    for (auto &s : _maxSlaveAddresses) {
+        const int slave_id = s.first;
+        const TRSet &r = s.second;
 
-    // allocate modbus mapping
-    mb->AllocateCache(max_di, max_co, max_ir, max_hr);
-
-    // call OnCacheAllocate with correct ranges for each observer
-    _callCacheAllocate(_di, DISCRETE_INPUT, mb->GetCache(DISCRETE_INPUT));
-    _callCacheAllocate(_co, COIL, mb->GetCache(COIL));
-    _callCacheAllocate(_ir, INPUT_REGISTER, mb->GetCache(INPUT_REGISTER));
-    _callCacheAllocate(_hr, HOLDING_REGISTER, mb->GetCache(HOLDING_REGISTER));
-
+        // allocate modbus mapping
+        mb->AllocateCache(slave_id, r.di, r.co, r.ir, r.hr);
+        
+        // call OnCacheAllocate with correct ranges for each observer
+        _callCacheAllocate(_di, slave_id, DISCRETE_INPUT, mb->GetCache(DISCRETE_INPUT, slave_id));
+        _callCacheAllocate(_co, slave_id, COIL, mb->GetCache(COIL, slave_id));
+        _callCacheAllocate(_ir, slave_id, INPUT_REGISTER, mb->GetCache(INPUT_REGISTER, slave_id));
+        _callCacheAllocate(_hr, slave_id, HOLDING_REGISTER, mb->GetCache(HOLDING_REGISTER, slave_id));
+    }
+    
     LOG(DEBUG) << "Modbus cache allocated";
 }
 
@@ -129,7 +131,13 @@ void TModbusServer::_ProcessQuery(const TModbusQuery &query)
     // get command code
     Command command = static_cast<Command>(query.data[query.header_length]);
 
+    // get register address
     uint16_t start_address = _ReadU16(&(query.data[query.header_length + 1]));
+
+    // get slave ID and append it to address
+    if (query.header_length > 0)
+        start_address |= query.data[query.header_length - 1] << 16;
+
     uint16_t count;
 
     // get command data - address range and access mode
