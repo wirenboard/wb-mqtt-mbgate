@@ -303,8 +303,8 @@ public:
 
 private:
     void _ProcessQuery(const TModbusQuery &query);
-    void _ProcessReadQuery(TStoreType type, TModbusAddressRange &range, int start, unsigned count, const TModbusQuery &query);
-    void _ProcessWriteQuery(TStoreType type, TModbusAddressRange &range, int start, unsigned count, const TModbusQuery &query, const void *data);
+    void _ProcessReadQuery(TStoreType type, TModbusAddressRange &range, uint8_t slave_id, int start, unsigned count, const TModbusQuery &query);
+    void _ProcessWriteQuery(TStoreType type, TModbusAddressRange &range, uint8_t slave_id, int start, unsigned count, const TModbusQuery &query, const void *data);
 
     std::map<Command, TModbusAddressRange *> _CmdRangeMap;
     std::map<Command, TStoreType> _CmdStoreTypeMap;

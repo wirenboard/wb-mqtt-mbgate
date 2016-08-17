@@ -8,7 +8,7 @@ SRC_DIR = src
 COMMON_OBJS = i_modbus_server_observer.o i_modbus_backend.o modbus_wrapper.o mqtt_converters.o observer.o mqtt_fastwrapper.o
 
 TEST_DIR = test
-TEST_OBJS = main.o address_range_test.o modbus_server_test.o mock_modbus_observer.o converters_test.o mock_mqtt_client.o gateway_test.o mqtt_fastwrapper_test.o
+TEST_OBJS = main.o address_range_test.o modbus_server_test.o mock_modbus_observer.o converters_test.o mock_mqtt_client.o gateway_test.o mqtt_fastwrapper_test.o multi_unitid_test.o
 TEST_TARGET = test-app
 TEST_LDFLAGS = -lgtest -lpthread -lgmock
 TEST_CXXFLAGS = -I. -O0 -I$(SRC_DIR)
@@ -34,7 +34,7 @@ test/%.o: test/%.cpp
 	$(CXX) -c $(CXXFLAGS) $(TEST_CXXFLAGS) -o $@ $^
 
 test: $(TEST_DIR)/$(TEST_TARGET)
-	valgrind --error-exitcode=180 -q $(TEST_DIR)/$(TEST_TARGET) --gtest_catch_exceptions=0 || \
+	valgrind --error-exitcode=180 -q $(TEST_DIR)/$(TEST_TARGET)  || \
 		if [ $$? = 180 ]; then \
 			echo "*** VALGRIND DETECTED ERRORS ***" 1>&2; \
 			exit 1; \

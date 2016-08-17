@@ -57,6 +57,9 @@ public:
      */
     virtual void *GetCache(TStoreType type, uint8_t slave_id = 0) 
     {
+        if (Caches.find(slave_id) == Caches.end())
+            throw ModbusException(std::string("Cache for slave id ") + std::to_string(slave_id) + " is not allocated");
+
         return Caches[slave_id][type];
     }
 

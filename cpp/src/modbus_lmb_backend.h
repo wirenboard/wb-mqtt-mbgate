@@ -203,9 +203,17 @@ public:
         if (q.size <= 0) 
             return;
 
+        uint8_t slave_id = 0;
+        if (q.header_length > 0)
+            slave_id = q.data[q.header_length - 1];
+
         modbus_set_socket(_context, q.socket_fd);
 
-        if (modbus_reply(_context, q.data, q.size, _mappings[slaveId]) < 0)
+        if (_mappings.find(slave_id) == _mappings.end())
+            throw ModbusException(std::string("Trying to reply on query with unknown slave ID ") 
+                    + std::to_string(slave_id));
+
+        if (modbus_reply(_context, q.data, q.size, _mappings[slave_id]) < 0)
             _error = errno;
     }
 

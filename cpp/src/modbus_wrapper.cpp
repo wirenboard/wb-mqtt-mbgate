@@ -133,17 +133,19 @@ void TModbusServer::_ProcessQuery(const TModbusQuery &query)
 
     // get register address
     uint16_t start_address = _ReadU16(&(query.data[query.header_length + 1]));
+    uint8_t slave_id = 0;
 
     // get slave ID and append it to address
-    if (query.header_length > 0)
-        start_address |= query.data[query.header_length - 1] << 16;
+    if (query.header_length > 0) {
+        slave_id = query.data[query.header_length - 1];
+    }
 
     uint16_t count;
 
     // get command data - address range and access mode
     if (_IsReadCmd(command)) {
         count = _ReadU16(&(query.data[query.header_length + 3]));
-        _ProcessReadQuery(_CmdStoreTypeMap[command], *_CmdRangeMap[command], start_address, count, query);
+        _ProcessReadQuery(_CmdStoreTypeMap[command], *_CmdRangeMap[command], slave_id, start_address, count, query);
     } else {
         if (_IsSingleWriteCmd(command)) {
             count = 1;
@@ -151,6 +153,7 @@ void TModbusServer::_ProcessQuery(const TModbusQuery &query)
             count = _ReadU16(&(query.data[query.header_length + 3]));
         }
 
+        // get values from write request to run pre-write action
         void *values;
 
         if (_IsCoilWriteCmd(command)) {
@@ -180,7 +183,7 @@ void TModbusServer::_ProcessQuery(const TModbusQuery &query)
             values = int_values;
         }
         
-        _ProcessWriteQuery(_CmdStoreTypeMap[command], *_CmdRangeMap[command], start_address, count, query, values);
+        _ProcessWriteQuery(_CmdStoreTypeMap[command], *_CmdRangeMap[command], slave_id, start_address, count, query, values);
 
         if (_IsCoilWriteCmd(command)) {
             delete [] static_cast<uint8_t*>(values);
@@ -190,27 +193,34 @@ void TModbusServer::_ProcessQuery(const TModbusQuery &query)
     }
 }
 
-void TModbusServer::_ProcessReadQuery(TStoreType type, TModbusAddressRange &range, int start, unsigned count, const TModbusQuery &query)
+void TModbusServer::_ProcessReadQuery(TStoreType type, TModbusAddressRange &range, uint8_t slave_id, int start, unsigned count, const TModbusQuery &query)
 {
     // ask callback, then reply
     try {
         void *cache_ptr;
         int item_size;
-
-        if (type == COIL || type == DISCRETE_INPUT) {
-            cache_ptr = static_cast<uint8_t *>(mb->GetCache(type)) + start;
-            item_size = sizeof (uint8_t);
-        } else {
-            cache_ptr = static_cast<uint16_t *>(mb->GetCache(type)) + start;
-            item_size = sizeof (uint16_t);
+        
+        try {
+            if (type == COIL || type == DISCRETE_INPUT) {
+                cache_ptr = static_cast<uint8_t *>(mb->GetCache(type, slave_id)) + start;
+                item_size = sizeof (uint8_t);
+            } else {
+                cache_ptr = static_cast<uint16_t *>(mb->GetCache(type, slave_id)) + start;
+                item_size = sizeof (uint16_t);
+            }
+        } catch (const ModbusException &e) {
+            mb->ReplyException(TReplyState::REPLY_ILLEGAL_ADDRESS, query);
+            return;
         }
 
-        auto segments = range.getSegments(start, count);//->OnGetValue(type, mb->GetSlave(), start, count, cache_ptr);
+        int slave_offset = slave_id << 16;
+
+        auto segments = range.getSegments(start + slave_offset, count);//->OnGetValue(type, mb->GetSlave(), start, count, cache_ptr);
         TReplyState reply = REPLY_ILLEGAL_ADDRESS;
 
         for (auto &s : segments) {
             const int count = s.getCount();
-            reply = s.getParam()->OnGetValue(type, mb->GetSlave(), s.getStart(), count, cache_ptr);
+            reply = s.getParam()->OnGetValue(type, slave_id, s.getStart() - slave_offset, count, cache_ptr);
             
             if (item_size == sizeof (uint16_t)) {
                 cache_ptr = static_cast<uint16_t *>(cache_ptr) + count;
@@ -231,7 +241,7 @@ void TModbusServer::_ProcessReadQuery(TStoreType type, TModbusAddressRange &rang
     }
 }
 
-void TModbusServer::_ProcessWriteQuery(TStoreType type, TModbusAddressRange &range, int start, unsigned count, const TModbusQuery &query, const void *data_ptr)
+void TModbusServer::_ProcessWriteQuery(TStoreType type, TModbusAddressRange &range, uint8_t slave_id, int start, unsigned count, const TModbusQuery &query, const void *data_ptr)
 {
     // reply then ask callback (modbus cache will contain required value)
     PModbusServerObserver obs;
@@ -244,14 +254,17 @@ void TModbusServer::_ProcessWriteQuery(TStoreType type, TModbusAddressRange &ran
         } else {
             item_size = sizeof (uint16_t);
         }
+        
+        int slave_offset = slave_id << 16;
 
-        auto segments = range.getSegments(start, count);
+        auto segments = range.getSegments(start + slave_offset, count);
+        
         
         TReplyState reply = REPLY_ILLEGAL_ADDRESS;
 
         for (auto &s : segments) {
             const int count = s.getCount();
-            reply = s.getParam()->OnSetValue(type, mb->GetSlave(), s.getStart(), count, data_ptr);
+            reply = s.getParam()->OnSetValue(type, slave_id, s.getStart() - slave_offset, count, data_ptr);
             
             if (item_size == sizeof (uint16_t)) {
                 data_ptr = static_cast<const uint16_t *>(data_ptr) + count;

@@ -102,10 +102,8 @@ TEST_F(ModbusServerTest, ReadCallbackTest)
     Backend->PushQuery(read1);
     Backend->PushQuery(read2);
 
-    Backend->SetSlave(0x42);
-
-    EXPECT_CALL(*obs1, OnGetValue(DISCRETE_INPUT, 0x42, 5, 2, static_cast<uint8_t *>(Backend->GetCache(DISCRETE_INPUT)) + 5)).WillOnce(Return(REPLY_CACHED));
-    EXPECT_CALL(*obs2, OnGetValue(DISCRETE_INPUT, 0x42, 10, 2, static_cast<uint8_t *>(Backend->GetCache(DISCRETE_INPUT)) + 10)).WillOnce(Return(REPLY_CACHED));
+    EXPECT_CALL(*obs1, OnGetValue(DISCRETE_INPUT, 0, 5, 2, static_cast<uint8_t *>(Backend->GetCache(DISCRETE_INPUT)) + 5)).WillOnce(Return(REPLY_CACHED));
+    EXPECT_CALL(*obs2, OnGetValue(DISCRETE_INPUT, 0, 10, 2, static_cast<uint8_t *>(Backend->GetCache(DISCRETE_INPUT)) + 10)).WillOnce(Return(REPLY_CACHED));
 
     while (!Backend->IncomingQueries.empty())
         Server->Loop();
@@ -150,9 +148,7 @@ TEST_F(ModbusServerTest, WriteCallbackTest)
     Backend->PushQuery(write1);
     /* Backend->PushQuery(read2); */
 
-    EXPECT_CALL(*obs1, OnSetValue(HOLDING_REGISTER, 0x42, 40, 2, Pointee16_2(0x1234, 0x5678))).WillOnce(Return(REPLY_OK));
-
-    Backend->SetSlave(0x42);
+    EXPECT_CALL(*obs1, OnSetValue(HOLDING_REGISTER, 0, 40, 2, Pointee16_2(0x1234, 0x5678))).WillOnce(Return(REPLY_OK));
 
     while (!Backend->IncomingQueries.empty())
         Server->Loop();

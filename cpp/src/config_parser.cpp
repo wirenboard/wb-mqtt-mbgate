@@ -7,6 +7,7 @@
 #include <tuple>
 #include <jsoncpp/json/json.h>
 #include <unistd.h>
+#include <time.h>
 
 #include "mqtt_converters.h"
 #include "modbus_lmb_backend.h"
@@ -101,8 +102,6 @@ TJSONConfigParser::TJSONConfigParser(int argc, char *argv[])
         }
         
         appender = new log4cpp::OstreamAppender("cerr", &std::cerr);
-
-        log_root.addAppender(new log4cpp::OstreamAppender("cerr", &std::cerr));
     } else if (Root["debug"].asBool()) {
         priority = log4cpp::Priority::INFO;
         appender = new log4cpp::RollingFileAppender("default_log", logfile, max_logsize);
@@ -161,7 +160,7 @@ tuple<PModbusServer, PMQTTClient> TJSONConfigParser::Build()
     mqtt_config.Host = mqtt_host;
     mqtt_config.Port = mqtt_port;
     mqtt_config.Keepalive = mqtt_keepalive;
-    mqtt_config.Id = "mqtt-mbgate";
+    mqtt_config.Id = string("mqtt-mbgate-") + to_string(time(NULL));
 
     PMQTTClient mqtt = make_shared<TMQTTClient>(mqtt_config);
     PMQTTFastObserver fobs = make_shared<TMQTTFastObserver>();
@@ -174,7 +173,7 @@ tuple<PModbusServer, PMQTTClient> TJSONConfigParser::Build()
     _BuildStore(HOLDING_REGISTER, Root["registers"]["holdings"], modbus, mqtt, fobs);
     _BuildStore(INPUT_REGISTER, Root["registers"]["inputs"], modbus, mqtt, fobs);
 
-    // append logger
+    // append logger if necessary
     if (log4cpp::Category::getRoot().getPriority() >= log4cpp::Priority::INFO) {
         PMQTTLoggingObserver log_obs = make_shared<TMQTTLoggingObserver>();
         mqtt->Observe(log_obs);
@@ -192,6 +191,7 @@ void TJSONConfigParser::_BuildStore(TStoreType type, Json::Value &list, PModbusS
             continue;
 
         int address = reg_item["address"].asInt();
+        int slave_id = reg_item["unitId"].asInt();
         string topic = reg_item["topic"].asString();
         int size;
 
@@ -236,7 +236,7 @@ void TJSONConfigParser::_BuildStore(TStoreType type, Json::Value &list, PModbusS
         obs = make_shared<TGatewayObserver>(expandTopic(topic), conv, mqtt);
 
         LOG(DEBUG) << "Creating observer on " << address << ":" << size;
-        modbus->Observe(obs, type, TModbusAddressRange(address, size));
+        modbus->Observe(obs, type, TModbusAddressRange(address, size), slave_id);
         fobs->Observe(obs, expandTopic(topic));
     }
 }
