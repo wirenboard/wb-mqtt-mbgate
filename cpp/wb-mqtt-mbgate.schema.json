@@ -234,7 +234,7 @@
           "description": "Change base addresses to fit all resized values. This flag will be cleared on next start of daemon",
           "default": false,
           "_format": "checkbox",
-          "propertyOrder": 0
+          "propertyOrder": 1
         },
         
         "discretes": {

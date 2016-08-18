@@ -148,6 +148,7 @@ def process_table(table):
             print >>sys.stderr, "Topic %s taken from old config" % (topic)
 
     result["registers"] = dict()
+    result["registers"]["remap_values"] = False
 
     for cat in regs.keys():
         result["registers"][cat] = regs[cat].getValues()
@@ -247,8 +248,11 @@ def main(args=None):
                 if old_config["registers"]["remap_values"]:
                     global remap_values
                     remap_values = True
+                    del old_config["registers"]["remap_values"]
+                    print "Remap is on"
 
             except:
+                print "Failed to open config"
                 pass
         config_file = open(args.config, "w")
 
