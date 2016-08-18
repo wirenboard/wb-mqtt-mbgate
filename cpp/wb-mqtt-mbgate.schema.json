@@ -84,7 +84,7 @@
           "size": {
             "type": "integer",
             "title": "Size (in bytes)",
-            "description": "for non-discrete types, 0 for auto, -1 to disable",
+            "description": "for non-discrete types, -1 to disable",
             "minimum": -1,
             "propertyOrder": 50
           },
