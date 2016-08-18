@@ -227,6 +227,15 @@
       "propertyOrder": 40,
       
       "properties": {
+
+        "remap_values": {
+          "type": "boolean",
+          "title": "Remap addresses after edit",
+          "description": "Change base addresses to fit all resized values. This flag will be cleared on next start of daemon",
+          "default": false,
+          "_format": "checkbox",
+          "propertyOrder": 0
+        },
         
         "discretes": {
           "type": "array",

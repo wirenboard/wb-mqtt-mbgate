@@ -8,6 +8,11 @@ import time
 import random
 import argparse
 
+# Salt for address hashtable in case of match
+ADDR_SALT = 7079
+
+# Unit IDs reserved for user (255 - reserved in Modbus)
+RESERVED_UNIT_IDS = [0, 1, 255]
 
 client = None
 table = dict()
@@ -25,6 +30,8 @@ mb_hostname = "*"
 mb_port = 502
 
 c_debug = False
+remap_values = False
+
 
 class RegDiscr(object):
     def __init__(self, topic, meta_type, enabled=False, address=-1, unitId=-1):
@@ -39,8 +46,9 @@ class RegDiscr(object):
 
 
 class Register(RegDiscr):
-    def __init__(self, topic, meta_type, enabled = False, address=-1, unitId=-1,
-    format="double", size=8, max=0, scale=1, byteswap=False, wordswap=False):
+    def __init__(self, topic, meta_type, enabled = False, address=-1, unitId=-1,\
+        format="signed", size=2, max=0, scale=1, byteswap=False, wordswap=False):
+
         RegDiscr.__init__(self, topic, meta_type, enabled, address, unitId)
         self.format = format
         self.size = size
@@ -62,16 +70,24 @@ class RegSpace:
     def __init__(self, name):
         self.name = name
         self.values = list()
-        self.address = 0
+        self.addrs = set()
 
     def append(self, value):
-        if value.address >= 0:  # handle this as old value
-            if self.address < value.address + value.getSize():
-                self.address = value.address + value.getSize()
+        if value.address >= 0 and (not remap_values):  # handle this as old value
+            for i in range(0, value.getSize()):
+                self.addrs.add(value.address + i | (value.unitId << 16))
         else:
-            value.address = self.address % 65536
-            value.unitId = int(self.address / 65536) + 1
-            self.address += value.getSize()
+            # add new address
+            addr_hash = hash(value.topic) & 0xFFFFFF
+            while (addr_hash in self.addrs) or ((addr_hash >> 16) != ((addr_hash + value.getSize() - 1) >> 16)) \
+                                            or (addr_hash >> 16 in RESERVED_UNIT_IDS):
+                addr_hash = (addr_hash + ADDR_SALT) & 0xFFFFFF
+
+            for i in range(0, value.getSize()):
+                self.addrs.add(addr_hash + i)
+
+            value.address = addr_hash % 65536
+            value.unitId = int(addr_hash / 65536) + 1
 
         self.values.append(value)
 
@@ -228,6 +244,10 @@ def main(args=None):
         if not args.force_create:
             try:
                 old_config = json.loads(open(args.config, "r").read())
+                if old_config["registers"]["remap_values"]:
+                    global remap_values
+                    remap_values = True
+
             except:
                 pass
         config_file = open(args.config, "w")
