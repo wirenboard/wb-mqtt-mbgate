@@ -245,11 +245,10 @@ def main(args=None):
         if not args.force_create:
             try:
                 old_config = json.loads(open(args.config, "r").read())
-                if old_config["registers"]["remap_values"]:
+                if "remap_values" in old_config["registers"]:
                     global remap_values
-                    remap_values = True
+                    remap_values = old_config["registers"]["remap_values"]
                     del old_config["registers"]["remap_values"]
-                    print "Remap is on"
 
             except:
                 print "Failed to open config"
