@@ -172,6 +172,10 @@ def process_channel(obj, topic):
 
     text = False
 
+    if "meta_type" not in obj:
+        print "WARNING: " + topic + " has no meta_type"
+        return
+
     if obj["meta_type"] == "text":
         text = True
 
@@ -206,7 +210,7 @@ def mqtt_on_message(arg0, arg1, arg2=None):
     if msg.retain:
         if not topic_matches_sub("/devices/+/controls/name", msg.topic):
             if get_dev_name(msg.topic) not in table:
-                table[get_dev_name(msg.topic)] = {}
+                table[get_dev_name(msg.topic)] = {} # {"meta_type": "text"}
 
         dname = get_dev_name(msg.topic)
         if topic_matches_sub("/devices/+/controls/+/meta/type", msg.topic):
