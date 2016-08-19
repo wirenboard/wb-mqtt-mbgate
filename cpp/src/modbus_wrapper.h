@@ -20,6 +20,21 @@ enum TStoreType {
     HOLDING_REGISTER = 8
 };
 
+const std::string StoreTypeToString(TStoreType t)
+{
+    if (t == DISCRETE_INPUT) {
+        return "discrete inputs";
+    } else if (t == COIL) {
+        return "coils";
+    } else if (t == INPUT_REGISTER) {
+        return "input registers";
+    } else if (t == HOLDING_REGISTER) {
+        return "holding registers";
+    } else {
+        return "[unknown store type]";
+    }
+}
+
 enum TReplyState {
     REPLY_CACHED            = -1,  /*!< Don't use observer, use cached value instead */
     REPLY_OK                = 0,   /*!< Reply is correct */

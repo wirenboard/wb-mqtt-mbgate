@@ -236,7 +236,12 @@ void TJSONConfigParser::_BuildStore(TStoreType type, Json::Value &list, PModbusS
         obs = make_shared<TGatewayObserver>(expandTopic(topic), conv, mqtt);
 
         LOG(DEBUG) << "Creating observer on " << address << ":" << size;
-        modbus->Observe(obs, type, TModbusAddressRange(address, size), slave_id);
-        fobs->Observe(obs, expandTopic(topic));
+
+        try {
+            modbus->Observe(obs, type, TModbusAddressRange(address, size), slave_id);
+            fobs->Observe(obs, expandTopic(topic));
+        } catch (const WrongSegmentException &e) {
+            throw ConfigParserException(string("Address overlapping: ") + StoreTypeToString(type) + ": topic " + topic);
+        }
     }
 }
