@@ -173,7 +173,7 @@ def process_channel(obj, topic):
     text = False
 
     if "meta_type" not in obj:
-        print "WARNING: " + topic + " has no meta_type"
+        print "WARNING: Incompete cell " + topic
         return
 
     if obj["meta_type"] == "text":
