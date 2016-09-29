@@ -20,7 +20,7 @@ enum TStoreType {
     HOLDING_REGISTER = 8
 };
 
-const std::string StoreTypeToString(TStoreType t)
+inline const std::string StoreTypeToString(TStoreType t)
 {
     if (t == DISCRETE_INPUT) {
         return "discrete inputs";
