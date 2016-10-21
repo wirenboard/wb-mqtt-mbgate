@@ -1,7 +1,0 @@
-#!/usr/bin/make -f
-
-export PYBUILD_NAME = wb_mqtt_mbgate
-export PYBUILD_SYSTEm = distutils
-
-%:
-	dh $@ --with python2 --buildsystem=python_distutils
