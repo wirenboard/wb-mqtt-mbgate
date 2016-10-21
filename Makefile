@@ -1,5 +1,15 @@
-DEPDIR := .d
-$(shell mkdir -p $(DEPDIR) >/dev/null)
+start_red=$(shell echo -e '\033[31m')
+end_color=$(shell echo -e '\033[0m')
+BUILDCLEAN_HACK =
+
+# Check that tree is clean before building
+ifeq ($(shell git diff-index --quiet HEAD --; echo $$?), 1)
+$(info $(start_red))
+$(info WARNING: Tree is dirty! Think twice before build it in production!)
+$(info $(end_color))
+BUILDCLEAN_HACK +=n
+endif
+
 
 TARGET = wb-mqtt-mbgate
 OBJS = main.o logging.o config_parser.o
@@ -20,7 +30,20 @@ OBJS := $(patsubst %, $(SRC_DIR)/%, $(OBJS))
 CXX=g++
 LD=g++
 LDFLAGS=-lmodbus -lmosquittopp -lwbmqtt -ljsoncpp -llog4cpp -pthread 
-CXXFLAGS=-std=c++0x -Wall -Werror -O0 -ggdb
+CXXFLAGS=-std=c++0x -Wall -Werror
+
+# fail build if tree is dirty and package is being built
+ifneq ($(NDEBUG),)
+BUILDCLEAN_HACK +=n
+endif
+
+ifeq ("$(strip $(BUILDCLEAN_HACK))", "n n")
+$(info $(start_red))
+$(info Please commit all changes before building a package)
+$(info $(end_color))
+$(error "Can't build production package on dirty tree")
+endif
+
 
 all: $(TARGET)
 
