@@ -44,6 +44,17 @@ $(info $(end_color))
 $(error "Can't build production package on dirty tree")
 endif
 
+# extract Git revision and version number from debian/changelog
+GIT_REVISION:=$(shell git rev-parse HEAD)
+DEB_VERSION:=$(shell head -1 debian/changelog | awk '{ print $$2 }' | sed 's/[\(\)]//g')
+
+CXXFLAGS += -DWBMQTT_COMMIT="$(GIT_REVISION)" -DWBMQTT_VERSION="$(DEB_VERSION)"
+
+# drop info about dirty tree in defines
+ifneq ($(BUILDCLEAN_HACK), "")
+CXXFLAGS += -DWBMQTT_DIRTYTREE
+endif
+
 
 all: $(TARGET)
 
@@ -65,6 +76,8 @@ test: $(TEST_DIR)/$(TEST_TARGET)
 
 $(TEST_DIR)/$(TEST_TARGET): $(TEST_OBJS) $(COMMON_OBJS)
 	$(CXX) -o $@ $^ $(LDFLAGS) $(TEST_LDFLAGS)
+
+distclean: clean
 
 clean:
 	rm -rf $(SRC_DIR)/*.o $(TARGET) $(TEST_DIR)/*.o $(TEST_DIR)/$(TEST_TARGET)

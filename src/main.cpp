@@ -3,7 +3,14 @@
 #include <string>
 
 #include <signal.h>
+#include <getopt.h>
 #include <cstring>
+
+/* for version message */
+#define WBMQTT_NAME "wb-mqtt-mbgate"
+#define WBMQTT_COPYRIGHT "2016 Contactless Devices, LLC"
+#define WBMQTT_WRITERS "Nikita webconn Maslov <n.maslov@contactless.ru>"
+#include <wbmqtt/version.h>
 
 #include "modbus_wrapper.h"
 #include "modbus_lmb_backend.h"
@@ -132,8 +139,32 @@ void set_sighandler()
     sigaction(SIGTERM, &act, 0);
 }
 
+
+/* describe common arguments using getopt() long format */
+static const struct option long_options[] = {
+    { "version", 0, NULL, 'v' },
+};
+
+void parse_common_args(int argc, char *argv[])
+{
+    while (1) {
+        int c = getopt_long(argc, argv, "v", long_options, NULL);
+
+        if (c == -1) {
+            break;
+        } else if (c == 'v') {
+            cerr << VERSION_MESSAGE();
+            exit(0);
+        }
+    }
+}
+
 int main(int argc, char *argv[])
 {
+    // parse --version etc.
+    parse_common_args(argc, argv);
+
+
     set_sighandler();
 
     PModbusServer s;
