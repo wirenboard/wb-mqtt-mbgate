@@ -3,12 +3,12 @@ end_color=$(shell echo -e '\033[0m')
 BUILDCLEAN_HACK =
 
 # Check that tree is clean before building
-ifeq ($(shell git diff-index --quiet HEAD --; echo $$?), 1)
-$(info $(start_red))
-$(info WARNING: Tree is dirty! Think twice before build it in production!)
-$(info $(end_color))
-BUILDCLEAN_HACK +=n
-endif
+# ifeq ($(shell git diff-index --quiet HEAD --; echo $$?), 1)
+# $(info $(start_red))
+# $(info WARNING: Tree is dirty! Think twice before build it in production!)
+# $(info $(end_color))
+# BUILDCLEAN_HACK +=n
+# endif
 
 
 TARGET = wb-mqtt-mbgate
@@ -49,12 +49,6 @@ GIT_REVISION:=$(shell git rev-parse HEAD)
 DEB_VERSION:=$(shell head -1 debian/changelog | awk '{ print $$2 }' | sed 's/[\(\)]//g')
 
 CXXFLAGS += -DWBMQTT_COMMIT="$(GIT_REVISION)" -DWBMQTT_VERSION="$(DEB_VERSION)"
-
-# drop info about dirty tree in defines
-ifneq ($(BUILDCLEAN_HACK), "")
-CXXFLAGS += -DWBMQTT_DIRTYTREE
-endif
-
 
 all: $(TARGET)
 
