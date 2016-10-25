@@ -75,6 +75,7 @@ distclean: clean
 
 clean:
 	rm -rf $(SRC_DIR)/*.o $(TARGET) $(TEST_DIR)/*.o $(TEST_DIR)/$(TEST_TARGET)
+	rm -rf $(SRC_DIR)/*.gcda $(SRC_DIR)/*.gcno $(TEST_DIR)/*.gcda $(TEST_DIR)/*.gcno
 
 install: all
 	mkdir -p $(DESTDIR)/usr/share/wb-mqtt-confed/schemas

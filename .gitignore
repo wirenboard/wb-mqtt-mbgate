@@ -7,4 +7,7 @@
 *.log
 .debhelper
 .ropeproject
-*/debian/wb-mqtt-mbgate
+debian/wb-mqtt-mbgate
+test/test-app
+*.gcda
+*.gcno
