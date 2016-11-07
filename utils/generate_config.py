@@ -17,7 +17,7 @@ ADDR_SALT = 7079
 RESERVED_UNIT_IDS = [1, 2]
 
 # Unit IDs reserved by Modbus
-RESERVED_UNIT_IDS += range(247, 256)
+RESERVED_UNIT_IDS += range(247, 256) + [0]
 
 client = None
 table = dict()
@@ -91,8 +91,8 @@ class RegSpace:
             for i in range(0, value.getSize()):
                 self.addrs.add(addr_hash + i)
 
-            value.address = addr_hash % 65536
-            value.unitId = int(addr_hash / 65536) + 1
+            value.address = addr_hash & 0xFFFF
+            value.unitId = addr_hash >> 16
 
         self.values.append(value)
 
