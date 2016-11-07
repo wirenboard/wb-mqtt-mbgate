@@ -1,5 +1,7 @@
 #!/usr/bin/python -d
 
+# TODO: allocation error on address space overflow
+
 from mosquitto import Mosquitto, topic_matches_sub
 
 import json
@@ -11,8 +13,11 @@ import argparse
 # Salt for address hashtable in case of match
 ADDR_SALT = 7079
 
-# Unit IDs reserved for user (255 - reserved in Modbus)
-RESERVED_UNIT_IDS = [0, 1, 255]
+# Unit IDs reserved for user
+RESERVED_UNIT_IDS = [1, 2]
+
+# Unit IDs reserved by Modbus
+RESERVED_UNIT_IDS += range(247, 256)
 
 client = None
 table = dict()
