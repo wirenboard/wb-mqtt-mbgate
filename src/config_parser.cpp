@@ -57,7 +57,7 @@ TJSONConfigParser::TJSONConfigParser(int argc, char *argv[])
             break;
         case 'h':
         default:
-            throw ConfigParserException(string("Usage: ") + argv[0] + " -c config_file_name [-v [-v ...]]");
+            throw ConfigParserException(string("Usage: ") + argv[0] + " -c\"config_file_name\" [-v [-v ...]]");
         }
     }
 
@@ -66,7 +66,7 @@ TJSONConfigParser::TJSONConfigParser(int argc, char *argv[])
 
     std::ifstream fileStream(config_file);
     if (!fileStream.is_open())
-        throw ConfigParserException("Can't open configuration file");
+        throw ConfigParserException("Can't open configuration file: " + config_file);
 
     if (!reader.parse(fileStream, Root, false))
         throw ConfigParserException(string("Can't parse input JSON file: ") 
@@ -74,10 +74,10 @@ TJSONConfigParser::TJSONConfigParser(int argc, char *argv[])
 
     // configure logging
     string logfile = getenv("MQTT_MBGATE_LOGFILE") ? 
-                        getenv("MQTT_MBGATE_LOGFILE") : "/var/log/wirenboard/wb-mqtt-mbgate.log";
+                        getenv("MQTT_MBGATE_LOGFILE") : DEFAULT_LOG_FILE;
 
     size_t max_logsize = getenv("MQTT_MBGATE_MAX_LOGFILE_SIZE") ?
-                        atoi(getenv("MQTT_MBGATE_MAX_LOGFILE_SIZE")) * 1024 * 1024 : 1 * 1024 * 1024;
+                        atoi(getenv("MQTT_MBGATE_MAX_LOGFILE_SIZE")) * 1024 * 1024 : DEFAULT_LOG_FILE_SIZE * 1024 * 1024;
 
     log4cpp::Category &log_root = log4cpp::Category::getRoot();
     long pid = getpid();

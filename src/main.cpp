@@ -142,21 +142,31 @@ void set_sighandler()
 
 /* describe common arguments using getopt() long format */
 static const struct option long_options[] = {
-    { "version", 0, NULL, 'v' },
+    { "version", 0, NULL, 1 }, // 1 as unprintable character
+    { NULL, 0, NULL, 0 }
 };
 
 void parse_common_args(int argc, char *argv[])
 {
+    // disable error reporting here
+    int prev_opterr = opterr;
+    int prev_optind = optind;
+    opterr = 0;
+
     while (1) {
-        int c = getopt_long(argc, argv, "v", long_options, NULL);
+        int c = getopt_long(argc, argv, "", long_options, NULL);
 
         if (c == -1) {
             break;
-        } else if (c == 'v') {
+        } else if (c == 1) {
             cerr << VERSION_MESSAGE();
             exit(0);
         }
     }
+
+    // restore opterr and optind
+    opterr = prev_opterr;
+    optind = prev_optind;
 }
 
 int main(int argc, char *argv[])

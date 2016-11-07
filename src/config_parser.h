@@ -17,6 +17,15 @@
 #include <log4cpp/Appender.hh>
 #include <log4cpp/PatternLayout.hh>
 
+/*! Default log file if MQTT_MBGATE_LOGFILE environment variable is not set */
+#define DEFAULT_LOG_FILE "/var/log/wirenboard/wb-mqtt-mbgate.log"
+
+/*! Default log file maximum size in megabytes if MQTT_MBGATE_MAX_LOGFILE_SIZE 
+ * environment variable is not set 
+ */
+#define DEFAULT_LOG_FILE_SIZE 1
+
+
 /*! Config parser exception */
 class ConfigParserException : public std::exception
 {
