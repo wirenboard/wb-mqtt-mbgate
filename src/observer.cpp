@@ -57,7 +57,14 @@ TReplyState TGatewayObserver::OnSetValue(TStoreType type, uint8_t unit_id, uint1
     }
 
     string res = Conv->Unpack(data, count);
-    _Mqtt->Publish(nullptr, Topic, res);
+    
+    // add "/on" suffix to topic in case of coil
+    string topic = Topic;
+    if (type == COIL) {
+        topic += "/on";
+    }
+
+    _Mqtt->Publish(nullptr, topic, res);
 
     LOG(DEBUG) << "Set value via Modbus: " << Topic << " : " << res;
 

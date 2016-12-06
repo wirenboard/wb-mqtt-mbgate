@@ -20,7 +20,7 @@ public:
     shared_ptr<TFakeModbusBackend> ModbusBackend;
     shared_ptr<TModbusServer> ModbusServer;
 
-    shared_ptr<TGatewayObserver> observers[3];
+    shared_ptr<TGatewayObserver> observers[5];
 
     void SetUp() 
     {
@@ -38,6 +38,22 @@ public:
         observers[1] = make_shared<TGatewayObserver>("/devices/device1/controls/topic2", conv1, Mqtt);
         ModbusServer->Observe(observers[1], TStoreType::HOLDING_REGISTER, TModbusAddressRange(1, 1));
         Mqtt->Observe(observers[1]);
+
+        // test a coil to write on "#/on"
+        PMQTTConverter coil_conv = make_shared<TMQTTDiscrConverter>();
+        observers[2] = make_shared<TGatewayObserver>("/devices/device1/controls/coil1", coil_conv, Mqtt);
+        ModbusServer->Observe(observers[2], TStoreType::COIL, TModbusAddressRange(0, 1));
+        Mqtt->Observe(observers[2]);
+        
+        observers[3] = make_shared<TGatewayObserver>("/devices/device1/controls/coil2", coil_conv, Mqtt);
+        ModbusServer->Observe(observers[3], TStoreType::COIL, TModbusAddressRange(1, 1));
+        Mqtt->Observe(observers[3]);
+        
+        observers[4] = make_shared<TGatewayObserver>("/devices/device1/controls/coil3", coil_conv, Mqtt);
+        ModbusServer->Observe(observers[4], TStoreType::COIL, TModbusAddressRange(2, 1));
+        Mqtt->Observe(observers[4]);
+
+
 
         ModbusServer->AllocateCache();
     }
@@ -95,6 +111,36 @@ TEST_F(GatewayTest, MultiWriteTest)
 
     EXPECT_CALL(*Mqtt, Publish(_, string("/devices/device1/controls/topic1"), string("4660"), _, _)).WillOnce(Return(0));
     EXPECT_CALL(*Mqtt, Publish(_, string("/devices/device1/controls/topic2"), string("22136"), _, _)).WillOnce(Return(0));
+
+    while (!ModbusBackend->IncomingQueries.empty())
+        ModbusServer->Loop();
+}
+
+TEST_F(GatewayTest, CoilWriteTest)
+{
+    // Test 'Write single coil' command
+    uint8_t q1[] = {
+        0x05,
+        0x00, 0x00,
+        0xff, 0x00
+    };
+    TModbusQuery query1(q1, sizeof (q1), 0);
+    ModbusBackend->PushQuery(query1);
+
+    // Test 'Write multiple coils' command for coil2 and coil3
+    uint8_t q2[] = {
+        0x0f,
+        0x00, 0x01,
+        0x00, 0x02,
+        0x01,
+        0x02
+    };
+    TModbusQuery query2(q2, sizeof (q2), 0);
+    ModbusBackend->PushQuery(query2);
+
+    EXPECT_CALL(*Mqtt, Publish(_, string("/devices/device1/controls/coil1/on"), string("1"), _, _)).WillOnce(Return(0));
+    EXPECT_CALL(*Mqtt, Publish(_, string("/devices/device1/controls/coil2/on"), string("0"), _, _)).WillOnce(Return(0));
+    EXPECT_CALL(*Mqtt, Publish(_, string("/devices/device1/controls/coil3/on"), string("1"), _, _)).WillOnce(Return(0));
 
     while (!ModbusBackend->IncomingQueries.empty())
         ModbusServer->Loop();
