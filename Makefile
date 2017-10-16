@@ -20,8 +20,24 @@ TEST_OBJS := $(patsubst %, $(TEST_DIR)/%, $(TEST_OBJS))
 COMMON_OBJS := $(patsubst %, $(SRC_DIR)/%, $(COMMON_OBJS))
 OBJS := $(patsubst %, $(SRC_DIR)/%, $(OBJS))
 
-CXX=g++
-LD=g++
+ifeq ($(DEB_TARGET_ARCH),armel)
+CROSS_COMPILE=arm-linux-gnueabi-
+endif
+
+CXX=$(CROSS_COMPILE)g++
+CXX_PATH := $(shell which $(CROSS_COMPILE)g++-4.7)
+
+CC=$(CROSS_COMPILE)gcc
+CC_PATH := $(shell which $(CROSS_COMPILE)gcc-4.7)
+
+ifneq ($(CXX_PATH),)
+	CXX=$(CROSS_COMPILE)g++-4.7
+endif
+
+ifneq ($(CC_PATH),)
+	CC=$(CROSS_COMPILE)gcc-4.7
+endif
+LD=$(CXX)
 LDFLAGS=-lmodbus -lmosquittopp -lwbmqtt -ljsoncpp -llog4cpp -pthread 
 CXXFLAGS=-std=c++0x -Wall -Werror
 

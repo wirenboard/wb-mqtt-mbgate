@@ -3,145 +3,127 @@
   "type": "object",
   "title": "MQTT to Modbus-TCP gateway configuration",
   "description": "Configure topics to registers mapping and daemon configuration",
-
   "configFile": {
     "path": "/etc/wb-mqtt-mbgate.conf",
     "service": "wb-mqtt-mbgate"
   },
-
   "definitions": {
-
-      "reg_common": {
-        "type": "object",
-        "headerTemplate": "Channel {{self.topic}}",
-        "_format": "grid",
-        "properties": {
-          
-          "enabled": {
-            "type": "boolean",
-            "title": "Enabled",
-            "propertyOrder": 1,
-            "_format": "checkbox"
-          },
-
-          "topic": {
-            "type": "string",
-            "title": "MQTT Device (from topic name)",
-            "propertyOrder": 10,
-            "options": {
-              "input_width": "300px"
-            }
-        },
-
-          // Meta-type is only for reference, don't change it in editor
-          "meta_type": {
-            "type": "string",
-            "title": "Meta-type",
-            "description": "don't change, it's just a helper",
-            "propertyOrder": 11
-          },
-
-          "unitId": {
-            "type": "integer",
-            "title": "Unit ID",
-            "description": "Modbus unit ID",
-            "minimum": 1,
-            "maximum": 255,
-            "propertyOrder": 20
-          },
-
-          "address": {
-            "type": "integer",
-            "title": "Start address",
-            "description": "in words, different spaces for different types",
-            "minimum": 0,
-            "maximum": 65535,
-            "propertyOrder": 30
-          }
-
-        },
-
-        "required": ["unitId", "address", "topic" ]
-      },
-
-      "reg_format": {
-        "$ref": "#/definitions/reg_common",
-
-        "properties": {
-          // TODO: global description for types and formats
-          "format": {
-            "type": "string",
-            "enum": ["signed", "unsigned", "bcd", "float", "varchar"],
-            "title": "Register format",
-            "description": "Works for input and holding registers",
-            "options": {
-              "enum_titles" : [ "Signed integer", "Unsigned integer",
-                                "BCD", "IEEE754 float", "Varchar (fixed size string)"]
-            },
-            "propertyOrder": 40
-          },
-          
-          "size": {
-            "type": "integer",
-            "title": "Size (in bytes)",
-            "description": "for non-discrete types, -1 to disable",
-            "minimum": -1,
-            "propertyOrder": 50
-          },
-
-          "max": {
-            "type": "integer",
-            "title": "Maximum value",
-            "description": "for range metatype, > 0",
-            "propertyOrder": 60
-          },
-
-          "scale": {
-            "type": "number",
-            "title": "Value scale",
-            "description": "value will be multiplied by this before convertion",
-            "propertyOrder": 70
-          },
-
-          "byteswap": {
-            "type": "boolean",
-            "title": "Byte swap",
-            "description": "little-endian for bytes in words",
-            //"description": "Write bytes in words in little-endian (default is big-endian)",
-            "default": false,
-            "_format": "checkbox",
-            "propertyOrder": 80
-          },
-
-          "wordswap": {
-            "type": "boolean",
-            "title": "Word swap",
-            "description": "little-endian for words",
-            //"description": "Write complex (multi-register) values in \"little-endian\" (least significant word first)",
-            "default": false,
-            "_format": "checkbox",
-            "propertyOrder": 90
-          }
-
-        },
-
-        "required": ["format", "size"]
-      }
-  },
-
-  "properties": {
-    "debug": {
-      "type": "boolean",
-      "title": "Enable debug logging",
-      "default": false,
-      "_format": "checkbox",
-      "propertyOrder": 10
-    },
-    "modbus": {
+    "reg_common": {
       "type": "object",
-      "title": "Modbus binding",
-
+      "headerTemplate": "Channel {{self.topic}}",
+      "_format": "grid",
       "properties": {
+        "enabled": {
+          "type": "boolean",
+          "title": "Enabled",
+          "propertyOrder": 1,
+          "_format": "checkbox"
+        },
+        "topic": {
+          "type": "string",
+          "title": "MQTT Device (from topic name)",
+          "propertyOrder": 10,
+          "options": {
+            "input_width": "300px"
+          }
+        },
+        // Meta-type is only for reference, don't change it in editor
+        "meta_type": {
+          "type": "string",
+          "title": "Meta-type",
+          "description": "don't change, it's just a helper",
+          "propertyOrder": 11
+        },
+        "unitId": {
+          "type": "integer",
+          "title": "Unit ID",
+          "description": "Modbus unit ID",
+          "minimum": 1,
+          "maximum": 255,
+          "propertyOrder": 20
+        },
+        "address": {
+          "type": "integer",
+          "title": "Start address",
+          "description": "in words, different spaces for different types",
+          "minimum": 0,
+          "maximum": 65535,
+          "propertyOrder": 30
+        }
+      },
+      "required": ["unitId", "address", "topic"]
+    },
+    "reg_format": {
+      "$ref": "#/definitions/reg_common",
+      "properties": {
+        // TODO: global description for types and formats
+        "format": {
+          "type": "string",
+          "enum": ["signed", "unsigned", "bcd", "float", "varchar"],
+          "title": "Register format",
+          "description": "Works for input and holding registers",
+          "options": {
+            "enum_titles" : [ "Signed integer", "Unsigned integer",
+              "BCD", "IEEE754 float", "Varchar (fixed size string)"]
+          },
+          "propertyOrder": 40
+        },
+        "size": {
+          "type": "integer",
+          "title": "Size (in bytes)",
+          "description": "for non-discrete types, -1 to disable",
+          "minimum": -1,
+          "propertyOrder": 50
+        },
+        "max": {
+          "type": "integer",
+          "title": "Maximum value",
+          "description": "for range metatype, > 0",
+          "propertyOrder": 60
+        },
+        "scale": {
+          "type": "number",
+          "title": "Value scale",
+          "description": "value will be multiplied by this before convertion",
+          "propertyOrder": 70
+        },
+        "byteswap": {
+          "type": "boolean",
+          "title": "Byte swap",
+          "description": "little-endian for bytes in words",
+          //"description": "Write bytes in words in little-endian (default is big-endian)",
+          "default": false,
+          "_format": "checkbox",
+          "propertyOrder": 80
+        },
+        "wordswap": {
+          "type": "boolean",
+          "title": "Word swap",
+          "description": "little-endian for words",
+          //"description": "Write complex (multi-register) values in \"little-endian\" (least significant word first)",
+          "default": false,
+          "_format": "checkbox",
+          "propertyOrder": 90
+        }
+      },
+      "required": ["format", "size"]
+    },
+    "tcp": {
+      "title": "TCP",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "type": "string",
+          "title": "Port type",
+          "enum": ["tcp"],
+          "default": "tcp",
+          "propertyOrder": 1,
+          "options": {
+            "hidden": true,
+            "forceDefault": true
+          }
+        },
         "host": {
           "type": "string",
           "title": "Bind address",
@@ -159,16 +141,82 @@
           "propertyOrder": 30
         }
       },
-
-      "propertyOrder": 20,
-
       "required": ["host", "port"]
     },
-
+    "rtu": {
+      "title": "RTU",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "type": "string",
+          "title": "Port type",
+          "enum": ["rtu"],
+          "default": "rtu",
+          "propertyOrder": 1,
+          "options": {
+            "hidden": true,
+            "forceDefault": true
+          }
+        },
+        "path": {
+          "type": "string",
+          "title": "Path to device",
+          "minLength": 1,
+          "propertyOrder": 1
+        },
+        "baud_rate": {
+          "type": "integer",
+          "title": "Baud rate",
+          "enum": [110, 300, 600, 1200, 2400, 4800, 9600, 19200, 38400, 57600, 115200],
+          "default": 9600,
+          "propertyOrder": 3
+        },
+        "parity": {
+          "type": "string",
+          "title": "Parity",
+          "enum": ["N", "E", "O"],
+          "default": "N",
+          "propertyOrder": 4
+        },
+        "data_bits": {
+          "type": "integer",
+          "title": "Data bits",
+          "enum": [5, 6, 7, 8],
+          "default": 8,
+          "propertyOrder": 5
+        },
+        "stop_bits": {
+          "type": "integer",
+          "title": "Stop bits",
+          "enum": [1, 2],
+          "default": 1,
+          "propertyOrder": 5
+        }
+      },
+      "required": ["path"]
+    }
+  },
+  "properties": {
+    "debug": {
+      "type": "boolean",
+      "title": "Enable debug logging",
+      "default": false,
+      "_format": "checkbox",
+      "propertyOrder": 10
+    },
+    "modbus": {
+      "type": "object",
+      "title": "Modbus binding",
+      "oneOf": [
+        { "$ref": "#/definitions/tcp" },
+        { "$ref": "#/definitions/rtu" }
+      ],
+      "propertyOrder": 20
+    },
     "mqtt": {
       "type": "object",
       "title": "MQTT connection",
-      
       "properties": {
         "host": {
           "type": "string",
@@ -177,7 +225,6 @@
           "default": "localhost",
           "propertyOrder": 10
         },
-
         "port": {
           "type": "integer",
           "title": "Port",
@@ -186,14 +233,12 @@
           "maximum": 65535,
           "propertyOrder": 20
         },
-
         "keepalive": {
           "type": "integer",
           "title": "Keep-alive interval",
           "default": 60,
           "propertyOrder": 25
         },
-
         "auth": {
           "type": "boolean",
           "title": "Enable username+password authentification",
@@ -201,33 +246,26 @@
           "_format": "checkbox",
           "propertyOrder": 30
         },
-
         "username": {
           "type": "string",
           "title": "Login",
           "propertyOrder": 40
         },
-
         "password": {
           "type": "string",
           "title": "Password",
           "_format": "password",
           "propertyOrder": 50
         }
-
       },
-
       "required": ["host", "port"],
       "propertyOrder": 35
     },
-
     "registers": {
       "type": "object",
       "title": "Register bindings",
       "propertyOrder": 40,
-      
       "properties": {
-
         "remap_values": {
           "type": "boolean",
           "title": "Remap addresses after edit",
@@ -236,7 +274,6 @@
           "_format": "checkbox",
           "propertyOrder": 1
         },
-        
         "discretes": {
           "type": "array",
           "title": "Discrete inputs",
@@ -247,7 +284,6 @@
             "$ref": "#/definitions/reg_common"
           }
         },
-
         "coils": {
           "type": "array",
           "title": "Coils",
@@ -258,7 +294,6 @@
             "$ref": "#/definitions/reg_common"
           }
         },
-        
         "inputs": {
           "type": "array",
           "title": "Input registers",
@@ -266,10 +301,9 @@
           "propertyOrder": 30,
           "_format": "table",
           "items": {
-              "$ref": "#/definitions/reg_format"
+            "$ref": "#/definitions/reg_format"
           }
         },
-
         "holdings": {
           "type": "array",
           "title": "Holding registers",
@@ -277,14 +311,11 @@
           "propertyOrder": 40,
           "_format": "table",
           "items": {
-              "$ref": "#/definitions/reg_format"
+            "$ref": "#/definitions/reg_format"
           }
         }
-
       }
     }
-
   },
-
   "required": ["debug", "modbus", "mqtt", "registers"]
 }

@@ -1,3 +1,11 @@
+wb-mqtt-mbgate (0.2) stable; urgency=medium
+
+  * Modbus RTU mode support
+  * added "type" modbus parameter - can be either "tcp" or "rtu" (default "tcp")
+  * added "path" modbus parameter - RS-485 port device path. Required if "type" is "rtu"
+
+ -- Islam Boziev <i.boziev@wirenboard.ru>  Mon, 16 Oct 2017 19:30:12 +0300
+
 wb-mqtt-mbgate (0.1.1) stable; urgency=medium
 
   * fix coil writing on topic without "/on" suffix

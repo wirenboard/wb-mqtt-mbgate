@@ -126,17 +126,69 @@ bool TJSONConfigParser::Debug()
 tuple<PModbusServer, PMQTTClient> TJSONConfigParser::Build()
 {
     // create Modbus server
-    if (!Root["mqtt"]["host"])
-        throw ConfigParserException("Modbus TCP server bind address is necessary but is not defined");
-    if (!Root["mqtt"]["port"])
-        throw ConfigParserException("Modbus TCP bind port is necessary but is not defined");
 
-    string modbus_host = Root["modbus"]["host"].asString();
-    int modbus_port = Root["modbus"]["port"].asInt();
+    auto & modbus_data = Root["modbus"];
+    if (!modbus_data) {
+        throw ConfigParserException("Modbus settings are not defined");
+    }
 
-    LOG(DEBUG) << "Modbus configuration: host " << modbus_host << ", port " << modbus_port;
+    auto type = modbus_data.get("type", "tcp").asString();
 
-    PModbusBackend modbusBackend = make_shared<TModbusTCPBackend>(modbus_host.c_str(), modbus_port);
+    PModbusBackend modbusBackend = nullptr;
+    if (type == "tcp") {
+        if (!modbus_data["host"]) {
+            throw ConfigParserException("Modbus TCP server bind address is necessary but is not defined");
+        }
+
+        if (!modbus_data["port"]) {
+            throw ConfigParserException("Modbus TCP bind port is necessary but is not defined");
+        }
+        
+        auto modbus_host = modbus_data["host"].asCString();
+        int modbus_port = modbus_data["port"].asInt();
+    
+        LOG(DEBUG) << "Modbus configuration: host " << modbus_host << ", port " << modbus_port;
+    
+        modbusBackend = make_shared<TModbusTCPBackend>(modbus_host, modbus_port);
+    } else if (type == "rtu") {
+        if (!modbus_data["path"]) {
+            throw ConfigParserException("Modbus RTU server device path is necessary but is not defined");
+        }
+
+        TModbusRTUBackendArgs args {};
+        
+        args.Device = modbus_data["path"].asCString();
+        
+        if (modbus_data.isMember("baud_rate")) {
+            args.BaudRate = modbus_data["baud_rate"].asInt();
+        }
+
+        if (modbus_data.isMember("parity")) {
+            auto parity = modbus_data["parity"].asCString()[0];
+            if (parity != '\0') {
+                args.Parity = parity;
+            }
+        }
+
+        if (modbus_data.isMember("data_bits")) {
+            args.DataBit = modbus_data["data_bits"].asInt();
+        }
+
+        if (modbus_data.isMember("stop_bits")) {
+            args.StopBit = modbus_data["stop_bits"].asInt();
+        }
+
+        LOG(DEBUG) << "Modbus configuration: device " << args.Device << 
+                                          ", baud rate " << args.BaudRate <<
+                                          ", parity " << args.Parity <<
+                                          ", data bits " << args.DataBit <<
+                                          ", stop bits " << args.StopBit;
+
+        modbusBackend = make_shared<TModbusRTUBackend>(args);
+    } else {
+        throw ConfigParserException("invalid modbus type: '" + type + "'");
+    }
+    
     PModbusServer modbus = make_shared<TModbusServer>(modbusBackend);
 
     // create MQTT client
