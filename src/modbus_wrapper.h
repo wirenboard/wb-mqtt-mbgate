@@ -38,7 +38,7 @@ inline const std::string StoreTypeToString(TStoreType t)
 enum TReplyState {
     REPLY_CACHED            = -1,  /*!< Don't use observer, use cached value instead */
     REPLY_OK                = 0,   /*!< Reply is correct */
-    
+
     REPLY_ILLEGAL_FUNCTION  = 0x01,
     REPLY_ILLEGAL_ADDRESS   = 0x02, /*!< Wrong address for this datablock */
     REPLY_ILLEGAL_VALUE     = 0x03, /*!< Wrong value given for this datablock */
@@ -52,7 +52,7 @@ typedef TAddressRange<void *> TModbusCacheAddressRange;
  * \brief Modbus server observer interface
  * Modbus server observer is able to reply on Modbus' READ_*, WRITE_* for coils and registers.
  */
-class IModbusServerObserver 
+class IModbusServerObserver
 {
 public:
     /* Virtual destructor */
@@ -69,7 +69,7 @@ public:
      * \return Reply state
      */
     virtual TReplyState OnGetValue(TStoreType type, uint8_t unit_id, uint16_t start, unsigned count, void *data);
-    
+
     /*! Callback for WRITE_* functions
      * Called before write action, may refuse writing if don't return REPLY_OK
      * May be ignored if observer stores cached value in server context
@@ -99,7 +99,7 @@ typedef TAddressRange<PModbusServerObserver> TModbusAddressRange;
 typedef std::shared_ptr<TModbusAddressRange> PModbusAddressRange;
 
 /*! Modbus query structure */
-struct TModbusQuery 
+struct TModbusQuery
 {
     static TModbusQuery emptyQuery()
     {
@@ -154,16 +154,16 @@ struct TModbusQuery
 };
 
 /*! Modbus exception */
-class ModbusException : public std::exception
+class TModbusException : public std::exception
 {
     std::string msg;
 public:
-    ModbusException(const std::string& _msg) : msg(_msg) {}
+    TModbusException(const std::string& _msg) : msg(_msg) {}
     virtual const char *what() const throw()
     {
         return msg.c_str();
     }
-    virtual ~ModbusException() throw() {}
+    virtual ~TModbusException() throw() {}
 };
 
 /*! Modbus backend interface
@@ -172,8 +172,8 @@ public:
 class IModbusBackend : public std::enable_shared_from_this<IModbusBackend>
 {
 public:
-    /*! Set slave ID for this instance 
-     * \param slave_id Slave ID (from 1 to 254, 255 == 0xFF - for broadcast receives) 
+    /*! Set slave ID for this instance
+     * \param slave_id Slave ID (from 1 to 254, 255 == 0xFF - for broadcast receives)
      */
     virtual void SetSlave(uint8_t slave_id = 0xFF) = 0;
 
@@ -191,7 +191,7 @@ public:
      * \param hr Number of holding registers
      */
     virtual void AllocateCache(uint8_t unit_id, size_t di, size_t co, size_t ir, size_t hr) = 0;
-    
+
     /*! Get cache base address
      * \param type Store type we want to get cache for
      * \return Pointer to cache base address
@@ -215,13 +215,13 @@ public:
      */
     virtual TModbusQuery ReceiveQuery(bool block = false) = 0;
 
-    /*! Send reply 
+    /*! Send reply
      * \param query Query to reply on
      */
     virtual void Reply(const TModbusQuery &query) = 0;
 
-    /*! Send exception reply 
-     * \param exception Exception code 
+    /*! Send exception reply
+     * \param exception Exception code
      */
     virtual void ReplyException(TReplyState state, const TModbusQuery &query) = 0;
 
@@ -230,7 +230,7 @@ public:
 
     /*! Close connection */
     virtual void Close() = 0;
-    
+
     /*! Virtual destructor */
     virtual ~IModbusBackend();
 };
@@ -339,4 +339,3 @@ protected:
 
 /*! Shared pointer to TModbusServer */
 typedef std::shared_ptr<TModbusServer> PModbusServer;
-

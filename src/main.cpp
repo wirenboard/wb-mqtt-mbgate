@@ -35,7 +35,7 @@ public:
         cout << "Set value on slave id " << unit_id << ": [" << start << ":" << start + count << ")" << endl;
         return REPLY_OK;
     }
-    
+
     virtual TReplyState OnGetValue(TStoreType type, uint8_t unit_id, uint16_t start, unsigned count, void *data)
     {
         cout << "Get value on slave id " << unit_id << ": [" << start << ":" << start + count << ")" << endl;
@@ -46,21 +46,6 @@ public:
 class ModbusGatewayBuilder
 {
 public:
-    static tuple<PModbusServer, PMQTTClient> fromConfig(PConfigParser parser)
-    {
-        PModbusServer modbus;
-        PMQTTClient client;
-
-        tie(modbus, client) = parser->Build();
-
-        modbus->AllocateCache();
-        modbus->Backend()->Listen();
-        
-        client->ConnectAsync();
-
-        return make_tuple(modbus, client);
-    }
-
     static PModbusServer ModbusDummy(const char *host = "127.0.0.1", int port = 502)
     {
         // create libmodbus context
@@ -103,7 +88,7 @@ public:
         mqtt_client->Observe(ext_observer);
 
         /* server->AllocateCache(); */
-        
+
         /* backend->Listen(); */
         mqtt_client->ConnectAsync();
 
@@ -177,25 +162,35 @@ int main(int argc, char *argv[])
 
     set_sighandler();
 
-    PModbusServer s;
-    PMQTTClient t;
+    PModbusServer modbus;
+    PMQTTClient client;
 
     try {
-        tie(s, t) = ModbusGatewayBuilder::fromConfig(make_shared<TJSONConfigParser>(argc, argv));
+        tie(modbus, client) = TJSONConfigParser(argc, argv).Build();
     } catch (const ConfigParserException& e) {
         cerr << e.what() << endl;
         return 1;
     }
 
+    try {
+        modbus->AllocateCache();
+        modbus->Backend()->Listen();
+
+        client->ConnectAsync();
+    } catch (const TModbusException & e) {
+        LOG(ERROR) << "Modbus startup error: " << e.what() << " Shutting down";
+        return 2;
+    }
+
     LOG(INFO) << "Start loops";
 
-    t->StartLoop();
+    client->StartLoop();
 
     while (running) {
         try {
-            if (s->Loop() == -1)
+            if (modbus->Loop() == -1)
                 break;
-        } catch (const ModbusException &e) {
+        } catch (const TModbusException &e) {
             LOG(ERROR) << "Modbus loop error: " << e.what();
             break;
         }
@@ -203,7 +198,7 @@ int main(int argc, char *argv[])
 
     LOG(INFO) << "Shutting down";
 
-    t->StopLoop();
+    client->StopLoop();
 
     return 0;
 }

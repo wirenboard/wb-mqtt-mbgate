@@ -24,7 +24,7 @@
 #include "logging.h"
 
 // Maximum number of connections
-#define NB_CONNECTIONS 2 
+#define NB_CONNECTIONS 2
 
 
 /*! Modbus base backend */
@@ -62,7 +62,7 @@ public:
             return; // TODO: reallocations?
 
         _mappings[slave_id] = modbus_mapping_new(co, di, hr, ir);
-        
+
         if (!_mappings[slave_id])
             _error = errno;
     }
@@ -70,7 +70,7 @@ public:
     void * GetCache(TStoreType type, uint8_t slave_id = 0) override
     {
         if (!_mappings[slave_id]) {
-            throw ModbusException(std::string("Cache for slave ID ") + std::to_string(slave_id) + " is not allocated");
+            throw TModbusException(std::string("Cache for slave ID ") + std::to_string(slave_id) + " is not allocated");
         }
 
         switch (type) {
@@ -83,7 +83,7 @@ public:
         case HOLDING_REGISTER:
             return _mappings[slave_id]->tab_registers;
         default:
-            throw ModbusException("Unknown store type: " + std::to_string(type));
+            throw TModbusException("Unknown store type: " + std::to_string(type));
         }
     }
 
@@ -99,7 +99,7 @@ public:
 
     void Reply(const TModbusQuery &q) override
     {
-        if (q.size <= 0) 
+        if (q.size <= 0)
             return;
 
         uint8_t slave_id = 0;
@@ -107,7 +107,7 @@ public:
             slave_id = q.data[q.header_length - 1];
 
         if (_mappings.find(slave_id) == _mappings.end())
-            throw ModbusException(std::string("Trying to reply on query with unknown slave ID ") 
+            throw TModbusException(std::string("Trying to reply on query with unknown slave ID ")
                     + std::to_string(slave_id));
 
         PreReply(q);
@@ -143,7 +143,7 @@ public:
 
         if (modbus_reply_exception(_context, q.data, code) == -1)
             _error = errno;
-        
+
         PostReply(q);
     }
 
@@ -156,7 +156,7 @@ public:
     {
         if (block && !Available())
             WaitForMessages(-1);
-        
+
         if (Available()) {
             TModbusQuery q = QueuedQueries.front();
             QueuedQueries.pop();
@@ -197,7 +197,7 @@ public:
         _context = modbus_new_tcp_pi(hostname, port_buffer);
 
         if (!_context)
-            throw ModbusException("can't allocate libmodbus context");
+            throw TModbusException("can't allocate libmodbus context");
 
         queryBuffer = new uint8_t[MODBUS_TCP_MAX_ADU_LENGTH];
     }
@@ -208,7 +208,7 @@ public:
     void Listen() override
     {
         if (server_socket >= 0)
-            throw ModbusException("No opened socket to listen");
+            throw TModbusException("No opened socket to listen");
 
         server_socket = modbus_tcp_pi_listen(_context, NB_CONNECTIONS);
         if (server_socket < 1)
@@ -236,7 +236,7 @@ public:
         if (select(fd_max + 1, &rdset, NULL, NULL, timeout == -1 ? NULL : &tv) == -1) {
             if (errno == EINTR)
                 return 0; // just tell that no messages are available
-            throw ModbusException(std::string("Error while select(): ") + strerror(errno));
+            throw TModbusException(std::string("Error while select(): ") + strerror(errno));
         }
 
         // retrieve all available data into queue
@@ -251,7 +251,7 @@ public:
 
                 int newfd = accept(server_socket, (struct sockaddr *) &client, &addrlen);
                 if (newfd == -1) {
-                    throw ModbusException(std::string("Error while accept(): ") + strerror(errno));
+                    throw TModbusException(std::string("Error while accept(): ") + strerror(errno));
                 }
 
                 FD_SET(newfd, &refset);
@@ -323,7 +323,7 @@ public:
         _context = modbus_new_rtu(args.Device.c_str(), args.BaudRate, args.Parity, args.DataBit, args.StopBit);
 
         if (!_context)
-            throw ModbusException("can't allocate libmodbus context");
+            throw TModbusException("can't allocate libmodbus context");
 
         queryBuffer = new uint8_t[MODBUS_RTU_MAX_ADU_LENGTH];
     }
@@ -331,11 +331,12 @@ public:
     void Listen() override
     {
         if (fd >= 0) {
-            throw ModbusException("Already listening");
+            throw TModbusException("Already listening");
         }
 
         if (modbus_connect(_context) < 0) {
             _error = errno;
+            throw TModbusException(std::string("Unable to connect: ") + strerror(errno));
         }
 
         fd = modbus_get_socket(_context);
@@ -360,7 +361,7 @@ public:
         if (select(fd + 1, &rdset, NULL, NULL, timeout == -1 ? NULL : &tv) == -1) {
             if (errno == EINTR)
                 return 0; // just tell that no messages are available
-            throw ModbusException(std::string("Error while select(): ") + strerror(errno));
+            throw TModbusException(std::string("Error while select(): ") + strerror(errno));
         }
 
         int rc = modbus_receive(_context, queryBuffer);

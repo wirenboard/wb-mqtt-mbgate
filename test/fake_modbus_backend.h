@@ -20,7 +20,7 @@ public:
             }
         }
     }
-    
+
     virtual void SetSlave(uint8_t slave_id)
     {
         _slaveId = slave_id;
@@ -30,7 +30,7 @@ public:
     {
         return _slaveId;
     }
-    
+
     virtual void Listen() {}
 
     /*! Allocate cache areas for this instance and given slave ID
@@ -40,25 +40,25 @@ public:
      * \param ir Number of input registers (2 bytes per register, so ir * 2 bytes will be allocated)
      * \param hr Number of holding registers
      */
-    virtual void AllocateCache(uint8_t slave_id, size_t di, size_t co, size_t ir, size_t hr) 
+    virtual void AllocateCache(uint8_t slave_id, size_t di, size_t co, size_t ir, size_t hr)
     {
         if (!Caches[slave_id].empty())
             return; // no reallocation
-        
+
         Caches[slave_id][DISCRETE_INPUT] = new uint8_t[di];
         Caches[slave_id][COIL] = new uint8_t[co];
         Caches[slave_id][INPUT_REGISTER] = new uint16_t[ir];
         Caches[slave_id][HOLDING_REGISTER] = new uint16_t[hr];
     }
-    
+
     /*! Get cache base address
      * \param type Store type we want to get cache for
      * \return Pointer to cache base address
      */
-    virtual void *GetCache(TStoreType type, uint8_t slave_id = 0) 
+    virtual void *GetCache(TStoreType type, uint8_t slave_id = 0)
     {
         if (Caches.find(slave_id) == Caches.end())
-            throw ModbusException(std::string("Cache for slave id ") + std::to_string(slave_id) + " is not allocated");
+            throw TModbusException(std::string("Cache for slave id ") + std::to_string(slave_id) + " is not allocated");
 
         return Caches[slave_id][type];
     }
@@ -68,7 +68,7 @@ public:
         return IncomingQueries.size();
     }
 
-    /*! Receive new query from instance 
+    /*! Receive new query from instance
      * \return New query (or .size <= 0 on error)
      */
     virtual TModbusQuery ReceiveQuery(bool block = false)
@@ -82,7 +82,7 @@ public:
         return TModbusQuery::emptyQuery();
     }
 
-    virtual bool Available() 
+    virtual bool Available()
     {
         return !IncomingQueries.empty();
     }
@@ -92,7 +92,7 @@ public:
 
     }
 
-    /*! Send reply 
+    /*! Send reply
      * \param query Query to reply on
      */
     virtual void Reply(const TModbusQuery &query)
@@ -100,8 +100,8 @@ public:
         RepliedQueries.push(query);
     }
 
-    /*! Send exception reply 
-     * \param exception Exception code 
+    /*! Send exception reply
+     * \param exception Exception code
      */
     virtual void ReplyException(TReplyState state, const TModbusQuery &query)
     {
@@ -128,5 +128,5 @@ public:
     std::queue<TModbusQuery> RepliedQueries;
 
 protected:
-    uint8_t _slaveId;   
+    uint8_t _slaveId;
 };
