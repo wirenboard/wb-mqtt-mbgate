@@ -20,9 +20,25 @@ TEST_OBJS := $(patsubst %, $(TEST_DIR)/%, $(TEST_OBJS))
 COMMON_OBJS := $(patsubst %, $(SRC_DIR)/%, $(COMMON_OBJS))
 OBJS := $(patsubst %, $(SRC_DIR)/%, $(OBJS))
 
-CXX=g++
-LD=g++
-LDFLAGS=-lmodbus -lmosquittopp -lwbmqtt -ljsoncpp -llog4cpp -pthread 
+ifeq ($(DEB_TARGET_ARCH),armel)
+CROSS_COMPILE=arm-linux-gnueabi-
+endif
+
+CXX=$(CROSS_COMPILE)g++
+CXX_PATH := $(shell which $(CROSS_COMPILE)g++-4.7)
+
+CC=$(CROSS_COMPILE)gcc
+CC_PATH := $(shell which $(CROSS_COMPILE)gcc-4.7)
+
+ifneq ($(CXX_PATH),)
+	CXX=$(CROSS_COMPILE)g++-4.7
+endif
+
+ifneq ($(CC_PATH),)
+	CC=$(CROSS_COMPILE)gcc-4.7
+endif
+LD=$(CXX)
+LDFLAGS=-lmodbus -lmosquittopp -lwbmqtt -ljsoncpp -llog4cpp -pthread
 CXXFLAGS=-std=c++0x -Wall -Werror
 
 
@@ -91,7 +107,7 @@ install: all
 	install -d $(DESTDIR)/usr/bin
 
 	install -m 0644 wb-mqtt-mbgate.schema.json $(DESTDIR)/usr/share/wb-mqtt-confed/schemas/wb-mqtt-mbgate.schema.json
-	
+
 	install -m 0755 utils/generate_config.py $(DESTDIR)/usr/bin/wb-mqtt-mbgate-confgen
 	install -m 0755 $(TARGET) $(DESTDIR)/usr/bin/$(TARGET)
 

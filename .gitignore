@@ -11,3 +11,7 @@ debian/wb-mqtt-mbgate
 test/test-app
 *.gcda
 *.gcno
+wb-mqtt-mbgate
+
+# Visual Studio Code
+.vscode
