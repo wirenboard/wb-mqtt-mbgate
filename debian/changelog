@@ -1,3 +1,9 @@
+wb-mqtt-mbgate (0.1.2) stable; urgency=medium
+
+  * fix dependencies on stretch
+
+ -- Evgeny Boger <boger@contactless.ru>  Thu, 09 Aug 2018 01:52:26 +0300
+
 wb-mqtt-mbgate (0.1.1) stable; urgency=medium
 
   * fix coil writing on topic without "/on" suffix
