@@ -3,8 +3,8 @@
 # Provides:          wb-mqtt-mbgate
 # Default-Start:     2 3 4 5
 # Default-Stop:      0 1 6
-# Required-Start: $remote_fs, mosquitto
-# Required-Stop: $remote_fs, mosqutto
+# Required-Start: $remote_fs mosquitto
+# Required-Stop: $remote_fs mosquitto
 # Short-Description: : Wiren Board MQTT to Modbus TCP gateway
 # Description:       : Wiren Board MQTT to Modbus TCP gateway
 ### END INIT INFO
