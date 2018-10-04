@@ -87,8 +87,8 @@ TEST_F(GatewayTest, SingleWriteTest)
     TModbusQuery query2(q2, sizeof (q2), 0);
     ModbusBackend->PushQuery(query2);
 
-    EXPECT_CALL(*Mqtt, Publish(_, string("/devices/device1/controls/topic1"), string("4660"), _, _)).WillOnce(Return(0));
-    EXPECT_CALL(*Mqtt, Publish(_, string("/devices/device1/controls/topic2"), string("22136"), _, _)).WillOnce(Return(0));
+    EXPECT_CALL(*Mqtt, Publish(_, string("/devices/device1/controls/topic1/on"), string("4660"), _, _)).WillOnce(Return(0));
+    EXPECT_CALL(*Mqtt, Publish(_, string("/devices/device1/controls/topic2/on"), string("22136"), _, _)).WillOnce(Return(0));
 
     while (!ModbusBackend->IncomingQueries.empty())
         ModbusServer->Loop();
@@ -109,8 +109,8 @@ TEST_F(GatewayTest, MultiWriteTest)
 
     ModbusBackend->PushQuery(query1);
 
-    EXPECT_CALL(*Mqtt, Publish(_, string("/devices/device1/controls/topic1"), string("4660"), _, _)).WillOnce(Return(0));
-    EXPECT_CALL(*Mqtt, Publish(_, string("/devices/device1/controls/topic2"), string("22136"), _, _)).WillOnce(Return(0));
+    EXPECT_CALL(*Mqtt, Publish(_, string("/devices/device1/controls/topic1/on"), string("4660"), _, _)).WillOnce(Return(0));
+    EXPECT_CALL(*Mqtt, Publish(_, string("/devices/device1/controls/topic2/on"), string("22136"), _, _)).WillOnce(Return(0));
 
     while (!ModbusBackend->IncomingQueries.empty())
         ModbusServer->Loop();

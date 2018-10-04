@@ -58,11 +58,9 @@ TReplyState TGatewayObserver::OnSetValue(TStoreType type, uint8_t unit_id, uint1
 
     string res = Conv->Unpack(data, count);
     
-    // add "/on" suffix to topic in case of coil
+    // add "/on" suffix to topics
     string topic = Topic;
-    if (type == COIL) {
-        topic += "/on";
-    }
+    topic += "/on";
 
     _Mqtt->Publish(nullptr, topic, res);
 
