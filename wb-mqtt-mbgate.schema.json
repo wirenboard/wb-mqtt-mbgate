@@ -27,6 +27,7 @@
           "topic": {
             "type": "string",
             "title": "MQTT Device (from topic name)",
+            "format": "channelSelect",
             "propertyOrder": 10,
             "options": {
               "input_width": "300px"
