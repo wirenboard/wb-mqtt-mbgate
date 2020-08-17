@@ -65,7 +65,7 @@ namespace {
 /****************************************************************************
  * Discrete types converter
  */
-string TMQTTDiscrConverter::Unpack(const void *_data, size_t size)
+string TMQTTDiscrConverter::Unpack(const void *_data, size_t size) const
 {
     const uint8_t *data = static_cast<const uint8_t *>(_data);
 
@@ -90,7 +90,7 @@ void *TMQTTDiscrConverter::Pack(const std::string &value, void *_data, size_t si
 /****************************************************************************
  * Integer types converter
  */
-string TMQTTIntConverter::Unpack(const void *_data, size_t size)
+string TMQTTIntConverter::Unpack(const void *_data, size_t size) const
 {
     size /= 2; // size in bytes, now in words
     const uint16_t *data = static_cast<const uint16_t *>(_data);
@@ -232,7 +232,7 @@ void *TMQTTIntConverter::Pack(const std::string &value, void *_data, size_t size
 /****************************************************************************
  * Float types converter
  */
-string TMQTTFloatConverter::Unpack(const void *_data, size_t size)
+string TMQTTFloatConverter::Unpack(const void *_data, size_t size) const
 {
     size /= 2; // size in bytes, now in words
     const uint8_t *data = static_cast<const uint8_t *>(_data);
@@ -355,7 +355,7 @@ void *TMQTTFloatConverter::Pack(const std::string &value, void *_data, size_t si
 /****************************************************************************
  * String types converter
  */
-string TMQTTTextConverter::Unpack(const void *_data, size_t size)
+string TMQTTTextConverter::Unpack(const void *_data, size_t size) const
 {
     stringstream ss;
     const char *data = static_cast<const char *>(_data);

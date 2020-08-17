@@ -5,26 +5,19 @@
 
 #pragma once
 
-#include <string>
-#include <memory>
+#include <wblib/mqtt.h>
 
-#include <wbmqtt/mqtt_wrapper.h>
 #include "modbus_wrapper.h"
 #include "mqtt_converters.h"
 
-class TGatewayObserver : public IModbusServerObserver, public IMQTTObserver
+class TGatewayObserver : public IModbusServerObserver
 {
 public:
-    TGatewayObserver(const std::string &topic, PMQTTConverter conv, std::weak_ptr<TMQTTClientBase> mqtt);
-
-    // MQTT callbacks
-    virtual void OnConnect(int rc);
-    virtual void OnMessage(const struct mosquitto_message *message);
-    virtual void OnSubscribe(int mid, int qos_count, const int *granted_qos);
+    TGatewayObserver(const std::string& topic, PMQTTConverter conv, WBMQTT::PMqttClient mqtt);
 
     // Modbus callbacks
-    virtual TReplyState OnSetValue(TStoreType type, uint8_t unit_id, uint16_t start, unsigned count, const void *data);
-    virtual void OnCacheAllocate(TStoreType type, uint8_t area, const TModbusCacheAddressRange& cache);
+    TReplyState OnSetValue(TStoreType type, uint8_t unit_id, uint16_t start, unsigned count, const void* data) override;
+    void OnCacheAllocate(TStoreType type, uint8_t area, const TModbusCacheAddressRange& cache) override;
     // no need of OnGetValue, use cache instead
     
 protected:
@@ -41,7 +34,10 @@ protected:
     std::string Topic;
 
     /*! Pointer to MQTT client */
-    std::weak_ptr<TMQTTClientBase> Mqtt;
+    WBMQTT::PMqttClient Mqtt;
+
+private:
+    void OnMessage(const WBMQTT::TMqttMessage& message);
 };
 
 typedef std::shared_ptr<TGatewayObserver> PGatewayObserver;

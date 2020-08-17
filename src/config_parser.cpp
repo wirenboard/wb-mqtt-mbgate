@@ -5,26 +5,22 @@
 #include <fstream>
 #include <iostream>
 #include <tuple>
-#include <jsoncpp/json/json.h>
 #include <unistd.h>
 #include <time.h>
 
+#include <wblib/json_utils.h>
+#include <wblib/mqtt.h>
+
+#include "log.h"
 #include "mqtt_converters.h"
 #include "modbus_lmb_backend.h"
-#include <wbmqtt/mqtt_wrapper.h>
-#include <wbmqtt/utils.h>
 #include "observer.h"
-#include "mqtt_fastwrapper.h"
-
-#include <log4cpp/Category.hh>
-#include <log4cpp/RollingFileAppender.hh>
-#include <log4cpp/SyslogAppender.hh>
-#include <log4cpp/OstreamAppender.hh>
-#include <log4cpp/PatternLayout.hh>
-
-#include "logging.h"
 
 using namespace std;
+using namespace WBMQTT;
+using namespace WBMQTT::JSON;
+
+#define LOG(logger) ::logger.Log() << "[config] "
 
 namespace {
     string expandTopic(const string &t)
@@ -34,157 +30,63 @@ namespace {
     }
 };
 
-
 IConfigParser::~IConfigParser()
 {
 }
 
-
-TJSONConfigParser::TJSONConfigParser(int argc, char *argv[])
+TJSONConfigParser::TJSONConfigParser(const string& config_file, const string& schema_file) :
+    Root(Parse(config_file))
 {
-    // parse input flags
-    string config_file;
-    int verbose_level = 0;
-    int opt;
-    
-    while ((opt = getopt(argc, argv, "hc:v")) != -1) {
-        switch (opt) {
-        case 'c':
-            config_file = optarg;
-            break;
-        case 'v':
-            verbose_level++;
-            break;
-        case 'h':
-        default:
-            throw ConfigParserException(string("Usage: ") + argv[0] + " -c\"config_file_name\" [-v [-v ...]]");
-        }
-    }
-
-    // parse JSON configuration file
-    Json::Reader reader;
-
-    std::ifstream fileStream(config_file);
-    if (!fileStream.is_open())
-        throw ConfigParserException("Can't open configuration file: " + config_file);
-
-    if (!reader.parse(fileStream, Root, false))
-        throw ConfigParserException(string("Can't parse input JSON file: ") 
-                    + reader.getFormattedErrorMessages());
-
-    // configure logging
-    string logfile = getenv("MQTT_MBGATE_LOGFILE") ? 
-                        getenv("MQTT_MBGATE_LOGFILE") : DEFAULT_LOG_FILE;
-
-    size_t max_logsize = getenv("MQTT_MBGATE_MAX_LOGFILE_SIZE") ?
-                        atoi(getenv("MQTT_MBGATE_MAX_LOGFILE_SIZE")) * 1024 * 1024 : DEFAULT_LOG_FILE_SIZE * 1024 * 1024;
-
-    log4cpp::Category &log_root = log4cpp::Category::getRoot();
-    long pid = getpid();
-
-    log_layout = new log4cpp::PatternLayout;
-    log_layout->setConversionPattern("%d{%Y-%m-%d %H:%M:%S.%l} %p: %m%n");
-
-    log4cpp::Priority::PriorityLevel priority = log4cpp::Priority::WARN;
-
-    if (verbose_level > 0) {
-
-        switch (verbose_level) {
-        case 1:
-            priority = log4cpp::Priority::NOTICE;
-            break;
-        case 2:
-            priority = log4cpp::Priority::INFO;
-            break;
-        case 3:
-        default:
-            priority = log4cpp::Priority::DEBUG;
-        }
-        
-        appender = new log4cpp::OstreamAppender("cerr", &std::cerr);
-    } else if (Root["debug"].asBool()) {
-        priority = log4cpp::Priority::INFO;
-        appender = new log4cpp::RollingFileAppender("default_log", logfile, max_logsize);
-    } else {
-        appender = new log4cpp::SyslogAppender("syslog", "wb-mqtt-mbgate[" + to_string(pid) + "]");
-    }
-
-    appender->setLayout(log_layout);
-    log_root.addAppender(appender);
-    log_root.setPriority(priority);
-}
-
-TJSONConfigParser::~TJSONConfigParser()
-{
+    auto schema(Parse(schema_file));
+    Validate(Root, schema);
 }
 
 bool TJSONConfigParser::Debug()
 {
-    return Root["debug"].asBool();
+    bool debug = false;
+    Get(Root, "debug", debug);
+    return debug;
 }
 
-tuple<PModbusServer, PMQTTClient> TJSONConfigParser::Build()
+tuple<PModbusServer, PMqttClient> TJSONConfigParser::Build()
 {
     // create Modbus server
-    if (!Root["mqtt"]["host"])
-        throw ConfigParserException("Modbus TCP server bind address is necessary but is not defined");
-    if (!Root["mqtt"]["port"])
-        throw ConfigParserException("Modbus TCP bind port is necessary but is not defined");
-
     string modbus_host = Root["modbus"]["host"].asString();
     int modbus_port = Root["modbus"]["port"].asInt();
 
-    LOG(DEBUG) << "Modbus configuration: host " << modbus_host << ", port " << modbus_port;
+    LOG(Debug) << "Modbus configuration: host " << modbus_host << ", port " << modbus_port;
 
-    PModbusBackend modbusBackend = make_shared<TModbusTCPBackend>(modbus_host.c_str(), modbus_port);
+    PModbusBackend modbusBackend = make_shared<TModbusTCPBackend>(modbus_host, modbus_port);
     PModbusServer modbus = make_shared<TModbusServer>(modbusBackend);
 
     // create MQTT client
-    if (!Root["mqtt"]["host"])
-        throw ConfigParserException("MQTT server address is necessary but is not defined");
-    if (!Root["mqtt"]["port"])
-        throw ConfigParserException("MQTT server port is necessary but is not defined");
-
     string mqtt_host = Root["mqtt"]["host"].asString();
     int mqtt_port = Root["mqtt"]["port"].asInt();
-    int mqtt_keepalive;
-    if (!Root["mqtt"]["keepalive"]) {
-        mqtt_keepalive = 60;
-    } else {
-        mqtt_keepalive = Root["mqtt"]["keepalive"].asInt();
-    }
+    int mqtt_keepalive = 60;
+    Get(Root["mqtt"], "keepalive", mqtt_keepalive);
 
-    LOG(DEBUG) << "MQTT configuration: host " << mqtt_host << ", port " << mqtt_port << ", keepalive " << mqtt_keepalive;
+    LOG(Debug) << "MQTT configuration: host " << mqtt_host << ", port " << mqtt_port << ", keepalive " << mqtt_keepalive;
 
-    TMQTTClient::TConfig mqtt_config;
+    TMosquittoMqttConfig mqtt_config;
     mqtt_config.Host = mqtt_host;
     mqtt_config.Port = mqtt_port;
     mqtt_config.Keepalive = mqtt_keepalive;
     mqtt_config.Id = string("mqtt-mbgate-") + to_string(time(NULL));
 
-    PMQTTClient mqtt = make_shared<TMQTTClient>(mqtt_config);
-    PMQTTFastObserver fobs = make_shared<TMQTTFastObserver>();
-
-    mqtt->Observe(fobs);
+    PMqttClient mqtt = NewMosquittoMqttClient(mqtt_config);
 
     // create observers and link'em with MQTT and Modbus
-    _BuildStore(COIL, Root["registers"]["coils"], modbus, mqtt, fobs);
-    _BuildStore(DISCRETE_INPUT, Root["registers"]["discretes"], modbus, mqtt, fobs);
-    _BuildStore(HOLDING_REGISTER, Root["registers"]["holdings"], modbus, mqtt, fobs);
-    _BuildStore(INPUT_REGISTER, Root["registers"]["inputs"], modbus, mqtt, fobs);
-
-    // append logger if necessary
-    if (log4cpp::Category::getRoot().getPriority() >= log4cpp::Priority::INFO) {
-        PMQTTLoggingObserver log_obs = make_shared<TMQTTLoggingObserver>();
-        mqtt->Observe(log_obs);
-    }
+    _BuildStore(COIL, Root["registers"]["coils"], modbus, mqtt);
+    _BuildStore(DISCRETE_INPUT, Root["registers"]["discretes"], modbus, mqtt);
+    _BuildStore(HOLDING_REGISTER, Root["registers"]["holdings"], modbus, mqtt);
+    _BuildStore(INPUT_REGISTER, Root["registers"]["inputs"], modbus, mqtt);
 
     return make_tuple(modbus, mqtt);
 }
 
-void TJSONConfigParser::_BuildStore(TStoreType type, Json::Value &list, PModbusServer modbus, PMQTTClient mqtt, PMQTTFastObserver fobs)
+void TJSONConfigParser::_BuildStore(TStoreType type, const Json::Value& list, PModbusServer modbus, PMqttClient mqtt)
 {
-    LOG(DEBUG) << "Processing store " << type;
+    LOG(Debug) << "Processing store " << type;
 
     for (const auto &reg_item : list) {
         if (!reg_item["enabled"].asBool())
@@ -195,7 +97,7 @@ void TJSONConfigParser::_BuildStore(TStoreType type, Json::Value &list, PModbusS
         string topic = reg_item["topic"].asString();
         int size;
 
-        LOG(DEBUG) << "Element " << topic << " : " << address;
+        LOG(Debug) << "Element " << topic << " : " << address;
         
         PGatewayObserver obs;
         PMQTTConverter conv;
@@ -225,7 +127,7 @@ void TJSONConfigParser::_BuildStore(TStoreType type, Json::Value &list, PModbusS
                 } else if (format == "bcd") {
                     int_type = TMQTTIntConverter::BCD;
                 } else {
-                    throw ConfigParserException("Unknown integer format: " + format);
+                    throw runtime_error("Unknown integer format: " + format);
                 }
 
                 conv = make_shared<TMQTTIntConverter>(int_type, scale, size, byteswap, wordswap);
@@ -235,13 +137,12 @@ void TJSONConfigParser::_BuildStore(TStoreType type, Json::Value &list, PModbusS
 
         obs = make_shared<TGatewayObserver>(expandTopic(topic), conv, mqtt);
 
-        LOG(DEBUG) << "Creating observer on " << address << ":" << size;
+        LOG(Debug) << "Creating observer on " << address << ":" << size;
 
         try {
             modbus->Observe(obs, type, TModbusAddressRange(address, size), slave_id);
-            fobs->Observe(obs, expandTopic(topic));
         } catch (const WrongSegmentException &e) {
-            throw ConfigParserException(string("Address overlapping: ") + StoreTypeToString(type) + ": topic " + topic);
+            throw runtime_error(string("Address overlapping: ") + StoreTypeToString(type) + ": topic " + topic);
         }
     }
 }

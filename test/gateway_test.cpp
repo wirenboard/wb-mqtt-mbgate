@@ -10,13 +10,13 @@
 #include <memory>
 
 using namespace std;
-using ::testing::_;
-using ::testing::Return;
+using namespace WBMQTT;
+using namespace ::testing;
 
 class GatewayTest : public ::testing::Test
 {
 public:
-    shared_ptr<MockMQTTClient> Mqtt;
+    shared_ptr<NiceMock<MockMQTTClient>> Mqtt;
     shared_ptr<TFakeModbusBackend> ModbusBackend;
     shared_ptr<TModbusServer> ModbusServer;
 
@@ -24,7 +24,7 @@ public:
 
     void SetUp() 
     {
-        Mqtt = make_shared<MockMQTTClient>();
+        Mqtt = make_shared<NiceMock<MockMQTTClient>>();
         ModbusBackend = make_shared<TFakeModbusBackend>();
         ModbusServer = make_shared<TModbusServer>(ModbusBackend);
 
@@ -33,27 +33,20 @@ public:
         PMQTTConverter conv1 = make_shared<TMQTTIntConverter>(TMQTTIntConverter::SIGNED, 1.0, 2);
         observers[0] = make_shared<TGatewayObserver>("/devices/device1/controls/topic1", conv1, Mqtt);
         ModbusServer->Observe(observers[0], TStoreType::HOLDING_REGISTER, TModbusAddressRange(0, 1));
-        Mqtt->Observe(observers[0]);
 
         observers[1] = make_shared<TGatewayObserver>("/devices/device1/controls/topic2", conv1, Mqtt);
         ModbusServer->Observe(observers[1], TStoreType::HOLDING_REGISTER, TModbusAddressRange(1, 1));
-        Mqtt->Observe(observers[1]);
 
         // test a coil to write on "#/on"
         PMQTTConverter coil_conv = make_shared<TMQTTDiscrConverter>();
         observers[2] = make_shared<TGatewayObserver>("/devices/device1/controls/coil1", coil_conv, Mqtt);
         ModbusServer->Observe(observers[2], TStoreType::COIL, TModbusAddressRange(0, 1));
-        Mqtt->Observe(observers[2]);
         
         observers[3] = make_shared<TGatewayObserver>("/devices/device1/controls/coil2", coil_conv, Mqtt);
         ModbusServer->Observe(observers[3], TStoreType::COIL, TModbusAddressRange(1, 1));
-        Mqtt->Observe(observers[3]);
         
         observers[4] = make_shared<TGatewayObserver>("/devices/device1/controls/coil3", coil_conv, Mqtt);
         ModbusServer->Observe(observers[4], TStoreType::COIL, TModbusAddressRange(2, 1));
-        Mqtt->Observe(observers[4]);
-
-
 
         ModbusServer->AllocateCache();
     }
@@ -87,8 +80,11 @@ TEST_F(GatewayTest, SingleWriteTest)
     TModbusQuery query2(q2, sizeof (q2), 0);
     ModbusBackend->PushQuery(query2);
 
-    EXPECT_CALL(*Mqtt, Publish(_, string("/devices/device1/controls/topic1/on"), string("4660"), _, _)).WillOnce(Return(0));
-    EXPECT_CALL(*Mqtt, Publish(_, string("/devices/device1/controls/topic2/on"), string("22136"), _, _)).WillOnce(Return(0));
+    EXPECT_CALL(*Mqtt, Publish(AllOf(Field(&TMqttMessage::Topic, "/devices/device1/controls/topic1/on"), 
+                                     Field(&TMqttMessage::Payload, "4660"))));
+
+    EXPECT_CALL(*Mqtt, Publish(AllOf(Field(&TMqttMessage::Topic, "/devices/device1/controls/topic2/on"), 
+                                     Field(&TMqttMessage::Payload, "22136"))));
 
     while (!ModbusBackend->IncomingQueries.empty())
         ModbusServer->Loop();
@@ -109,8 +105,11 @@ TEST_F(GatewayTest, MultiWriteTest)
 
     ModbusBackend->PushQuery(query1);
 
-    EXPECT_CALL(*Mqtt, Publish(_, string("/devices/device1/controls/topic1/on"), string("4660"), _, _)).WillOnce(Return(0));
-    EXPECT_CALL(*Mqtt, Publish(_, string("/devices/device1/controls/topic2/on"), string("22136"), _, _)).WillOnce(Return(0));
+    EXPECT_CALL(*Mqtt, Publish(AllOf(Field(&TMqttMessage::Topic, "/devices/device1/controls/topic1/on"), 
+                                     Field(&TMqttMessage::Payload, "4660"))));
+
+    EXPECT_CALL(*Mqtt, Publish(AllOf(Field(&TMqttMessage::Topic, "/devices/device1/controls/topic2/on"), 
+                                     Field(&TMqttMessage::Payload, "22136"))));
 
     while (!ModbusBackend->IncomingQueries.empty())
         ModbusServer->Loop();
@@ -138,9 +137,14 @@ TEST_F(GatewayTest, CoilWriteTest)
     TModbusQuery query2(q2, sizeof (q2), 0);
     ModbusBackend->PushQuery(query2);
 
-    EXPECT_CALL(*Mqtt, Publish(_, string("/devices/device1/controls/coil1/on"), string("1"), _, _)).WillOnce(Return(0));
-    EXPECT_CALL(*Mqtt, Publish(_, string("/devices/device1/controls/coil2/on"), string("0"), _, _)).WillOnce(Return(0));
-    EXPECT_CALL(*Mqtt, Publish(_, string("/devices/device1/controls/coil3/on"), string("1"), _, _)).WillOnce(Return(0));
+    EXPECT_CALL(*Mqtt, Publish(AllOf(Field(&TMqttMessage::Topic, "/devices/device1/controls/coil1/on"), 
+                                     Field(&TMqttMessage::Payload, "1"))));
+
+    EXPECT_CALL(*Mqtt, Publish(AllOf(Field(&TMqttMessage::Topic, "/devices/device1/controls/coil2/on"), 
+                                     Field(&TMqttMessage::Payload, "0"))));
+
+    EXPECT_CALL(*Mqtt, Publish(AllOf(Field(&TMqttMessage::Topic, "/devices/device1/controls/coil3/on"), 
+                                     Field(&TMqttMessage::Payload, "1"))));
 
     while (!ModbusBackend->IncomingQueries.empty())
         ModbusServer->Loop();

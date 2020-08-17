@@ -1,5 +1,5 @@
 #include "modbus_wrapper.h"
-#include "logging.h"
+#include "log.h"
 
 #include <map>
 
@@ -107,13 +107,13 @@ void TModbusServer::AllocateCache()
         _callCacheAllocate(_hr, slave_id, HOLDING_REGISTER, mb->GetCache(HOLDING_REGISTER, slave_id));
     }
     
-    LOG(DEBUG) << "Modbus cache allocated";
+    Debug.Log() << "[modbus] Modbus cache allocated";
 }
 
-int TModbusServer::Loop(int timeout)
+int TModbusServer::Loop(int timeoutMilliS)
 {
     int rc;
-    if ((rc = mb->WaitForMessages(timeout)) == -1)
+    if ((rc = mb->WaitForMessages(timeoutMilliS)) == -1)
         return -1;
 
     // receive message, process, run callback

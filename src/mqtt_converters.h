@@ -15,11 +15,12 @@ class IMQTTConverter : public std::enable_shared_from_this<IMQTTConverter>
 {
 public:
     /*! Unpack Modbus register value into MQTT-readable string
+     * Must be thread safe!
      * \param data Pointer to start of Modbus record
      * \param size Modbus record size (in bytes)
      * \return MQTT string value
      */
-    virtual std::string Unpack(const void *data, size_t size) = 0;
+    virtual std::string Unpack(const void *data, size_t size) const = 0;
 
     /*! Pack MQTT message into Modbus record
      * \param value MQTT message
@@ -42,7 +43,7 @@ typedef std::shared_ptr<IMQTTConverter> PMQTTConverter;
 class TMQTTDiscrConverter : public IMQTTConverter
 {
 public:
-    std::string Unpack(const void *data, size_t size);
+    std::string Unpack(const void *data, size_t size) const;
     void *Pack(const std::string &value, void *data, size_t size);
 };
 
@@ -89,7 +90,7 @@ public:
             Size = 2;
     }
 
-    std::string Unpack(const void *data, size_t size);
+    std::string Unpack(const void *data, size_t size) const;
     void *Pack(const std::string &value, void *data, size_t size);
 };
 
@@ -117,7 +118,7 @@ public:
             Size = 4;
     }
 
-    std::string Unpack(const void *data, size_t size);
+    std::string Unpack(const void *data, size_t size) const;
     void *Pack(const std::string &value, void *data, size_t size);
 };
 
@@ -141,6 +142,6 @@ public:
         , WordSwap(wordswap)
     {}
     
-    std::string Unpack(const void *data, size_t size);
+    std::string Unpack(const void *data, size_t size) const;
     void *Pack(const std::string &value, void *data, size_t size);
 };
