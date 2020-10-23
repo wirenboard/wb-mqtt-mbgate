@@ -1,3 +1,9 @@
+wb-mqtt-mbgate (0.2.1) unstable; urgency=medium
+
+  * Non-ASCII MQTT topic names support
+
+ -- Petr Krasnoshchekov <petr.krasnoshchekov@wirenboard.ru>  Fri, 23 Oct 2020 10:52:12 +0300
+
 wb-mqtt-mbgate (0.2.0) unstable; urgency=medium
 
   * Port to libwbmqtt1
