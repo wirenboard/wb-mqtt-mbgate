@@ -2,9 +2,3 @@
 
 %:
 	dh $@ --parallel
-
-override_dh_auto_build:
-	dh_auto_build -- NDEBUG=y
-
-override_dh_auto_test:
-	@echo "*** tests are disabled during package building" 1>&2

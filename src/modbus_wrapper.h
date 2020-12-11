@@ -298,9 +298,10 @@ public:
     PModbusBackend Backend();
 
     /*! Modbus main loop function
+     * \param timeoutMilliS wait timeout in milliseconds, -1 - block indefinitely
      * \return 0 on success, -1 on error
      */
-    virtual int Loop(int timeout = -1);
+    virtual int Loop(int timeoutMilliS = -1);
 
     /*! Cache allocation request
      * (Re)allocate cache values and tell observers about it

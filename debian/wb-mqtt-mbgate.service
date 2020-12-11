@@ -1,0 +1,14 @@
+[Unit]
+Description=Wiren Board MQTT to Modbus TCP gateway
+After=mosquitto.target
+
+[Service]
+Type=simple
+Restart=always
+RestartSec=1
+User=root
+ExecStart=/usr/bin/wb-mqtt-mbgate -c /etc/wb-mqtt-mbgate.conf
+ExecStartPre=/usr/bin/wb-mqtt-mbgate-confgen -c /etc/wb-mqtt-mbgate.conf
+
+[Install]
+WantedBy=multi-user.target

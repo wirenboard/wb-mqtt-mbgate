@@ -114,7 +114,7 @@ regs = {"discretes": regs_discr, "coils": regs_coils, "inputs": regs_input, "hol
 
 def get_dev_name(topic):
     lst = topic.split("/")
-    return str(lst[2] + "/" + lst[4])
+    return str(lst[2] + "/" + lst[4]).decode("utf-8")
 
 
 def process_table(table):

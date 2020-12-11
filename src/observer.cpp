@@ -1,70 +1,46 @@
 #include "observer.h"
 
-#include <vector>
-#include <string>
-#include <wbmqtt/utils.h>
-#include "logging.h"
+#include "log.h"
 
 using namespace std;
+using namespace WBMQTT;
 
-TGatewayObserver::TGatewayObserver(const string &topic, PMQTTConverter conv, weak_ptr<TMQTTClientBase> mqtt)
+TGatewayObserver::TGatewayObserver(const string& topic, PMQTTConverter conv, PMqttClient mqtt)
     : Cache(nullptr)
     , CacheSize(0)
     , Conv(conv)
     , Topic(topic)
     , Mqtt(mqtt)
-{}
-
-void TGatewayObserver::OnConnect(int rc)
 {
-    auto _Mqtt = Mqtt.lock();
-    if (!_Mqtt) // TODO: error handling
-        return;
-
-    _Mqtt->Subscribe(nullptr, Topic, 0);
+    Mqtt->Subscribe([this](const TMqttMessage& msg){this->OnMessage(msg);}, topic);
 }
 
-void TGatewayObserver::OnMessage(const struct mosquitto_message *msg)
+void TGatewayObserver::OnMessage(const TMqttMessage& message)
 {
     // no pointer to cache - retire
     if (!Cache)
         return;
 
-    // topic should match with this observer
-    if (Topic != static_cast<char *>(msg->topic))
-        return;
-
     // pack incoming message into Modbus cache
-    Conv->Pack(static_cast<char *>(msg->payload), Cache, CacheSize);
+    Conv->Pack(message.Payload, Cache, CacheSize);
 }
 
-void TGatewayObserver::OnSubscribe(int mid, int qos_count, const int *granted_qos)
-{
-}
-
-void TGatewayObserver::OnCacheAllocate(TStoreType type, uint8_t slave_id, const TModbusCacheAddressRange &range)
+void TGatewayObserver::OnCacheAllocate(TStoreType type, uint8_t slave_id, const TModbusCacheAddressRange& range)
 {
     Cache = range.cbegin()->second.second;
     CacheSize = range.cbegin()->second.first;
 }
 
-TReplyState TGatewayObserver::OnSetValue(TStoreType type, uint8_t unit_id, uint16_t start, unsigned count, const void *data)
+TReplyState TGatewayObserver::OnSetValue(TStoreType type, uint8_t unit_id, uint16_t start, unsigned count, const void* data)
 {
-    auto _Mqtt = Mqtt.lock();
-    if (!_Mqtt) { // TODO: error handling
-        LOG(ERROR) << "MQTT client is not available!";
-        return REPLY_SERVER_FAILURE;
-    }
 
-    string res = Conv->Unpack(data, count);
-    
-    // add "/on" suffix to topics
-    string topic = Topic;
-    topic += "/on";
+    TMqttMessage msg;
+    msg.Payload = Conv->Unpack(data, count);
+    msg.Topic = Topic + "/on";
 
-    _Mqtt->Publish(nullptr, topic, res);
+    Mqtt->Publish(msg);
 
-    LOG(DEBUG) << "Set value via Modbus: " << Topic << " : " << res;
+    ::Debug.Log() << "[gateway] Set value via Modbus: " << Topic << " : " << msg.Payload;
 
     return REPLY_OK;
 }

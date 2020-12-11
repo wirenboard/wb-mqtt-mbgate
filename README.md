@@ -4,10 +4,9 @@ Modbus TCP to MQTT gateway (C++)
 Зависимости
 -----------
 
-* libwbmqtt0 (>= 1.4.1)
+* libwbmqtt1 (>= 1.0.6)
 * libmodbus
 * libjsoncpp
-* liblog4cpp
 * python и python-mosquitto для генератора конфигурации
 
 
