@@ -77,13 +77,10 @@ string TMQTTDiscrConverter::Unpack(const void *_data, size_t size) const
 
 void *TMQTTDiscrConverter::Pack(const std::string &value, void *_data, size_t size)
 {
-    uint8_t *data = static_cast<uint8_t *>(_data);
-
+    uint8_t res = 0;
     if (atoi(value.c_str()))
-        *data = 0xFF; // TODO: check this constant
-    else
-        *data = 0;
-
+        res = 1;
+    memcpy(_data, &res, 1);
     return _data;
 }
 

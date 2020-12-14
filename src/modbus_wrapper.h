@@ -326,8 +326,12 @@ private:
     std::map<Command, TStoreType> _CmdStoreTypeMap;
 
     struct TRSet {
-        int di, co, ir, hr;
+        int di = 0;
+        int co = 0;
+        int ir = 0;
+        int hr = 0;
     };
+
     std::map<uint8_t, TRSet> _maxSlaveAddresses;
 
 protected:
