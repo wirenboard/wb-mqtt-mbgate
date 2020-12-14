@@ -121,7 +121,7 @@ TEST_F(MQTTConvertersTest, DiscreteTest)
     TMQTTDiscrConverter conv;
     
     conv.Pack(val_true, &buffer, 1);
-    EXPECT_EQ(buffer, 0xFF);
+    EXPECT_EQ(buffer, 0x01);
     result = conv.Unpack(&buffer, 1);
     EXPECT_EQ(result, val_true);
 
