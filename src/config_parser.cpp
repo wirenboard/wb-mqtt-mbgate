@@ -50,13 +50,54 @@ bool TJSONConfigParser::Debug()
 
 tuple<PModbusServer, PMqttClient> TJSONConfigParser::Build()
 {
-    // create Modbus server
-    string modbus_host = Root["modbus"]["host"].asString();
-    int modbus_port = Root["modbus"]["port"].asInt();
+    PModbusBackend modbusBackend = nullptr;
 
-    LOG(Debug) << "Modbus configuration: host " << modbus_host << ", port " << modbus_port;
+    auto modbus_data = Root["modbus"];
+    auto type = modbus_data.get("type", "tcp").asString();
 
-    PModbusBackend modbusBackend = make_shared<TModbusTCPBackend>(modbus_host, modbus_port);
+    if (type == "tcp") {
+        string modbus_host = modbus_data["host"].asString();
+        int modbus_port = modbus_data["port"].asInt();
+
+        LOG(Debug) << "Modbus configuration: host " << modbus_host << ", port " << modbus_port;
+        modbusBackend = make_shared<TModbusTCPBackend>(modbus_host.c_str(), modbus_port);
+    } else {
+        if (type == "rtu") {
+            TModbusRTUBackendArgs args {};
+            
+            args.Device = modbus_data["path"].asCString();
+            
+            if (modbus_data.isMember("baud_rate")) {
+                args.BaudRate = modbus_data["baud_rate"].asInt();
+            }
+
+            if (modbus_data.isMember("parity")) {
+                auto parity = modbus_data["parity"].asCString()[0];
+                if (parity != '\0') {
+                    args.Parity = parity;
+                }
+            }
+
+            if (modbus_data.isMember("data_bits")) {
+                args.DataBit = modbus_data["data_bits"].asInt();
+            }
+
+            if (modbus_data.isMember("stop_bits")) {
+                args.StopBit = modbus_data["stop_bits"].asInt();
+            }
+
+            LOG(Debug) << "Modbus configuration: device " << args.Device << 
+                                            ", baud rate " << args.BaudRate <<
+                                            ", parity " << args.Parity <<
+                                            ", data bits " << args.DataBit <<
+                                            ", stop bits " << args.StopBit;
+
+            modbusBackend = make_shared<TModbusRTUBackend>(args);
+        } else {
+            throw runtime_error("invalid modbus type: '" + type + "'");
+        }
+    }
+
     PModbusServer modbus = make_shared<TModbusServer>(modbusBackend);
 
     // create MQTT client
