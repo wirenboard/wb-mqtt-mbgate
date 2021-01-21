@@ -1,8 +1,7 @@
 {
   "$schema": "http://json-schema.org/draft-04/schema#",
   "type": "object",
-  "title": "MQTT to Modbus-TCP gateway configuration",
-  "description": "Configure topics to registers mapping and daemon configuration",
+  "title": "MQTT to Modbus gateway configuration",
   "configFile": {
     "path": "/etc/wb-mqtt-mbgate.conf",
     "service": "wb-mqtt-mbgate"
@@ -31,13 +30,12 @@
         "meta_type": {
           "type": "string",
           "title": "Meta-type",
-          "description": "don't change, it's just a helper",
+          "readOnly": true,
           "propertyOrder": 11
         },
         "unitId": {
           "type": "integer",
-          "title": "Unit ID",
-          "description": "Modbus unit ID",
+          "title": "Modbus unit ID",
           "minimum": 1,
           "maximum": 255,
           "propertyOrder": 20
@@ -45,7 +43,6 @@
         "address": {
           "type": "integer",
           "title": "Start address",
-          "description": "in words, different spaces for different types",
           "minimum": 0,
           "maximum": 65535,
           "propertyOrder": 30
@@ -61,7 +58,6 @@
           "type": "string",
           "enum": ["signed", "unsigned", "bcd", "float", "varchar"],
           "title": "Register format",
-          "description": "Works for input and holding registers",
           "options": {
             "enum_titles" : [ "Signed integer", "Unsigned integer",
               "BCD", "IEEE754 float", "Varchar (fixed size string)"]
@@ -129,7 +125,10 @@
           "title": "Bind address",
           "description": "IP address or hostname to bind gateway to",
           "default": "*",
-          "propertyOrder": 20
+          "propertyOrder": 20,
+          "options": {
+            "grid_columns": 10
+          }
         },
         "port": {
           "type": "integer",
@@ -138,10 +137,18 @@
           "default": 502,
           "minimum": 1,
           "maximum": 65535,
-          "propertyOrder": 30
+          "propertyOrder": 30,
+          "options": {
+            "grid_columns": 2
+          }
         }
       },
-      "required": ["host", "port"]
+      "required": ["host", "port"],
+      "options" : {
+        "disable_properties": true,
+        "disable_collapse": true,
+        "disable_edit_json": true
+      }
     },
     "rtu": {
       "title": "RTU",
@@ -194,7 +201,12 @@
           "propertyOrder": 5
         }
       },
-      "required": ["path"]
+      "required": ["path"],
+      "options" : {
+        "disable_properties": true,
+        "disable_collapse": true,
+        "disable_edit_json": true
+      }
     }
   },
   "properties": {
@@ -206,13 +218,13 @@
       "propertyOrder": 10
     },
     "modbus": {
-      "type": "object",
       "title": "Modbus binding",
       "oneOf": [
         { "$ref": "#/definitions/tcp" },
         { "$ref": "#/definitions/rtu" }
       ],
-      "propertyOrder": 20
+      "propertyOrder": 20,
+      "_format": "grid"
     },
     "mqtt": {
       "type": "object",
@@ -223,7 +235,10 @@
           "title": "Address",
           "description": "Broker address",
           "default": "localhost",
-          "propertyOrder": 10
+          "propertyOrder": 10,
+          "options": {
+            "grid_columns": 10
+          }
         },
         "port": {
           "type": "integer",
@@ -231,20 +246,29 @@
           "default": 1883,
           "minimum": 1,
           "maximum": 65535,
-          "propertyOrder": 20
+          "propertyOrder": 20,
+          "options": {
+            "grid_columns": 2
+          }
         },
         "keepalive": {
           "type": "integer",
           "title": "Keep-alive interval",
           "default": 60,
-          "propertyOrder": 25
+          "propertyOrder": 25,
+          "options": {
+            "grid_columns": 12
+          }
         },
         "auth": {
           "type": "boolean",
           "title": "Enable username+password authentification",
           "default": false,
           "_format": "checkbox",
-          "propertyOrder": 30
+          "propertyOrder": 30,
+          "options": {
+            "grid_columns": 12
+          }
         },
         "username": {
           "type": "string",
@@ -259,7 +283,12 @@
         }
       },
       "required": ["host", "port"],
-      "propertyOrder": 35
+      "propertyOrder": 35,
+      "options" : {
+        "disable_collapse": true,
+        "disable_edit_json": true
+      },
+      "_format": "grid"
     },
     "registers": {
       "type": "object",
@@ -276,46 +305,63 @@
         },
         "discretes": {
           "type": "array",
-          "title": "Discrete inputs",
-          "description": "Read-only one-bit values",
+          "title": "Discrete inputs (read-only one-bit values)",
           "propertyOrder": 10,
           "_format": "table",
           "items": {
             "$ref": "#/definitions/reg_common"
+          },
+          "options": {
+            "disable_array_reorder": true
           }
         },
         "coils": {
           "type": "array",
-          "title": "Coils",
-          "description": "Read/write one-bit values",
+          "title": "Coils (read/write one-bit values)",
           "propertyOrder": 20,
           "_format": "table",
           "items": {
             "$ref": "#/definitions/reg_common"
+          },
+          "options": {
+            "disable_array_reorder": true
           }
         },
         "inputs": {
           "type": "array",
-          "title": "Input registers",
-          "description": "Read-only registers",
+          "title": "Input registers (read-only registers)",
           "propertyOrder": 30,
           "_format": "table",
           "items": {
             "$ref": "#/definitions/reg_format"
+          },
+          "options": {
+            "disable_array_reorder": true
           }
         },
         "holdings": {
           "type": "array",
-          "title": "Holding registers",
-          "description": "Read/write registers",
+          "title": "Holding registers (read/write registers)",
           "propertyOrder": 40,
           "_format": "table",
           "items": {
             "$ref": "#/definitions/reg_format"
+          },
+          "options": {
+            "disable_array_reorder": true
           }
         }
+      },
+      "options" : {
+        "disable_properties": true,
+        "disable_collapse": true,
+        "disable_edit_json": true
       }
     }
   },
-  "required": ["debug", "modbus", "mqtt", "registers"]
+  "required": ["debug", "modbus", "mqtt", "registers"],
+  "options" : {
+    "disable_properties": true,
+    "disable_collapse": true
+  }
 }
