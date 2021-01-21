@@ -300,7 +300,12 @@ int TModbusRTUBackend::WaitForMessages(int timeout)
     tv.tv_usec = (timeout % 1000) * 1000;
     tv.tv_sec = timeout / 1000;
 
-    if (select(fd + 1, &rdset, NULL, NULL, timeout == -1 ? NULL : &tv) == -1) {
+    int res = select(fd + 1, &rdset, NULL, NULL, timeout == -1 ? NULL : &tv);
+    if (res == 0) {
+        return 0; // just tell that no messages are available
+    }
+
+    if (res == -1) {
         if (errno == EINTR)
             return 0; // just tell that no messages are available
         throw TModbusException(std::string("Error while select(): ") + strerror(errno));

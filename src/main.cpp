@@ -150,7 +150,6 @@ int main(int argc, char *argv[])
     bool running = true;
 
     WBMQTT::SignalHandling::OnSignals( { SIGINT, SIGTERM }, [&]{ running = false; });
-    WBMQTT::SignalHandling::Start();
 
     try {
         PModbusServer s;
@@ -163,10 +162,12 @@ int main(int argc, char *argv[])
 
         LOG(Info) << "Start loops";
 
+        WBMQTT::SignalHandling::Start();
+
         t->Start();
 
         while (running) {
-            if (s->Loop(5000) == -1)
+            if (s->Loop(1000) == -1)
                     break;
         }
 
