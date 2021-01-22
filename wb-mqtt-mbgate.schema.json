@@ -1,7 +1,7 @@
 {
   "$schema": "http://json-schema.org/draft-04/schema#",
   "type": "object",
-  "title": "MQTT to Modbus gateway configuration",
+  "title": "MQTT to Modbus TCP and RTU slave gateway configuration",
   "configFile": {
     "path": "/etc/wb-mqtt-mbgate.conf",
     "service": "wb-mqtt-mbgate"
