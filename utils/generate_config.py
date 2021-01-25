@@ -150,7 +150,7 @@ def process_table(table):
         if topic not in old_topics:
             process_channel(table[topic], topic)
         else:
-            print >>sys.stderr, "Topic %s taken from old config" % (topic)
+            print >>sys.stderr, "Topic %s taken from old config" % (topic.encode("utf-8"))
 
     result["registers"] = dict()
     result["registers"]["remap_values"] = False
