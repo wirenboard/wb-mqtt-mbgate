@@ -14,7 +14,7 @@
 #include <arpa/inet.h>
 #include <cstring>
 
-#define LOG(logger) ::logger.Log() << "[modbus tcp] "
+#define LOG(logger) ::logger.Log() << "[modbus] "
 
 TModbusBaseBackend::TModbusBaseBackend()
         : _context(nullptr)
