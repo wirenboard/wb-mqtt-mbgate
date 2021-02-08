@@ -262,7 +262,7 @@ void TModbusTCPBackend::PostReply(const TModbusQuery & q)
 TModbusRTUBackend::TModbusRTUBackend(const TModbusRTUBackendArgs & args)
     : fd(-1)
 {
-    _context = modbus_new_rtu(args.Device.c_str(), args.BaudRate, args.Parity, args.DataBit, args.StopBit);
+    _context = modbus_new_rtu(args.Device.c_str(), args.BaudRate, args.Parity, args.DataBits, args.StopBits);
 
     if (!_context)
         throw TModbusException("can't allocate libmodbus context");

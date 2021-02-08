@@ -66,31 +66,17 @@ tuple<PModbusServer, PMqttClient> TJSONConfigParser::Build()
             TModbusRTUBackendArgs args {};
             
             args.Device = modbus_data["path"].asCString();
-            
-            if (modbus_data.isMember("baud_rate")) {
-                args.BaudRate = modbus_data["baud_rate"].asInt();
-            }
 
-            if (modbus_data.isMember("parity")) {
-                auto parity = modbus_data["parity"].asCString()[0];
-                if (parity != '\0') {
-                    args.Parity = parity;
-                }
-            }
-
-            if (modbus_data.isMember("data_bits")) {
-                args.DataBit = modbus_data["data_bits"].asInt();
-            }
-
-            if (modbus_data.isMember("stop_bits")) {
-                args.StopBit = modbus_data["stop_bits"].asInt();
-            }
+            args.BaudRate = modbus_data.get("baud_rate", args.BaudRate).asInt();
+            args.DataBits = modbus_data.get("data_bits", args.DataBits).asInt();
+            args.StopBits = modbus_data.get("stop_bits", args.StopBits).asInt();
+            args.Parity   = modbus_data.get("parity", std::string(1, args.Parity)).asString()[0];
 
             LOG(Debug) << "Modbus configuration: device " << args.Device << 
                                             ", baud rate " << args.BaudRate <<
                                             ", parity " << args.Parity <<
-                                            ", data bits " << args.DataBit <<
-                                            ", stop bits " << args.StopBit;
+                                            ", data bits " << args.DataBits <<
+                                            ", stop bits " << args.StopBits;
 
             modbusBackend = make_shared<TModbusRTUBackend>(args);
         } else {

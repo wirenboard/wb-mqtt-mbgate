@@ -73,8 +73,8 @@ struct TModbusRTUBackendArgs
     std::string Device;
     int         BaudRate = 9600;
     char        Parity   = 'N';
-    int         DataBit  = 8;
-    int         StopBit  = 1;
+    int         DataBits = 8;
+    int         StopBits  = 1;
 };
 
 /*! Modbus RTU backend */
