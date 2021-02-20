@@ -1,6 +1,7 @@
 [Unit]
 Description=Wiren Board MQTT to Modbus TCP gateway
 After=mosquitto.target
+After=wb-configs.service
 
 [Service]
 Type=simple
