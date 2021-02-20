@@ -1,3 +1,9 @@
+wb-mqtt-mbgate (0.3.1) unstable; urgency=medium
+
+  * Start service after wb-configs.
+
+ -- Petr Krasnoshchekov <petr.krasnoshchekov@wirenboard.ru>  Sat, 20 Feb 2021 16:19:00 +0300
+
 wb-mqtt-mbgate (0.3.0) unstable; urgency=medium
 
   * Modbus RTU mode support
