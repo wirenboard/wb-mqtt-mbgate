@@ -1,4 +1,4 @@
-wb-mqtt-mbgate (0.3.1) unstable; urgency=medium
+wb-mqtt-mbgate (1.0.1) unstable; urgency=medium
 
   * Start service after wb-configs.
 
