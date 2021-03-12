@@ -3,7 +3,7 @@ Maintainer: Nikita Maslov <n.maslov@contactless.ru>
 Section: misc
 Priority: optional
 Standards-Version: 3.9.2
-Build-Depends: debhelper (>= 10), pkg-config, libwbmqtt1-dev (>= 1.0.10), libmodbus-dev (>= 3.0.3), libjsoncpp-dev, git
+Build-Depends: debhelper (>= 10), pkg-config, libwbmqtt1-dev (>= 1.0.10), libmodbus-dev (>= 3.0.3), libjsoncpp-dev, libgmock-dev, git
 
 Package: wb-mqtt-mbgate
 Architecture: any
