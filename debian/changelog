@@ -1,3 +1,17 @@
+wb-mqtt-mbgate (1.0.1) stable; urgency=medium
+
+  * Start service after wb-configs.
+
+ -- Petr Krasnoshchekov <petr.krasnoshchekov@wirenboard.ru>  Sat, 20 Feb 2021 16:19:00 +0300
+
+wb-mqtt-mbgate (0.3.0) unstable; urgency=medium
+
+  * Modbus RTU mode support
+  * "type" modbus parameter is added. It can be either "tcp" or "rtu" (default "tcp")
+  * "path" modbus parameter for RS-485 port device path is added. Required if "type" is "rtu"
+
+ -- Islam Boziev <i.boziev@wirenboard.ru>  Mon, 16 Oct 2017 19:30:12 +0300
+
 wb-mqtt-mbgate (0.2.2) unstable; urgency=medium
 
   * Coil and discrete inputs conversion bug is fixed

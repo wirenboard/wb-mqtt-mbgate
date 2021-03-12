@@ -1,4 +1,4 @@
-Modbus TCP to MQTT gateway (C++)
+Modbus TCP and RTU slave to MQTT gateway (C++)
 ================================
 
 Зависимости

@@ -8,9 +8,15 @@
 .debhelper
 .ropeproject
 debian/wb-mqtt-mbgate
+*.debhelper
+debian/*.substvars
+debian/files
+debhelper-build-stamp
 test/test-app
 *.gcda
 *.gcno
+
+# binary
 wb-mqtt-mbgate
 
 # Visual Studio Code
