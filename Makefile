@@ -93,6 +93,7 @@ clean:
 	rm -rf $(SRC_DIR)/*.gcda $(SRC_DIR)/*.gcno $(TEST_DIR)/*.gcda $(TEST_DIR)/*.gcno
 
 install:
+	install -D -m 0644  wb-mqtt-mbgate.wbconfigs $(DESTDIR)/etc/wb-configs.d/31wb-mqtt-mbgate
 	install -D -m 0644 wb-mqtt-mbgate.schema.json $(DESTDIR)/usr/share/wb-mqtt-confed/schemas/wb-mqtt-mbgate.schema.json
 	install -D -m 0755 utils/generate_config.py $(DESTDIR)/usr/bin/wb-mqtt-mbgate-confgen
 	install -m 0755 $(TARGET) $(DESTDIR)/usr/bin/$(TARGET)

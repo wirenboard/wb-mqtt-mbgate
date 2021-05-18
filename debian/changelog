@@ -1,3 +1,9 @@
+wb-mqtt-mbgate (1.0.2) stable; urgency=medium
+
+  * Config is preserved during image update.
+
+ -- Petr Krasnoshchekov <petr.krasnoshchekov@wirenboard.ru>  Tue, 18 May 2021 16:14:00 +0300
+
 wb-mqtt-mbgate (1.0.1) stable; urgency=medium
 
   * Start service after wb-configs.
