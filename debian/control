@@ -11,3 +11,7 @@ Depends: ${shlibs:Depends}, ${misc:Depends}, libwbmqtt1 (>= 1.0.10), libmodbus5 
             python (>= 2.7), python-mosquitto (>= 1.3.4)
 Breaks: wb-mqtt-homeui (<< 1.7)
 Description: Wiren Board MQTT to Modbus gateway
+ wb-mqtt-mbgate is a service which acts as Modbus slave on
+ specific interface and provides access to Wiren Board MQTT
+ topics through Modbus. It supports both Modbus RTU on serial
+ ports and Modbus TCP.
