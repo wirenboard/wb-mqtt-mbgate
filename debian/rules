@@ -4,4 +4,4 @@ override_dh_installinit:
 	dh_installinit --noscripts
 
 %:
-	dh $@ --parallel --with=systemd
+	dh $@ --parallel
