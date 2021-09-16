@@ -1,3 +1,10 @@
+wb-mqtt-mbgate (1.1.0) stable; urgency=medium
+
+  * Update dependency on libwbmqtt1 to support fixed libmosquitto facade
+    (required for newer mosquitto backports)
+
+ -- Nikita Maslov <nikita.maslov@wirenboard.ru>  Thu, 16 Sep 2021 14:29:54 +0300
+
 wb-mqtt-mbgate (1.0.2) stable; urgency=medium
 
   * Config is preserved during image update.
