@@ -31,7 +31,7 @@ TEST_OBJS := $(patsubst %, $(TEST_DIR)/%, $(TEST_OBJS))
 COMMON_OBJS := $(patsubst %, $(SRC_DIR)/%, $(COMMON_OBJS))
 OBJS := $(patsubst %, $(SRC_DIR)/%, $(OBJS))
 
-LDFLAGS=-lmodbus -lwbmqtt1 -ljsoncpp -lpthread
+LDFLAGS=-lmodbus -lwbmqtt1 -lpthread
 CXXFLAGS=-std=c++14 -Wall -Werror
 
 DEBUG=
