@@ -4,8 +4,8 @@
  */
 
 #include <tuple>
-#include <jsoncpp/json/json.h>
 
+#include <wblib/json_utils.h>
 #include <wblib/mqtt.h>
 
 #include "mqtt_converters.h"
