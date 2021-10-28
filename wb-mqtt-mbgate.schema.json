@@ -1,7 +1,8 @@
 {
     "$schema": "http://json-schema.org/draft-04/schema#",
     "type": "object",
-    "title": "MQTT to Modbus TCP and RTU slave gateway configuration",
+    "title": "MQTT to Modbus TCP and RTU slave gateway",
+    "description": "mbgate_schema_description",
     "configFile": {
         "path": "/etc/wb-mqtt-mbgate.conf",
         "service": "wb-mqtt-mbgate"
@@ -78,7 +79,7 @@
                 "size": {
                     "type": "integer",
                     "title": "Size (in bytes)",
-                    "description": "for non-discrete types, -1 to disable",
+                    "description": "Set -1 to disable",
                     "minimum": -1,
                     "propertyOrder": 50
                 },
@@ -257,6 +258,7 @@
                 "port": {
                     "type": "integer",
                     "title": "Port",
+                    "description": "Broker port",
                     "default": 1883,
                     "minimum": 1,
                     "maximum": 65535,
@@ -268,6 +270,7 @@
                 "keepalive": {
                     "type": "integer",
                     "title": "Keep-alive interval",
+                    "description": "keepalive_description",
                     "default": 60,
                     "propertyOrder": 25,
                     "options": {
@@ -312,7 +315,7 @@
                 "remap_values": {
                     "type": "boolean",
                     "title": "Remap addresses after edit",
-                    "description": "Change base addresses to fit all resized values. This flag will be cleared on next start of daemon",
+                    "description": "remap_values_description",
                     "default": false,
                     "_format": "checkbox",
                     "propertyOrder": 1
@@ -377,5 +380,68 @@
     "options": {
         "disable_properties": true,
         "disable_collapse": true
+    },
+
+    "translations": {
+        "en": {
+            "mbgate_schema_description": "Modbus RTU/TCP slave mode configuration",
+            "remap_values_description": "Change base addresses to fit all resized values. This flag will be cleared on next start of daemon",
+            "keepalive_description": "Request to broker repeats if data was not received within specified interval"
+        },
+        "ru": {
+            "MQTT to Modbus TCP and RTU slave gateway": "Шлюз MQTT - Modbus RTU/TCP slave",
+            "mbgate_schema_description": "Конфигурирование режима Modbus RTU/TCP slave",
+
+            "Enabled": "Включить",
+            "MQTT Device (from topic name)": "Канал MQTT",
+            "Meta-type": "Тип элемента управления",
+            "Modbus unit ID": "ID данных Modbus",
+            "Start address": "Начальный адрес",
+            "Register format": "Тип данных",
+            "Size (in bytes)": "Размер данных в байтах",
+            "Maximum value": "Максимальное значение",
+            "Value scale": "Множитель значения",
+            "Byte swap": "Изменить порядок байт",
+            "Word swap": "Изменить порядок слов",
+            "Bind address": "IP-адрес",
+            "IP address or hostname to bind gateway to": "IP-адрес или имя хоста для сервера Modbus TCP",
+            "Server TCP port": "Порт",
+            "TCP port number to bing gateway to": "Номер порта для сервера Modbus TCP",
+            "Port type": "Тип порта",
+            "Path to device": "Путь до устройства",
+            "Baud rate": "Скорость обмена",
+            "Parity": "Контроль чётности",
+            "Data bits": "Число бит данных",
+            "Stop bits": "Стоп биты",
+            "Enable debug logging": "Включить отладочные сообщения",
+            "Modbus binding": "Режим работы шлюза",
+            "MQTT connection": "Настройки подключения к брокеру MQTT",
+            "Address": "Адрес",
+            "Broker address": "Адрес брокера MQTT",
+            "Port": "Порт",
+            "Broker port": "Порт брокера MQTT",
+            "Keep-alive interval": "Интервал ожидания ответа",
+            "keepalive_description": "Запрос к брокеру повторяется, если данные не были получены в течение заданного интервала",
+            "Enable username+password authentification": "Включить аутентификацию",
+            "Login": "Логин",
+            "Password": "Пароль",
+            "Register bindings": "Соответствия каналов и регистров",
+            "Remap addresses after edit": "Обновить адреса устройств",
+            "remap_values_description": "Опция позволяет устранить наложения адресов",
+            "Discrete inputs (read-only one-bit values)": "Дискретные входы (однобитовые значения, только для чтения)",
+            "Coils (read/write one-bit values)": "Дискретные выходы (однобитовые значения, чтение/запись)",
+            "Input registers (read-only registers)": "Регистры Input (только для чтения)",
+            "Holding registers (read/write registers)": "Регистры Holding (чтение/запись)",
+            "little-endian for bytes in words": "Обратный порядок байт в словах",
+            "little-endian for words": "Обратный порядок слов",
+            "Signed integer": "Знаковое целое",
+            "Unsigned integer": "Беззнаковое целое",
+            "BCD": "Двоично-десятичное беззнаковое целое",
+            "IEEE754 float": "Число с плавающей точкой",
+            "Varchar (fixed size string)": "Текстовое поле фиксированного размера",
+            "Set -1 to disable": "Установите -1 чтобы отключить",
+            "for range metatype, > 0": "Требуется для элементов управления типа range",
+            "value will be multiplied by this before convertion": "Значение канала будет умножено на заданную величину"
+        }
     }
 }
