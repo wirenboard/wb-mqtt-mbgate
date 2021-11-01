@@ -1,7 +1,7 @@
 {
     "$schema": "http://json-schema.org/draft-04/schema#",
     "type": "object",
-    "title": "MQTT to Modbus TCP and RTU slave gateway",
+    "title": "MQTT to Modbus RTU/TCP slave gateway",
     "description": "mbgate_schema_description",
     "configFile": {
         "path": "/etc/wb-mqtt-mbgate.conf",
@@ -79,7 +79,7 @@
                 "size": {
                     "type": "integer",
                     "title": "Size (in bytes)",
-                    "description": "Set -1 to disable",
+                    "description": "Set -1 for text",
                     "minimum": -1,
                     "propertyOrder": 50
                 },
@@ -389,18 +389,18 @@
             "keepalive_description": "Request to broker repeats if data was not received within specified interval"
         },
         "ru": {
-            "MQTT to Modbus TCP and RTU slave gateway": "Шлюз MQTT - Modbus RTU/TCP slave",
+            "MQTT to Modbus RTU/TCP slave gateway": "Шлюз MQTT - Modbus RTU/TCP slave",
             "mbgate_schema_description": "Конфигурирование режима Modbus RTU/TCP slave",
 
             "Enabled": "Включить",
             "MQTT Device (from topic name)": "Канал MQTT",
-            "Meta-type": "Тип элемента управления",
+            "Meta-type": "Тип",
             "Modbus unit ID": "ID данных Modbus",
             "Start address": "Начальный адрес",
             "Register format": "Тип данных",
             "Size (in bytes)": "Размер данных в байтах",
             "Maximum value": "Максимальное значение",
-            "Value scale": "Множитель значения",
+            "Value scale": "Множитель",
             "Byte swap": "Изменить порядок байт",
             "Word swap": "Изменить порядок слов",
             "Bind address": "IP-адрес",
@@ -408,7 +408,7 @@
             "Server TCP port": "Порт",
             "TCP port number to bing gateway to": "Номер порта для сервера Modbus TCP",
             "Port type": "Тип порта",
-            "Path to device": "Путь до устройства",
+            "Path to device": "Путь к устройству",
             "Baud rate": "Скорость обмена",
             "Parity": "Контроль чётности",
             "Data bits": "Число бит данных",
@@ -422,12 +422,12 @@
             "Broker port": "Порт брокера MQTT",
             "Keep-alive interval": "Интервал ожидания ответа",
             "keepalive_description": "Запрос к брокеру повторяется, если данные не были получены в течение заданного интервала",
-            "Enable username+password authentification": "Включить аутентификацию",
+            "Enable username+password authentification": "Включить аутентификацию по логину и паролю",
             "Login": "Логин",
             "Password": "Пароль",
             "Register bindings": "Соответствия каналов и регистров",
             "Remap addresses after edit": "Обновить адреса устройств",
-            "remap_values_description": "Опция позволяет устранить наложения адресов",
+            "remap_values_description": "Опция позволяет устранить наложения адресов. Опция будет сброшена при следующем запуске сервиса",
             "Discrete inputs (read-only one-bit values)": "Дискретные входы (однобитовые значения, только для чтения)",
             "Coils (read/write one-bit values)": "Дискретные выходы (однобитовые значения, чтение/запись)",
             "Input registers (read-only registers)": "Регистры Input (только для чтения)",
@@ -436,12 +436,12 @@
             "little-endian for words": "Обратный порядок слов",
             "Signed integer": "Знаковое целое",
             "Unsigned integer": "Беззнаковое целое",
-            "BCD": "Двоично-десятичное беззнаковое целое",
-            "IEEE754 float": "Число с плавающей точкой",
+            "BCD": "Двоично-десятичное (BCD) целое",
+            "IEEE754 float": "Число с плавающей точкой (IEEE754)",
             "Varchar (fixed size string)": "Текстовое поле фиксированного размера",
-            "Set -1 to disable": "Установите -1 чтобы отключить",
-            "for range metatype, > 0": "Требуется для элементов управления типа range",
-            "value will be multiplied by this before convertion": "Значение канала будет умножено на заданную величину"
+            "Set -1 for text": "Установите -1 для текстовых полей",
+            "for range metatype, > 0": "Только для типа range, > 0",
+            "value will be multiplied by this before convertion": "Значение канала будет умножено на это число"
         }
     }
 }
