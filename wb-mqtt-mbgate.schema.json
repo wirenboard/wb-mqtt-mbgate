@@ -1,7 +1,7 @@
 {
     "$schema": "http://json-schema.org/draft-04/schema#",
     "type": "object",
-    "title": "MQTT to Modbus RTU/TCP slave gateway",
+    "title": "MQTT to Modbus TCP and RTU slave gateway configuration",
     "description": "mbgate_schema_description",
     "configFile": {
         "path": "/etc/wb-mqtt-mbgate.conf",
@@ -389,7 +389,7 @@
             "keepalive_description": "Request to broker repeats if data was not received within specified interval"
         },
         "ru": {
-            "MQTT to Modbus RTU/TCP slave gateway": "Шлюз MQTT - Modbus RTU/TCP slave",
+            "MQTT to Modbus TCP and RTU slave gateway configuration": "Шлюз MQTT - Modbus RTU/TCP slave",
             "mbgate_schema_description": "Конфигурирование режима Modbus RTU/TCP slave",
 
             "Enabled": "Включить",
