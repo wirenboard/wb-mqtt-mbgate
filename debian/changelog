@@ -1,3 +1,9 @@
+wb-mqtt-mbgate (1.1.1) stable; urgency=medium
+
+  * Mbgate schema translation to Russian
+
+ -- Dmitry Vorobjev <d.vorobjev@wirenboard.ru>  Tue, 02 Nov 2021 14:12:51 +0300
+
 wb-mqtt-mbgate (1.1.0) stable; urgency=medium
 
   * Update dependency on libwbmqtt1 to support fixed libmosquitto facade
