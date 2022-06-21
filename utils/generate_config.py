@@ -1,14 +1,14 @@
-#!/usr/bin/python -d
+#!/usr/bin/python3
 
 # TODO: allocation error on address space overflow
 
-from mosquitto import Mosquitto, topic_matches_sub
-
+import argparse
 import json
+import random
 import sys
 import time
-import random
-import argparse
+
+import paho.mqtt.client as mqtt
 
 # Salt for address hashtable in case of match
 ADDR_SALT = 7079
@@ -36,6 +36,10 @@ mb_port = 502
 
 c_debug = False
 remap_values = False
+
+
+def eprint(*args, **kwargs):
+    print(*args, file=sys.stderr, **kwargs)
 
 
 class RegDiscr(object):
@@ -131,7 +135,7 @@ def process_table(table):
     result["mqtt"] = {"host": hostname, "port": port}
 
     if old_config is not None:
-        print >>sys.stderr, "Old config is detected"
+        eprint("Old config is detected")
         for c in old_config["registers"].keys():
             for old_reg in old_config["registers"][c]:
                 old_reg["category"] = c
@@ -150,7 +154,7 @@ def process_table(table):
         if topic not in old_topics:
             process_channel(table[topic], topic)
         else:
-            print >>sys.stderr, "Topic %s taken from old config" % (topic.encode("utf-8"))
+            eprint("Topic %s taken from old config" % (topic.encode("utf-8")))
 
     result["registers"] = dict()
     result["registers"]["remap_values"] = False
@@ -178,7 +182,7 @@ def process_channel(obj, topic):
     text = False
 
     if "meta_type" not in obj:
-        print "WARNING: Incompete cell " + topic
+        print("WARNING: Incompete cell " + topic)
         return
 
     if obj["meta_type"] == "text":
@@ -206,19 +210,21 @@ def process_channel(obj, topic):
 def mqtt_on_message(arg0, arg1, arg2=None):
     msg = arg2 or arg1
 
-    print >>sys.stderr, msg.topic
+    eprint(msg.topic)
 
     if msg.topic == retain_hack_topic:
-        print >>config_file, json.dumps(process_table(table), indent=True)
+        with open(config_file, "w", encoding="utf-8") as f:
+            json.dump(process_table(table), f, indent=True)
+
         sys.exit(0)
 
     if msg.retain:
-        if not topic_matches_sub("/devices/+/controls/name", msg.topic):
+        if not mqtt.topic_matches_sub("/devices/+/controls/name", msg.topic):
             if get_dev_name(msg.topic) not in table:
-                table[get_dev_name(msg.topic)] = {} # {"meta_type": "text"}
+                table[get_dev_name(msg.topic)] = {}  # {"meta_type": "text"}
 
         dname = get_dev_name(msg.topic)
-        if topic_matches_sub("/devices/+/controls/+/meta/type", msg.topic):
+        if mqtt.topic_matches_sub("/devices/+/controls/+/meta/type", msg.topic):
             table[dname]["meta_type"] = msg.payload
             # FIXME: crazy read-onlys
             if "readonly" not in table[dname]:
@@ -226,9 +232,9 @@ def mqtt_on_message(arg0, arg1, arg2=None):
                     table[dname]["readonly"] = False
                 else:
                     table[dname]["readonly"] = True
-        elif topic_matches_sub("/devices/+/controls/+", msg.topic):
+        elif mqtt.topic_matches_sub("/devices/+/controls/+", msg.topic):
             table[dname]["value"] = msg.payload
-        elif topic_matches_sub("/devices/+/controls/+/meta/readonly", msg.topic):
+        elif mqtt.topic_matches_sub("/devices/+/controls/+/meta/readonly", msg.topic):
             if int(msg.payload) == 1:
                 table[dname]["readonly"] = True
 
@@ -253,20 +259,22 @@ def main(args=None):
     else:
         if not args.force_create:
             try:
-                old_config = json.loads(open(args.config, "r").read())
+                with open(args.config, encoding="utf-8") as f:
+                    old_config = json.load(f)
+
                 if "remap_values" in old_config["registers"]:
                     global remap_values
                     remap_values = old_config["registers"]["remap_values"]
                     del old_config["registers"]["remap_values"]
 
             except:
-                print "Failed to open config"
-                pass
+                print("Failed to open config")
+
         config_file = open(args.config, "w")
 
     client_id = str(time.time()) + str(random.randint(0, 100000))
 
-    client = Mosquitto(client_id)
+    client = mqtt.Client(client_id)
 
     hostname = args.server
     port = args.port

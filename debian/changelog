@@ -1,3 +1,9 @@
+wb-mqtt-mbgate (1.2.0) stable; urgency=medium
+
+  * add python3 support
+
+ -- Nikita Maslov <nikita.maslov@wirenboard.ru>  Tue, 21 Jun 2022 23:55:56 +0300
+
 wb-mqtt-mbgate (1.1.2) stable; urgency=medium
 
   * mosquitto.target dependency is replaced by mosquitto.service
