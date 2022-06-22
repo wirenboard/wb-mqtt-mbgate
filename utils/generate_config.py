@@ -17,7 +17,7 @@ ADDR_SALT = 7079
 RESERVED_UNIT_IDS = [1, 2]
 
 # Unit IDs reserved by Modbus
-RESERVED_UNIT_IDS += range(247, 256) + [0]
+RESERVED_UNIT_IDS += [range(247, 256)] + [0]
 
 client = None
 table = dict()
@@ -213,9 +213,8 @@ def mqtt_on_message(arg0, arg1, arg2=None):
     eprint(msg.topic)
 
     if msg.topic == retain_hack_topic:
-        with open(config_file, "w", encoding="utf-8") as f:
-            json.dump(process_table(table), f, indent=True)
-
+        json.dump(process_table(table), config_file, indent=True)
+        config_file.close()
         sys.exit(0)
 
     if msg.retain:
