@@ -17,7 +17,7 @@ ADDR_SALT = 7079
 RESERVED_UNIT_IDS = [1, 2]
 
 # Unit IDs reserved by Modbus
-RESERVED_UNIT_IDS += [range(247, 256)] + [0]
+RESERVED_UNIT_IDS += list(range(247, 256)) + [0]
 
 client = None
 table = dict()
@@ -55,8 +55,8 @@ class RegDiscr(object):
 
 
 class Register(RegDiscr):
-    def __init__(self, topic, meta_type, enabled = False, address=-1, unitId=-1,\
-        format="signed", size=2, max=0, scale=1, byteswap=False, wordswap=False):
+    def __init__(self, topic, meta_type, enabled = False, address=-1, unitId=-1,
+                 format="signed", size=2, max=0, scale=1, byteswap=False, wordswap=False):
 
         RegDiscr.__init__(self, topic, meta_type, enabled, address, unitId)
         self.format = format
@@ -72,7 +72,7 @@ class Register(RegDiscr):
         elif self.format == "varchar":
             return self.size
         else:
-            return self.size / 2
+            return self.size // 2
 
 
 class RegSpace:
@@ -89,7 +89,7 @@ class RegSpace:
             # add new address
             addr_hash = hash(value.topic) & 0xFFFFFF
             while (addr_hash in self.addrs) or ((addr_hash >> 16) != ((addr_hash + value.getSize() - 1) >> 16)) \
-                                            or (addr_hash >> 16 in RESERVED_UNIT_IDS):
+                    or (addr_hash >> 16 in RESERVED_UNIT_IDS):
                 addr_hash = (addr_hash + ADDR_SALT) & 0xFFFFFF
 
             for i in range(0, value.getSize()):
@@ -118,7 +118,7 @@ regs = {"discretes": regs_discr, "coils": regs_coils, "inputs": regs_input, "hol
 
 def get_dev_name(topic):
     lst = topic.split("/")
-    return str(lst[2] + "/" + lst[4]).decode("utf-8")
+    return str(lst[2] + "/" + lst[4])
 
 
 def process_table(table):
@@ -218,24 +218,25 @@ def mqtt_on_message(arg0, arg1, arg2=None):
         sys.exit(0)
 
     if msg.retain:
+        devName = get_dev_name(msg.topic)
+        payloadStr = msg.payload.decode("utf-8")
         if not mqtt.topic_matches_sub("/devices/+/controls/name", msg.topic):
-            if get_dev_name(msg.topic) not in table:
-                table[get_dev_name(msg.topic)] = {}  # {"meta_type": "text"}
+            if devName not in table:
+                table[devName] = {}  # {"meta_type": "text"}
 
-        dname = get_dev_name(msg.topic)
         if mqtt.topic_matches_sub("/devices/+/controls/+/meta/type", msg.topic):
-            table[dname]["meta_type"] = msg.payload
+            table[devName]["meta_type"] = payloadStr
             # FIXME: crazy read-onlys
-            if "readonly" not in table[dname]:
-                if msg.payload in ["switch", "pushbutton", "range", "rgb"]:
-                    table[dname]["readonly"] = False
+            if "readonly" not in table[devName]:
+                if payloadStr in ["switch", "pushbutton", "range", "rgb"]:
+                    table[devName]["readonly"] = False
                 else:
-                    table[dname]["readonly"] = True
+                    table[devName]["readonly"] = True
         elif mqtt.topic_matches_sub("/devices/+/controls/+", msg.topic):
-            table[dname]["value"] = msg.payload
+            table[devName]["value"] = msg.payload
         elif mqtt.topic_matches_sub("/devices/+/controls/+/meta/readonly", msg.topic):
             if int(msg.payload) == 1:
-                table[dname]["readonly"] = True
+                table[devName]["readonly"] = True
 
 
 def main(args=None):
