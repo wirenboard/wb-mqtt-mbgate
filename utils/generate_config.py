@@ -154,7 +154,7 @@ def process_table(table):
         if topic not in old_topics:
             process_channel(table[topic], topic)
         else:
-            eprint("Topic %s taken from old config" % (topic.encode("utf-8")))
+            eprint("Topic %s taken from old config" % (topic.decode("utf-8")))
 
     result["registers"] = dict()
     result["registers"]["remap_values"] = False
