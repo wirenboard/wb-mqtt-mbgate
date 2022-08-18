@@ -1,2 +1,2 @@
-buildDebSbuild defaultTargets: 'current-armhf',
+buildDebSbuild defaultTargets: 'bullseye-armhf',
                defaultRunLintian: true

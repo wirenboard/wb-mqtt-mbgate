@@ -1,8 +1,8 @@
 wb-mqtt-mbgate (1.2.0) stable; urgency=medium
 
-  * add python3 support
+  * Add python3 and bullseye support
 
- -- Nikita Maslov <nikita.maslov@wirenboard.ru>  Tue, 21 Jun 2022 23:55:56 +0300
+ -- Roman Kochkin <roman.kochkin@wirenboard.ru>  Tue, 21 Jun 2022 23:55:56 +0300
 
 wb-mqtt-mbgate (1.1.2) stable; urgency=medium
 
