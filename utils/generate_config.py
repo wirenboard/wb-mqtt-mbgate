@@ -7,7 +7,7 @@ import json
 import random
 import sys
 import time
-import urllib
+import urllib.parse
 import paho.mqtt.client as mqtt
 import paho_socket
 
