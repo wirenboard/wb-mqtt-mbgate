@@ -285,7 +285,7 @@ def main(args=None):
     url = urllib.parse.urlparse(args.server)
     if url.scheme == 'unix':
         client = paho_socket.Client(client_id)
-        client.sock_connect(url.netloc + url.path)
+        client.sock_connect(url.path)
     else:
         client = mqtt.Client(client_id)
         client.connect(args.server, args.port)
