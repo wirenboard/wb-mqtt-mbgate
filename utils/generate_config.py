@@ -9,6 +9,7 @@ import sys
 import time
 
 import paho.mqtt.client as mqtt
+import paho_socket
 
 # Salt for address hashtable in case of match
 ADDR_SALT = 7079
@@ -18,6 +19,10 @@ RESERVED_UNIT_IDS = [1, 2]
 
 # Unit IDs reserved by Modbus
 RESERVED_UNIT_IDS += list(range(247, 256)) + [0]
+
+DEFAULT_MOSQUITTO_SOCKET_PATH = "/var/run/mosquitto/mosquitto.sock"
+DEFAULT_MOSQUITTO_SERVER = "localhost"
+DEFAULT_MOSQUITTO_PORT = 1883
 
 client = None
 table = dict()
@@ -249,8 +254,8 @@ def main(args=None):
                             type=str, default="")
         parser.add_argument("-f", "--force-create", help="force creating new config file",
                             action="store_true")
-        parser.add_argument("-s", "--server", help="MQTT server hostname", type=str, default="localhost")
-        parser.add_argument("-p", "--port", help="MQTT server port", type=int, default=1883)
+        parser.add_argument("-s", "--server", help="MQTT server hostname", type=str, default=DEFAULT_MOSQUITTO_SOCKET_PATH)
+        parser.add_argument("-p", "--port", help="MQTT server port", type=int, default=DEFAULT_MOSQUITTO_PORT)
 
         args = parser.parse_args()
 
@@ -273,13 +278,15 @@ def main(args=None):
         config_file = open(args.config, "w")
 
     client_id = str(time.time()) + str(random.randint(0, 100000))
-
-    client = mqtt.Client(client_id)
-
     hostname = args.server
     port = args.port
 
-    client.connect(args.server, args.port)
+    if args.server == DEFAULT_MOSQUITTO_SOCKET_PATH:
+        client = paho_socket.Client(client_id)
+        client.sock_connect(args.server)
+    else:
+        client = mqtt.Client(client_id)
+        client.connect(args.server, args.port)
 
     client.on_message = mqtt_on_message
 
