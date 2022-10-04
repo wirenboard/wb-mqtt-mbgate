@@ -22,7 +22,6 @@ RESERVED_UNIT_IDS = [1, 2]
 RESERVED_UNIT_IDS += list(range(247, 256)) + [0]
 
 DEFAULT_MOSQUITTO_SOCKET_PATH = "unix:///var/run/mosquitto/mosquitto.sock"
-DEFAULT_MOSQUITTO_SERVER = "localhost"
 DEFAULT_MOSQUITTO_PORT = 1883
 
 client = None
@@ -279,16 +278,18 @@ def main(args=None):
         config_file = open(args.config, "w")
 
     client_id = str(time.time()) + str(random.randint(0, 100000))
-    hostname = args.server
-    port = args.port
     
     url = urllib.parse.urlparse(args.server)
     if url.scheme == 'unix':
         client = paho_socket.Client(client_id)
         client.sock_connect(url.path)
+        hostname = url.path
+        port = 0  # means UNIX socket connection for wbmqtt
     else:
         client = mqtt.Client(client_id)
         client.connect(args.server, args.port)
+        hostname = args.server
+        port = args.port
 
     client.on_message = mqtt_on_message
 
