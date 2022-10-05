@@ -260,7 +260,7 @@
                     "title": "Port",
                     "description": "Broker port",
                     "default": 1883,
-                    "minimum": 1,
+                    "minimum": 0,
                     "maximum": 65535,
                     "propertyOrder": 20,
                     "options": {

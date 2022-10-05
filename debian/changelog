@@ -1,3 +1,9 @@
+wb-mqtt-mbgate (1.3.1) stable; urgency=medium
+
+  * Fix default port setting in bullseye for UNIX socket connection
+
+ -- Nikita Maslov <nikita.maslov@wirenboard.ru>  Tue, 04 Oct 2022 20:12:58 +0600
+
 wb-mqtt-mbgate (1.3.0) stable; urgency=medium
 
   * Support connection to Mosquitto through unix socket
