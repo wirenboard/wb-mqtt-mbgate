@@ -1,6 +1,7 @@
 #pragma once
 
-#include <exception>
+#include <stdexcept>
+#include <string>
 
 class TConfigException : public std::runtime_error {
 public:

@@ -22,7 +22,7 @@ NORMAL_CXXFLAGS = -O2
 NORMAL_LDFLAGS =
 
 TEST_DIR = test
-TEST_OBJS = main.o mbgate_exception.o address_range_test.o modbus_server_test.o mock_modbus_observer.o converters_test.o mock_mqtt_client.o gateway_test.o multi_unitid_test.o
+TEST_OBJS = main.o address_range_test.o modbus_server_test.o mock_modbus_observer.o converters_test.o mock_mqtt_client.o gateway_test.o multi_unitid_test.o
 TEST_TARGET = test-app
 TEST_LDFLAGS = -lgtest -lpthread -lgmock
 TEST_CXXFLAGS = -I. -I$(SRC_DIR)
