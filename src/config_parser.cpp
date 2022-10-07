@@ -15,6 +15,7 @@
 #include "mqtt_converters.h"
 #include "modbus_lmb_backend.h"
 #include "observer.h"
+#include "mbgate_exception.h"
 
 using namespace std;
 using namespace WBMQTT;
@@ -37,8 +38,12 @@ IConfigParser::~IConfigParser()
 TJSONConfigParser::TJSONConfigParser(const string& config_file, const string& schema_file) :
     Root(Parse(config_file))
 {
-    auto schema(Parse(schema_file));
-    Validate(Root, schema);
+    try {
+        auto schema(Parse(schema_file));
+        Validate(Root, schema);
+    } catch (const std::runtime_error& e){
+        throw TConfigException(e.what());
+    }
 }
 
 bool TJSONConfigParser::Debug()
@@ -80,7 +85,7 @@ tuple<PModbusServer, PMqttClient> TJSONConfigParser::Build()
 
             modbusBackend = make_shared<TModbusRTUBackend>(args);
         } else {
-            throw runtime_error("invalid modbus type: '" + type + "'");
+            throw TConfigException("invalid modbus type: '" + type + "'");
         }
     }
 
@@ -154,7 +159,7 @@ void TJSONConfigParser::_BuildStore(TStoreType type, const Json::Value& list, PM
                 } else if (format == "bcd") {
                     int_type = TMQTTIntConverter::BCD;
                 } else {
-                    throw runtime_error("Unknown integer format: " + format);
+                    throw TConfigException("Unknown integer format: " + format);
                 }
 
                 conv = make_shared<TMQTTIntConverter>(int_type, scale, size, byteswap, wordswap);
@@ -169,7 +174,7 @@ void TJSONConfigParser::_BuildStore(TStoreType type, const Json::Value& list, PM
         try {
             modbus->Observe(obs, type, TModbusAddressRange(address, size), slave_id);
         } catch (const WrongSegmentException &e) {
-            throw runtime_error(string("Address overlapping: ") + StoreTypeToString(type) + ": topic " + topic);
+            throw TConfigException(string("Address overlapping: ") + StoreTypeToString(type) + ": topic " + topic);
         }
     }
 }

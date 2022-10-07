@@ -11,5 +11,8 @@ User=root
 ExecStart=/usr/bin/wb-mqtt-mbgate -c /etc/wb-mqtt-mbgate.conf
 ExecStartPre=/usr/bin/wb-mqtt-mbgate-confgen -c /etc/wb-mqtt-mbgate.conf
 
+# Service not restarting after return EXIT_NOTCONFIGURED
+RestartPreventExitStatus=6
+
 [Install]
 WantedBy=multi-user.target

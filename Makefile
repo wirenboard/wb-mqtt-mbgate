@@ -10,7 +10,7 @@ ifeq ($(origin CXX),default)
 endif
 
 TARGET = wb-mqtt-mbgate
-OBJS = main.o config_parser.o
+OBJS = main.o config_parser.o mbgate_exception.o
 SRC_DIR = src
 
 COMMON_OBJS = i_modbus_server_observer.o i_modbus_backend.o modbus_wrapper.o mqtt_converters.o observer.o modbus_lmb_backend.o log.o
