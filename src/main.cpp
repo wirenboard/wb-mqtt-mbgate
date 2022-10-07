@@ -8,6 +8,7 @@
 #include "modbus_lmb_backend.h"
 #include "observer.h"
 #include "config_parser.h"
+#include "mbgate_exception.h"
 
 #include <wblib/signal_handling.h>
 
@@ -30,8 +31,9 @@ using namespace WBMQTT;
 
 const auto DRIVER_STOP_TIMEOUT_S = chrono::seconds(10);
 
-namespace
-{
+namespace {
+    constexpr auto EXIT_NOTCONFIGURED = 6;   // The program is not configured
+
     void PrintUsage()
     {
         cout << WBMQTT_NAME << XSTR(WBMQTT_VERSION) 
@@ -175,9 +177,12 @@ int main(int argc, char *argv[])
 
         t->Stop();
         WBMQTT::SignalHandling::Wait();
-    } catch (const exception& e) {
+    } catch (const TConfigException &e) {
         LOG(Error) << "FATAL: " << e.what();
-        return 1;
+        return EXIT_NOTCONFIGURED;
+    } catch (const exception &e) {
+        LOG(Error) << "FATAL: " << e.what();
+        return EXIT_FAILURE;
     }
 
     return 0;
