@@ -5,6 +5,7 @@
 import argparse
 import json
 import random
+import string
 import sys
 import time
 import urllib.parse
@@ -277,8 +278,8 @@ def main(args=None):
 
         config_file = open(args.config, "w")
 
-    client_id = str(time.time()) + str(random.randint(0, 100000))
-    
+    client_id = "wb-mqtt-mbgate-" + "".join(random.sample(string.ascii_letters + string.digits, 8))
+
     url = urllib.parse.urlparse(args.server)
     if url.scheme == 'unix':
         client = paho_socket.Client(client_id)

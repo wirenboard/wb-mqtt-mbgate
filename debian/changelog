@@ -1,3 +1,9 @@
+wb-mqtt-mbgate (1.4.1) stable; urgency=medium
+
+  * Form identifiable client ID for MQTT connection
+
+ -- Nikolay Korotkiy <nikolay.korotkiy@wirenboard.com>  Wed, 22 Feb 2023 15:12:00 +0400
+
 wb-mqtt-mbgate (1.4.0) stable; urgency=medium
 
   * The service is not restarted if there is an error in the configuration
