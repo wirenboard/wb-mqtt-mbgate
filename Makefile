@@ -9,94 +9,77 @@ ifeq ($(origin CXX),default)
 	CXX := $(CROSS_COMPILE)g++
 endif
 
-TARGET = wb-mqtt-mbgate
-OBJS = main.o config_parser.o mbgate_exception.o
-SRC_DIR = src
-
-COMMON_OBJS = i_modbus_server_observer.o i_modbus_backend.o modbus_wrapper.o mqtt_converters.o observer.o modbus_lmb_backend.o log.o
-
-DEBUG_CXXFLAGS = -O0 -fprofile-arcs -ftest-coverage
-DEBUG_LDFLAGS = -lgcov
-
-NORMAL_CXXFLAGS = -O2
-NORMAL_LDFLAGS =
-
-TEST_DIR = test
-TEST_OBJS = main.o address_range_test.o modbus_server_test.o mock_modbus_observer.o converters_test.o mock_mqtt_client.o gateway_test.o multi_unitid_test.o
-TEST_TARGET = test-app
-TEST_LDFLAGS = -lgtest -lpthread -lgmock
-TEST_CXXFLAGS = -I. -I$(SRC_DIR)
-
-TEST_OBJS := $(patsubst %, $(TEST_DIR)/%, $(TEST_OBJS))
-COMMON_OBJS := $(patsubst %, $(SRC_DIR)/%, $(COMMON_OBJS))
-OBJS := $(patsubst %, $(SRC_DIR)/%, $(OBJS))
-
-LDFLAGS=-lmodbus -lwbmqtt1 -lpthread
-CXXFLAGS=-std=c++14 -Wall -Werror
-
-DEBUG=
-NDEBUG?=y
-ifeq ($(NDEBUG),)
-DEBUG=y
+ifeq ($(DEBUG),)
+	BUILD_DIR ?= build/release
+else
+	BUILD_DIR ?= build/debug
 endif
 
-CXXFLAGS += $(if $(or $(DEBUG)),$(DEBUG_CXXFLAGS),$(NORMAL_CXXFLAGS))
-LDFLAGS += $(if $(or $(DEBUG)),$(DEBUG_LDFLAGS),$(NORMAL_LDFLAGS))
-
-# fail build if tree is dirty and package is being built
-ifneq ($(NDEBUG),)
-BUILDCLEAN_HACK +=n
-endif
-
-ifeq ("$(strip $(BUILDCLEAN_HACK))", "n n")
-$(info $(start_red))
-$(info Please commit all changes before building a package)
-$(info $(end_color))
-$(error "Can't build production package on dirty tree")
-endif
+PREFIX = /usr
 
 # extract Git revision and version number from debian/changelog
-GIT_REVISION:=$(shell git rev-parse HEAD)
-DEB_VERSION:=$(shell head -1 debian/changelog | awk '{ print $$2 }' | sed 's/[\(\)]//g')
+GIT_REVISION := $(shell git rev-parse HEAD)
+DEB_VERSION := $(shell head -1 debian/changelog | awk '{ print $$2 }' | sed 's/[\(\)]//g')
 
-CXXFLAGS += -DWBMQTT_COMMIT="$(GIT_REVISION)" -DWBMQTT_VERSION="$(DEB_VERSION)"
+TARGET = wb-mqtt-mbgate
+SRC_DIR = src
+COMMON_SRCS := $(shell find $(SRC_DIR) -name *.cpp -and -not -name main.cpp)
+COMMON_OBJS := $(COMMON_SRCS:%=$(BUILD_DIR)/%.o)
 
-all: $(TARGET)
+CXXFLAGS = -std=c++14 -Wall -Werror -I$(SRC_DIR) -DWBMQTT_COMMIT="$(GIT_REVISION)" -DWBMQTT_VERSION="$(DEB_VERSION)"
+LDFLAGS = -lmodbus -lwbmqtt1 -lpthread
 
-$(TARGET): $(OBJS) $(COMMON_OBJS)
-	${CXX} -o $@ $^ $(LDFLAGS)
+ifeq ($(DEBUG),)
+	CXXFLAGS += -O2
+else
+	CXXFLAGS += -g -O0 -fprofile-arcs -ftest-coverage -Wno-error=cpp
+	LDFLAGS += -lgcov
+endif
 
-src/%.o: src/%.cpp
+TEST_DIR = test
+TEST_SRCS := $(shell find $(TEST_DIR) -name *.cpp)
+TEST_OBJS := $(TEST_SRCS:%=$(BUILD_DIR)/%.o)
+TEST_TARGET = test-app
+TEST_LDFLAGS = -lgtest -lgmock
+
+all: $(BUILD_DIR)/$(TARGET)
+
+$(BUILD_DIR)/$(TARGET): $(COMMON_OBJS) $(BUILD_DIR)/$(SRC_DIR)/main.cpp.o
+	$(CXX) -o $@ $^ $(LDFLAGS)
+
+$(BUILD_DIR)/%.cpp.o: %.cpp
+	@mkdir -p $(dir $@)
 	$(CXX) -c $(CXXFLAGS) -o $@ $^
 
-test/%.o: test/%.cpp
-	$(CXX) -c $(CXXFLAGS) $(TEST_CXXFLAGS) -o $@ $^
+$(BUILD_DIR)/$(TEST_DIR)/$(TEST_TARGET): $(TEST_OBJS) $(COMMON_OBJS)
+	$(CXX) -o $@ $^ $(LDFLAGS) $(TEST_LDFLAGS)
 
-test: $(TEST_DIR)/$(TEST_TARGET)
+test: $(BUILD_DIR)/$(TEST_DIR)/$(TEST_TARGET)
 	if [ "$(shell arch)" != "armv7l" ] && [ "$(CROSS_COMPILE)" = "" ] || [ "$(CROSS_COMPILE)" = "x86_64-linux-gnu-" ]; then \
-		valgrind --error-exitcode=180 -q $(TEST_DIR)/$(TEST_TARGET) || \
+		valgrind --error-exitcode=180 -q $(BUILD_DIR)/$(TEST_DIR)/$(TEST_TARGET) || \
 		if [ $$? = 180 ]; then \
 			echo "*** VALGRIND DETECTED ERRORS ***" 1>& 2; \
 			exit 1; \
 		fi \
-   else \
-        $(TEST_DIR)/$(TEST_TARGET); \
+	else \
+		$(BUILD_DIR)/$(TEST_DIR)/$(TEST_TARGET); \
 	fi
 
-$(TEST_DIR)/$(TEST_TARGET): $(TEST_OBJS) $(COMMON_OBJS)
-	$(CXX) -o $@ $^ $(LDFLAGS) $(TEST_LDFLAGS)
+lcov: test
+ifeq ($(DEBUG), 1)
+	geninfo --no-external -b . -o $(BUILD_DIR)/coverage.info $(BUILD_DIR)/src
+	genhtml $(BUILD_DIR)/coverage.info -o $(BUILD_DIR)/cov_html
+endif
 
 distclean: clean
 
 clean:
-	rm -rf $(SRC_DIR)/*.o $(TARGET) $(TEST_DIR)/*.o $(TEST_DIR)/$(TEST_TARGET)
-	rm -rf $(SRC_DIR)/*.gcda $(SRC_DIR)/*.gcno $(TEST_DIR)/*.gcda $(TEST_DIR)/*.gcno
+	-rm -rf build
 
 install:
-	install -D -m 0644  wb-mqtt-mbgate.wbconfigs $(DESTDIR)/etc/wb-configs.d/31wb-mqtt-mbgate
-	install -D -m 0644 wb-mqtt-mbgate.schema.json $(DESTDIR)/usr/share/wb-mqtt-confed/schemas/wb-mqtt-mbgate.schema.json
-	install -D -m 0755 utils/generate_config.py $(DESTDIR)/usr/bin/wb-mqtt-mbgate-confgen
-	install -m 0755 $(TARGET) $(DESTDIR)/usr/bin/$(TARGET)
-
+	install -Dm0644 wb-mqtt-mbgate.wbconfigs $(DESTDIR)/etc/wb-configs.d/31wb-mqtt-mbgate
+	install -Dm0644 wb-mqtt-mbgate.schema.json -t $(DESTDIR)$(PREFIX)/share/wb-mqtt-confed/schemas
+	install -Dm0755 utils/generate_config.py $(DESTDIR)$(PREFIX)/bin/wb-mqtt-mbgate-confgen
+	install -Dm0755 $(BUILD_DIR)/$(TARGET) -t $(DESTDIR)$(PREFIX)/bin
 
 .PHONY: all test clean
