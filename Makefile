@@ -74,7 +74,7 @@ endif
 distclean: clean
 
 clean:
-	rm -rf build
+	-rm -rf build
 
 install:
 	install -Dm0644 wb-mqtt-mbgate.wbconfigs $(DESTDIR)/etc/wb-configs.d/31wb-mqtt-mbgate
