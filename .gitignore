@@ -11,11 +11,11 @@ debian/*.substvars
 debian/files
 debhelper-build-stamp
 
-# Visual Studio Code
+### Visual Studio Code ###
 .vscode
 .devcontainer
 
-# CLion
+### CLion ###
 .idea
 
 ### direnv ###
