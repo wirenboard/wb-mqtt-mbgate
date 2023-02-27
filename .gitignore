@@ -1,6 +1,4 @@
-*.o
-*.pyc
-.*.swp
+build
 *.deb
 *.changes
 *.dsc
@@ -12,15 +10,14 @@ debian/wb-mqtt-mbgate
 debian/*.substvars
 debian/files
 debhelper-build-stamp
-test/test-app
-*.gcda
-*.gcno
 
-# binary
-wb-mqtt-mbgate
-
-# Visual Studio Code
+### Visual Studio Code ###
 .vscode
+.devcontainer
 
-# CLion
+### CLion ###
 .idea
+
+### direnv ###
+.direnv
+.envrc
