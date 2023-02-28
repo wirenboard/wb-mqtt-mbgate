@@ -278,7 +278,7 @@ def main(args=None):
 
         config_file = open(args.config, "w")
 
-    client_id = "wb-mqtt-mbgate-" + "".join(random.sample(string.ascii_letters + string.digits, 8))
+    client_id = "wb-mqtt-mbgate-confgen-" + "".join(random.sample(string.ascii_letters + string.digits, 8))
 
     url = urllib.parse.urlparse(args.server)
     if url.scheme == 'unix':
