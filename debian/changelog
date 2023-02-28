@@ -1,3 +1,9 @@
+wb-mqtt-mbgate (1.4.2) stable; urgency=medium
+
+  * Form identifiable client ID for MQTT connection
+
+ -- Nikolay Korotkiy <nikolay.korotkiy@wirenboard.com>  Mon, 27 Feb 2023 15:12:00 +0400
+
 wb-mqtt-mbgate (1.4.1) stable; urgency=medium
 
   * Add make lcov target to generate test coverage, no functional changes
