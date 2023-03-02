@@ -4,13 +4,10 @@
 
 import argparse
 import json
-import random
-import string
 import sys
-import time
-import urllib.parse
+
 import paho.mqtt.client as mqtt
-import paho_socket
+from wb_common.mqtt_client import DEFAULT_BROKER_URL, MQTTClient
 
 
 # Salt for address hashtable in case of match
@@ -21,9 +18,6 @@ RESERVED_UNIT_IDS = [1, 2]
 
 # Unit IDs reserved by Modbus
 RESERVED_UNIT_IDS += list(range(247, 256)) + [0]
-
-DEFAULT_MOSQUITTO_SOCKET_PATH = "unix:///var/run/mosquitto/mosquitto.sock"
-DEFAULT_MOSQUITTO_PORT = 1883
 
 client = None
 table = dict()
@@ -255,8 +249,7 @@ def main(args=None):
                             type=str, default="")
         parser.add_argument("-f", "--force-create", help="force creating new config file",
                             action="store_true")
-        parser.add_argument("-s", "--server", help="MQTT server hostname", type=str, default=DEFAULT_MOSQUITTO_SOCKET_PATH)
-        parser.add_argument("-p", "--port", help="MQTT server port", type=int, default=DEFAULT_MOSQUITTO_PORT)
+        parser.add_argument("-b", "--broker", help="MQTT broker url", type=str, default=DEFAULT_BROKER_URL)
 
         args = parser.parse_args()
 
@@ -278,26 +271,25 @@ def main(args=None):
 
         config_file = open(args.config, "w")
 
-    client_id = "wb-mqtt-mbgate-confgen-" + "".join(random.sample(string.ascii_letters + string.digits, 8))
+    client = MQTTClient("wb-mqtt-mbgate-confgen", args.broker, False)
 
-    url = urllib.parse.urlparse(args.server)
-    if url.scheme == 'unix':
-        client = paho_socket.Client(client_id)
-        client.sock_connect(url.path)
-        hostname = url.path
+    if client._broker_url.scheme == 'unix':
+        hostname = client._broker_url.path
         port = 0  # means UNIX socket connection for wbmqtt
+    elif client._broker_url.scheme == 'tcp':
+        hostname = client._broker_url.hostname
+        port = client._broker_url.port
     else:
-        client = mqtt.Client(client_id)
-        client.connect(args.server, args.port)
-        hostname = args.server
-        port = args.port
+        eprint("Unsupported broker url scheme: %s" % client._broker_url.scheme)
+        sys.exit(1)
 
+    client.start()
     client.on_message = mqtt_on_message
 
     client.subscribe("/devices/+/controls/+/meta/+")
 
     # apply retained-hack to be sure that all data is received
-    retain_hack_topic = "/tmp/%s/retain_hack" % (client_id)
+    retain_hack_topic = "/tmp/%s/retain_hack" % (client._client_id.decode())
     client.subscribe(retain_hack_topic)
     client.publish(retain_hack_topic, '1')
 
@@ -305,6 +297,9 @@ def main(args=None):
         rc = client.loop()
         if rc != 0:
             break
+    
+    client.stop()
+
 
 if __name__ == "__main__":
     main()
