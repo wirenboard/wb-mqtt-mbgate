@@ -10,7 +10,6 @@ import urllib.parse
 import paho.mqtt.client as mqtt
 from wb_common.mqtt_client import DEFAULT_BROKER_URL, MQTTClient
 
-
 # Salt for address hashtable in case of match
 ADDR_SALT = 7079
 
@@ -56,8 +55,20 @@ class RegDiscr(object):
 
 
 class Register(RegDiscr):
-    def __init__(self, topic, meta_type, enabled = False, address=-1, unitId=-1,
-                 format="signed", size=2, max=0, scale=1, byteswap=False, wordswap=False):
+    def __init__(
+        self,
+        topic,
+        meta_type,
+        enabled=False,
+        address=-1,
+        unitId=-1,
+        format="signed",
+        size=2,
+        max=0,
+        scale=1,
+        byteswap=False,
+        wordswap=False,
+    ):
 
         RegDiscr.__init__(self, topic, meta_type, enabled, address, unitId)
         self.format = format
@@ -89,8 +100,11 @@ class RegSpace:
         else:
             # add new address
             addr_hash = hash(value.topic) & 0xFFFFFF
-            while (addr_hash in self.addrs) or ((addr_hash >> 16) != ((addr_hash + value.getSize() - 1) >> 16)) \
-                    or (addr_hash >> 16 in RESERVED_UNIT_IDS):
+            while (
+                (addr_hash in self.addrs)
+                or ((addr_hash >> 16) != ((addr_hash + value.getSize() - 1) >> 16))
+                or (addr_hash >> 16 in RESERVED_UNIT_IDS)
+            ):
                 addr_hash = (addr_hash + ADDR_SALT) & 0xFFFFFF
 
             for i in range(0, value.getSize()):
@@ -108,6 +122,7 @@ class RegSpace:
             ret.append(val.__dict__)
 
         return ret
+
 
 regs_discr = RegSpace("discretes")
 regs_coils = RegSpace("coils")
@@ -246,10 +261,10 @@ def main(args=None):
 
     if args is None:
         parser = argparse.ArgumentParser(description="Config generator/updater for wb-mqtt-mbgate")
-        parser.add_argument("-c", "--config", help="config file to create/update",
-                            type=str, default="")
-        parser.add_argument("-f", "--force-create", help="force creating new config file",
-                            action="store_true")
+        parser.add_argument("-c", "--config", help="config file to create/update", type=str, default="")
+        parser.add_argument(
+            "-f", "--force-create", help="force creating new config file", action="store_true"
+        )
         parser.add_argument("-b", "--broker", help="MQTT broker url", type=str, default=DEFAULT_BROKER_URL)
 
         args = parser.parse_args()
@@ -275,10 +290,10 @@ def main(args=None):
     client = MQTTClient("wb-mqtt-mbgate-confgen", args.broker, False)
 
     url = urllib.parse.urlparse(args.broker)
-    if url.scheme == 'unix':
+    if url.scheme == "unix":
         hostname = url.path
         port = 0  # means UNIX socket connection for wbmqtt
-    elif url.scheme == 'tcp':
+    elif url.scheme == "tcp":
         hostname = url.hostname
         port = url.port
     else:
@@ -293,13 +308,13 @@ def main(args=None):
     # apply retained-hack to be sure that all data is received
     retain_hack_topic = "/tmp/%s/retain_hack" % (client._client_id.decode())
     client.subscribe(retain_hack_topic)
-    client.publish(retain_hack_topic, '1', qos=2)
+    client.publish(retain_hack_topic, "1", qos=2)
 
     while 1:
         rc = client.loop()
         if rc != 0:
             break
-    
+
     client.stop()
 
 
