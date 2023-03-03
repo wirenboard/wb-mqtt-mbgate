@@ -5,6 +5,7 @@
 import argparse
 import json
 import sys
+import urllib.parse
 
 import paho.mqtt.client as mqtt
 from wb_common.mqtt_client import DEFAULT_BROKER_URL, MQTTClient
@@ -273,14 +274,15 @@ def main(args=None):
 
     client = MQTTClient("wb-mqtt-mbgate-confgen", args.broker, False)
 
-    if client._broker_url.scheme == 'unix':
-        hostname = client._broker_url.path
+    url = urllib.parse.urlparse(args.broker)
+    if url.scheme == 'unix':
+        hostname = url.path
         port = 0  # means UNIX socket connection for wbmqtt
-    elif client._broker_url.scheme == 'tcp':
-        hostname = client._broker_url.hostname
-        port = client._broker_url.port
+    elif url.scheme == 'tcp':
+        hostname = url.hostname
+        port = url.port
     else:
-        eprint("Unsupported broker url scheme: %s" % client._broker_url.scheme)
+        eprint("Unsupported broker url scheme: %s" % url.scheme)
         sys.exit(1)
 
     client.start()
@@ -291,7 +293,7 @@ def main(args=None):
     # apply retained-hack to be sure that all data is received
     retain_hack_topic = "/tmp/%s/retain_hack" % (client._client_id.decode())
     client.subscribe(retain_hack_topic)
-    client.publish(retain_hack_topic, '1')
+    client.publish(retain_hack_topic, '1', qos=2)
 
     while 1:
         rc = client.loop()
