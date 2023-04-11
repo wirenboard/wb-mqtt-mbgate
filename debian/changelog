@@ -1,3 +1,9 @@
+wb-mqtt-mbgate (1.5.1) stable; urgency=medium
+
+  * Don't crash wb-mqtt-mbgate-confgen on wrong values in readonly topics
+
+ -- Petr Krasnoshchekov <petr.krasnoshchekov@wirenboard.com>  Tue, 11 Apr 2023 13:23:53 +0500
+
 wb-mqtt-mbgate (1.5.0) stable; urgency=medium
 
   * Use mqtt client wrapper from wb-common
