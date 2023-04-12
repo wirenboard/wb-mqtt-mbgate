@@ -257,6 +257,8 @@ def mqtt_on_message(arg0, arg1, arg2=None):
             except ValueError:
                 if payloadStr == "true":
                     table[devName]["readonly"] = True
+                elif payloadStr != "false":
+                    raise
 
 
 def main(args=None):
