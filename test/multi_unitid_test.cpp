@@ -1,22 +1,22 @@
-#include <gtest/gtest.h>
 #include <gmock/gmock.h>
+#include <gtest/gtest.h>
 
-#include "modbus_wrapper.h"
-#include "mock_modbus_observer.h"
 #include "fake_modbus_backend.h"
+#include "mock_modbus_observer.h"
+#include "modbus_wrapper.h"
 
 using namespace std;
 using ::testing::_;
 using ::testing::Return;
 
-class MultiUnitIDTest : public ::testing::Test
+class MultiUnitIDTest: public ::testing::Test
 {
 public:
     shared_ptr<TFakeModbusBackend> Backend;
     PModbusServer Server;
     shared_ptr<MockModbusServerObserver> obs1, obs2, obs3, obs4;
 
-    void SetUp() 
+    void SetUp()
     {
         Backend = make_shared<TFakeModbusBackend>();
         Server = make_shared<TModbusServer>(Backend);
@@ -37,17 +37,17 @@ public:
 
         Server->Observe(obs3, COIL, r3, 2);
         Server->Observe(obs4, COIL, r4, 5);
-
     }
-    void TearDown() {}
+    void TearDown()
+    {}
 };
 
 TEST_F(MultiUnitIDTest, AllocateTest)
 {
     TModbusCacheAddressRange or1(0, 5, Backend->GetCache(COIL, 1));
-    TModbusCacheAddressRange or2(5, 3, static_cast<char *>(Backend->GetCache(COIL, 1)) + 5);
-    TModbusCacheAddressRange or3(2, 5, static_cast<char *>(Backend->GetCache(COIL, 2)) + 2);
-    TModbusCacheAddressRange or4(4, 5, static_cast<char *>(Backend->GetCache(COIL, 5)) + 4);
+    TModbusCacheAddressRange or2(5, 3, static_cast<char*>(Backend->GetCache(COIL, 1)) + 5);
+    TModbusCacheAddressRange or3(2, 5, static_cast<char*>(Backend->GetCache(COIL, 2)) + 2);
+    TModbusCacheAddressRange or4(4, 5, static_cast<char*>(Backend->GetCache(COIL, 5)) + 4);
 
     EXPECT_CALL(*obs1, OnCacheAllocate(COIL, 1, or1)).Times(1);
     EXPECT_CALL(*obs2, OnCacheAllocate(COIL, 1, or2)).Times(1);
@@ -68,21 +68,23 @@ TEST_F(MultiUnitIDTest, ReadRequestTest)
 
     // query for obs1
     uint8_t q1[] = {
-        1,          // modbus unit ID
-        0x01,       // read coils
-        0x00, 0x00, // address
-        0x00, 0x01  // count
+        1,    // modbus unit ID
+        0x01, // read coils
+        0x00,
+        0x00, // address
+        0x00,
+        0x01 // count
     };
-    TModbusQuery query1(q1, sizeof (q1), 1);
+    TModbusQuery query1(q1, sizeof(q1), 1);
 
     // query for no one
-    uint8_t q2[] = {
-        8,          // undefined cache
-        0x01,
-        0x00, 0x00,
-        0x00, 0x01
-    };
-    TModbusQuery query2(q2, sizeof (q2), 1);
+    uint8_t q2[] = {8, // undefined cache
+                    0x01,
+                    0x00,
+                    0x00,
+                    0x00,
+                    0x01};
+    TModbusQuery query2(q2, sizeof(q2), 1);
 
     Backend->PushQuery(query1);
     Backend->PushQuery(query2);

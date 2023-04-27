@@ -2,36 +2,32 @@
 
 #include "modbus_lmb_backend.h"
 
-#include <cstdlib>
 #include <cerrno>
+#include <cstdlib>
 #include <error.h>
 #include <iostream>
 #include <string>
 
-#include <unistd.h>
-#include <sys/select.h>
-#include <sys/socket.h>
 #include <arpa/inet.h>
 #include <cstring>
+#include <sys/select.h>
+#include <sys/socket.h>
+#include <unistd.h>
 
 #define LOG(logger) ::logger.Log() << "[modbus] "
 
-TModbusBaseBackend::TModbusBaseBackend()
-        : _context(nullptr)
-        , _error(0)
-        , slaveId(0)
-        , queryBuffer(nullptr)
+TModbusBaseBackend::TModbusBaseBackend(): _context(nullptr), _error(0), slaveId(0), queryBuffer(nullptr)
 {}
 
 TModbusBaseBackend::~TModbusBaseBackend()
 {
-    for (auto &p : _mappings)
+    for (auto& p: _mappings)
         modbus_mapping_free(p.second);
 
     if (_context)
         modbus_free(_context);
 
-    delete [] queryBuffer;
+    delete[] queryBuffer;
 }
 
 void TModbusBaseBackend::SetSlave(uint8_t slave_id)
@@ -59,16 +55,16 @@ void* TModbusBaseBackend::GetCache(TStoreType type, uint8_t slave_id)
     }
 
     switch (type) {
-    case DISCRETE_INPUT:
-        return _mappings[slave_id]->tab_input_bits;
-    case COIL:
-        return _mappings[slave_id]->tab_bits;
-    case INPUT_REGISTER:
-        return _mappings[slave_id]->tab_input_registers;
-    case HOLDING_REGISTER:
-        return _mappings[slave_id]->tab_registers;
-    default:
-        throw TModbusException("Unknown store type: " + std::to_string(type));
+        case DISCRETE_INPUT:
+            return _mappings[slave_id]->tab_input_bits;
+        case COIL:
+            return _mappings[slave_id]->tab_bits;
+        case INPUT_REGISTER:
+            return _mappings[slave_id]->tab_input_registers;
+        case HOLDING_REGISTER:
+            return _mappings[slave_id]->tab_registers;
+        default:
+            throw TModbusException("Unknown store type: " + std::to_string(type));
     }
 }
 
@@ -82,7 +78,7 @@ bool TModbusBaseBackend::Available()
     return !QueuedQueries.empty();
 }
 
-void TModbusBaseBackend::Reply(const TModbusQuery &q)
+void TModbusBaseBackend::Reply(const TModbusQuery& q)
 {
     if (q.size <= 0)
         return;
@@ -92,8 +88,8 @@ void TModbusBaseBackend::Reply(const TModbusQuery &q)
         slave_id = q.data[q.header_length - 1];
 
     if (_mappings.find(slave_id) == _mappings.end())
-        throw TModbusException(std::string("Trying to reply on query with unknown slave ID ")
-                + std::to_string(slave_id));
+        throw TModbusException(std::string("Trying to reply on query with unknown slave ID ") +
+                               std::to_string(slave_id));
 
     PreReply(q);
 
@@ -103,25 +99,25 @@ void TModbusBaseBackend::Reply(const TModbusQuery &q)
     PostReply(q);
 }
 
-void TModbusBaseBackend::ReplyException(TReplyState e, const TModbusQuery &q)
+void TModbusBaseBackend::ReplyException(TReplyState e, const TModbusQuery& q)
 {
     unsigned code;
 
     switch (e) {
-    case REPLY_ILLEGAL_FUNCTION:
-        code = MODBUS_EXCEPTION_ILLEGAL_FUNCTION;
-        break;
-    case REPLY_ILLEGAL_ADDRESS:
-        code = MODBUS_EXCEPTION_ILLEGAL_DATA_ADDRESS;
-        break;
-    case REPLY_ILLEGAL_VALUE:
-        code = MODBUS_EXCEPTION_ILLEGAL_DATA_VALUE;
-        break;
-    case REPLY_SERVER_FAILURE:
-        code = MODBUS_EXCEPTION_SLAVE_OR_SERVER_FAILURE;
-        break;
-    default:
-        return; // wtf
+        case REPLY_ILLEGAL_FUNCTION:
+            code = MODBUS_EXCEPTION_ILLEGAL_FUNCTION;
+            break;
+        case REPLY_ILLEGAL_ADDRESS:
+            code = MODBUS_EXCEPTION_ILLEGAL_DATA_ADDRESS;
+            break;
+        case REPLY_ILLEGAL_VALUE:
+            code = MODBUS_EXCEPTION_ILLEGAL_DATA_VALUE;
+            break;
+        case REPLY_SERVER_FAILURE:
+            code = MODBUS_EXCEPTION_SLAVE_OR_SERVER_FAILURE;
+            break;
+        default:
+            return; // wtf
     }
 
     PreReply(q);
@@ -151,9 +147,7 @@ TModbusQuery TModbusBaseBackend::ReceiveQuery(bool block)
     }
 }
 
-TModbusTCPBackend::TModbusTCPBackend(const char* hostname, int port)
-    : server_socket(-1)
-    , fd_max(-1)
+TModbusTCPBackend::TModbusTCPBackend(const char* hostname, int port): server_socket(-1), fd_max(-1)
 {
     char port_buffer[6]; // 5 dec symbols + \0
     std::snprintf(port_buffer, 6, "%u", port);
@@ -209,12 +203,12 @@ int TModbusTCPBackend::WaitForMessages(int timeoutMilliS)
         if (!FD_ISSET(s, &rdset))
             continue;
 
-        if (s == server_socket) {  // accepting new connection
+        if (s == server_socket) { // accepting new connection
             struct sockaddr_in client;
-            socklen_t addrlen = sizeof (client);
+            socklen_t addrlen = sizeof(client);
             memset(&client, 0, addrlen);
 
-            int newfd = accept(server_socket, (struct sockaddr *) &client, &addrlen);
+            int newfd = accept(server_socket, (struct sockaddr*)&client, &addrlen);
             if (newfd == -1) {
                 throw TModbusException(std::string("Error while accept(): ") + strerror(errno));
             }
@@ -251,16 +245,15 @@ void TModbusTCPBackend::Close()
     fd_max = -1;
 }
 
-void TModbusTCPBackend::PreReply(const TModbusQuery & q)
+void TModbusTCPBackend::PreReply(const TModbusQuery& q)
 {
     modbus_set_socket(_context, q.socket_fd);
 }
 
-void TModbusTCPBackend::PostReply(const TModbusQuery & q)
+void TModbusTCPBackend::PostReply(const TModbusQuery& q)
 {}
 
-TModbusRTUBackend::TModbusRTUBackend(const TModbusRTUBackendArgs & args)
-    : fd(-1)
+TModbusRTUBackend::TModbusRTUBackend(const TModbusRTUBackendArgs& args): fd(-1)
 {
     _context = modbus_new_rtu(args.Device.c_str(), args.BaudRate, args.Parity, args.DataBits, args.StopBits);
 
@@ -330,7 +323,7 @@ void TModbusRTUBackend::Close()
     fd = -1;
 }
 
-void TModbusRTUBackend::PreReply(const TModbusQuery & q)
+void TModbusRTUBackend::PreReply(const TModbusQuery& q)
 {
     uint8_t slave_id = 0;
     if (q.header_length > 0)
@@ -339,7 +332,7 @@ void TModbusRTUBackend::PreReply(const TModbusQuery & q)
     modbus_set_slave(_context, slave_id);
 }
 
-void TModbusRTUBackend::PostReply(const TModbusQuery & q)
+void TModbusRTUBackend::PostReply(const TModbusQuery& q)
 {
     modbus_set_slave(_context, slaveId);
 }

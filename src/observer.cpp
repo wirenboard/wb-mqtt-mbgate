@@ -6,13 +6,13 @@ using namespace std;
 using namespace WBMQTT;
 
 TGatewayObserver::TGatewayObserver(const string& topic, PMQTTConverter conv, PMqttClient mqtt)
-    : Cache(nullptr)
-    , CacheSize(0)
-    , Conv(conv)
-    , Topic(topic)
-    , Mqtt(mqtt)
+    : Cache(nullptr),
+      CacheSize(0),
+      Conv(conv),
+      Topic(topic),
+      Mqtt(mqtt)
 {
-    Mqtt->Subscribe([this](const TMqttMessage& msg){this->OnMessage(msg);}, topic);
+    Mqtt->Subscribe([this](const TMqttMessage& msg) { this->OnMessage(msg); }, topic);
 }
 
 void TGatewayObserver::OnMessage(const TMqttMessage& message)
@@ -31,7 +31,11 @@ void TGatewayObserver::OnCacheAllocate(TStoreType type, uint8_t slave_id, const 
     CacheSize = range.cbegin()->second.first;
 }
 
-TReplyState TGatewayObserver::OnSetValue(TStoreType type, uint8_t unit_id, uint16_t start, unsigned count, const void* data)
+TReplyState TGatewayObserver::OnSetValue(TStoreType type,
+                                         uint8_t unit_id,
+                                         uint16_t start,
+                                         unsigned count,
+                                         const void* data)
 {
 
     TMqttMessage msg;

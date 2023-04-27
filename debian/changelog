@@ -1,3 +1,9 @@
+wb-mqtt-mbgate (1.5.2) stable; urgency=medium
+
+  * Fix clang-format, no functional changes
+
+ -- Nikolay Korotkiy <nikolay.korotkiy@wirenboard.com>  Thu, 27 Apr 2023 11:30:00 +0400
+
 wb-mqtt-mbgate (1.5.1) stable; urgency=medium
 
   * Don't crash wb-mqtt-mbgate-confgen on wrong values in readonly topics

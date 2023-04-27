@@ -1,25 +1,27 @@
 #pragma once
 
-#include <map>
-#include <vector>
-#include <string>
-#include <sstream>
-#include <iostream>
-#include <memory>
-#include <utility>
 #include <algorithm>
 #include <exception>
+#include <iostream>
+#include <map>
+#include <memory>
+#include <sstream>
+#include <string>
+#include <utility>
+#include <vector>
 
-
-class WrongSegmentException : std::exception
+class WrongSegmentException: std::exception
 {
     std::string msg;
     int start;
     unsigned count;
+
 public:
-    WrongSegmentException(int _start, unsigned _count): start(_start), count(_count) {}
-    WrongSegmentException(const std::string &_msg): msg(_msg) {}
-    virtual const char *what() const throw()
+    WrongSegmentException(int _start, unsigned _count): start(_start), count(_count)
+    {}
+    WrongSegmentException(const std::string& _msg): msg(_msg)
+    {}
+    virtual const char* what() const throw()
     {
         if (msg.size() > 0) {
             return msg.c_str();
@@ -41,7 +43,8 @@ public:
         return count;
     }
 
-    virtual ~WrongSegmentException() throw() {}
+    virtual ~WrongSegmentException() throw()
+    {}
 };
 
 /*!
@@ -52,16 +55,16 @@ public:
 template<typename T> class TAddressRange
 {
 public:
-
     TAddressRange(int start, unsigned count, T obs = T())
     {
         insert(start, count, obs);
     }
 
     // default empty constructor
-    TAddressRange() {}
+    TAddressRange()
+    {}
 
-    /*! 
+    /*!
      * Insert new data segment
      * \param start First address in segment
      * \param count Number of units in segment
@@ -75,7 +78,8 @@ public:
         auto prev = m.lower_bound(start);
         if (prev != m.begin())
             --prev;
-        if (prev != m.end() && prev->second.first >= start && prev->first < start) {  // have intersection with previous segment
+        if (prev != m.end() && prev->second.first >= start && prev->first < start)
+        { // have intersection with previous segment
             if (prev->second.second != obs) {
                 if (prev->second.first > start) {
                     throw WrongSegmentException(start, count);
@@ -86,10 +90,10 @@ public:
 
             /* m.erase(prev); */
         }
-        
+
         /* merge all inner segments */
         auto inner = m.lower_bound(start);
-        while (inner != m.end() && inner->first < end) {  
+        while (inner != m.end() && inner->first < end) {
             auto& current_observer = inner->second.second;
             auto current_end = inner->second.first;
             // check if there are different observers
@@ -115,7 +119,7 @@ public:
      */
     void insert(const TAddressRange& range)
     {
-        for (auto& segment : range.m)
+        for (auto& segment: range.m)
             insert(segment.first, segment.second.first - segment.first, segment.second.second);
     }
 
@@ -126,7 +130,7 @@ public:
         return *this;
     }
 
-    TAddressRange operator+(const TAddressRange& range) const 
+    TAddressRange operator+(const TAddressRange& range) const
     {
         TAddressRange ret;
         ret.insert(*this);
@@ -137,7 +141,7 @@ public:
 
     void insert(const TAddressRange& range, T obs)
     {
-        for (auto& segment : range.m)
+        for (auto& segment: range.m)
             insert(segment.first, segment.second.first - segment.first, obs);
     }
 
@@ -170,7 +174,7 @@ public:
         return b->first;
     }
 
-    /*! 
+    /*!
      * Get upper bound of range (maximum address + 1)
      */
     int getEnd() const
@@ -265,7 +269,7 @@ public:
 
     bool operator==(const TAddressRange<T>& r) const
     {
-        for (auto &segment : m) {
+        for (auto& segment: m) {
             auto v = r.m.find(segment.first);
             if (v == r.m.end() || v->second != segment.second)
                 return false;
@@ -281,7 +285,7 @@ public:
     {
         std::map<int, std::pair<int, T>> nmap;
 
-        for (auto &segment : m) {
+        for (auto& segment: m) {
             segment.second.first += offset;
             nmap[segment.first + offset] = segment.second;
         }
@@ -315,32 +319,34 @@ public:
         return operator+=(-offset);
     }
 
-
     void clear()
     {
         m.clear();
     }
 
     /*! Iterator */
-    typename std::map<int, std::pair<int, T>>::const_iterator cbegin() const { return m.cbegin(); }
-    typename std::map<int, std::pair<int, T>>::const_iterator cend() const { return m.cend(); }
-    
+    typename std::map<int, std::pair<int, T>>::const_iterator cbegin() const
+    {
+        return m.cbegin();
+    }
+    typename std::map<int, std::pair<int, T>>::const_iterator cend() const
+    {
+        return m.cend();
+    }
+
     typedef typename std::map<int, std::pair<int, T>>::const_iterator const_iterator;
 
-    template<typename U>
-    friend std::ostream& operator<<(std::ostream &str, const TAddressRange<U>& range);
+    template<typename U> friend std::ostream& operator<<(std::ostream& str, const TAddressRange<U>& range);
 
 protected:
     std::map<int, std::pair<int, T>> m;
 };
 
-
-template<typename T>
-std::ostream& operator<<(std::ostream& str, const TAddressRange<T>& range)
+template<typename T> std::ostream& operator<<(std::ostream& str, const TAddressRange<T>& range)
 {
-        for (const auto &p : range.m) {
-                str << "[" << p.first << ", " << p.second.first << ") => " << p.second.second << std::endl;
-        }
+    for (const auto& p: range.m) {
+        str << "[" << p.first << ", " << p.second.first << ") => " << p.second.second << std::endl;
+    }
 
-        return str;
+    return str;
 }

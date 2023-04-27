@@ -1,21 +1,21 @@
 #include "config_parser.h"
 
-#include <string>
-#include <memory>
 #include <fstream>
 #include <iostream>
+#include <memory>
+#include <string>
+#include <time.h>
 #include <tuple>
 #include <unistd.h>
-#include <time.h>
 
 #include <wblib/json_utils.h>
 #include <wblib/mqtt.h>
 
 #include "log.h"
-#include "mqtt_converters.h"
-#include "modbus_lmb_backend.h"
-#include "observer.h"
 #include "mbgate_exception.h"
+#include "modbus_lmb_backend.h"
+#include "mqtt_converters.h"
+#include "observer.h"
 
 using namespace std;
 using namespace WBMQTT;
@@ -23,8 +23,9 @@ using namespace WBMQTT::JSON;
 
 #define LOG(logger) ::logger.Log() << "[config] "
 
-namespace {
-    string expandTopic(const string &t)
+namespace
+{
+    string expandTopic(const string& t)
     {
         auto lst = StringSplit(t, '/');
         return string("/devices/") + lst[0] + "/controls/" + lst[1];
@@ -32,16 +33,14 @@ namespace {
 };
 
 IConfigParser::~IConfigParser()
-{
-}
+{}
 
-TJSONConfigParser::TJSONConfigParser(const string& config_file, const string& schema_file) :
-    Root(Parse(config_file))
+TJSONConfigParser::TJSONConfigParser(const string& config_file, const string& schema_file): Root(Parse(config_file))
 {
     try {
         auto schema(Parse(schema_file));
         Validate(Root, schema);
-    } catch (const std::runtime_error& e){
+    } catch (const std::runtime_error& e) {
         throw TConfigException(e.what());
     }
 }
@@ -68,20 +67,18 @@ tuple<PModbusServer, PMqttClient> TJSONConfigParser::Build()
         modbusBackend = make_shared<TModbusTCPBackend>(modbus_host.c_str(), modbus_port);
     } else {
         if (type == "rtu") {
-            TModbusRTUBackendArgs args {};
-            
+            TModbusRTUBackendArgs args{};
+
             args.Device = modbus_data["path"].asCString();
 
             args.BaudRate = modbus_data.get("baud_rate", args.BaudRate).asInt();
             args.DataBits = modbus_data.get("data_bits", args.DataBits).asInt();
             args.StopBits = modbus_data.get("stop_bits", args.StopBits).asInt();
-            args.Parity   = modbus_data.get("parity", std::string(1, args.Parity)).asString()[0];
+            args.Parity = modbus_data.get("parity", std::string(1, args.Parity)).asString()[0];
 
-            LOG(Debug) << "Modbus configuration: device " << args.Device << 
-                                            ", baud rate " << args.BaudRate <<
-                                            ", parity " << args.Parity <<
-                                            ", data bits " << args.DataBits <<
-                                            ", stop bits " << args.StopBits;
+            LOG(Debug) << "Modbus configuration: device " << args.Device << ", baud rate " << args.BaudRate
+                       << ", parity " << args.Parity << ", data bits " << args.DataBits << ", stop bits "
+                       << args.StopBits;
 
             modbusBackend = make_shared<TModbusRTUBackend>(args);
         } else {
@@ -97,7 +94,8 @@ tuple<PModbusServer, PMqttClient> TJSONConfigParser::Build()
     int mqtt_keepalive = 60;
     Get(Root["mqtt"], "keepalive", mqtt_keepalive);
 
-    LOG(Debug) << "MQTT configuration: host " << mqtt_host << ", port " << mqtt_port << ", keepalive " << mqtt_keepalive;
+    LOG(Debug) << "MQTT configuration: host " << mqtt_host << ", port " << mqtt_port << ", keepalive "
+               << mqtt_keepalive;
 
     TMosquittoMqttConfig mqtt_config;
     mqtt_config.Host = mqtt_host;
@@ -120,7 +118,7 @@ void TJSONConfigParser::_BuildStore(TStoreType type, const Json::Value& list, PM
 {
     LOG(Debug) << "Processing store " << type;
 
-    for (const auto &reg_item : list) {
+    for (const auto& reg_item: list) {
         if (!reg_item["enabled"].asBool())
             continue;
 
@@ -130,7 +128,7 @@ void TJSONConfigParser::_BuildStore(TStoreType type, const Json::Value& list, PM
         int size;
 
         LOG(Debug) << "Element " << topic << " : " << address;
-        
+
         PGatewayObserver obs;
         PMQTTConverter conv;
 
@@ -150,7 +148,7 @@ void TJSONConfigParser::_BuildStore(TStoreType type, const Json::Value& list, PM
                 size /= 2;
             } else {
                 double scale = reg_item["scale"].asFloat();
-                
+
                 TMQTTIntConverter::IntegerType int_type;
                 if (format == "signed") {
                     int_type = TMQTTIntConverter::SIGNED;
@@ -173,7 +171,7 @@ void TJSONConfigParser::_BuildStore(TStoreType type, const Json::Value& list, PM
 
         try {
             modbus->Observe(obs, type, TModbusAddressRange(address, size), slave_id);
-        } catch (const WrongSegmentException &e) {
+        } catch (const WrongSegmentException& e) {
             throw TConfigException(string("Address overlapping: ") + StoreTypeToString(type) + ": topic " + topic);
         }
     }

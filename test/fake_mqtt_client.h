@@ -5,15 +5,14 @@
 
 #pragma once
 
-#include <wbmqtt/mqtt_wrapper.h>
-#include <string>
 #include <memory>
+#include <string>
+#include <wbmqtt/mqtt_wrapper.h>
 
-class FakeMQTTClient : public TMQTTClientBase
+class FakeMQTTClient: public TMQTTClientBase
 {
 public:
-    FakeMQTTClient(const std::string &_id = "")
-        : _Id(_id)
+    FakeMQTTClient(const std::string& _id = ""): _Id(_id)
     {}
 
     virtual ~FakeMQTTClient()
@@ -22,24 +21,32 @@ public:
     virtual void Connect()
     {}
 
-    virtual int Publish(int *mid, const std::string& topic, const std::string& payload="", int qos=0, bool retain=false)
-    { return 0; }
+    virtual int Publish(int* mid,
+                        const std::string& topic,
+                        const std::string& payload = "",
+                        int qos = 0,
+                        bool retain = false)
+    {
+        return 0;
+    }
 
-    virtual int Subscribe(int *mid, const std::string& sub, int qos = 0)
-    { return 0; }
+    virtual int Subscribe(int* mid, const std::string& sub, int qos = 0)
+    {
+        return 0;
+    }
 
     virtual std::string Id() const
     {
         return _Id;
     }
 
-    void PushMessage(const std::string &topic, const std::string &payload)
+    void PushMessage(const std::string& topic, const std::string& payload)
     {
         struct mosquitto_message msg;
-        msg.topic = const_cast<char *>(topic.c_str());
-        msg.payload = const_cast<char *>(payload.c_str());
+        msg.topic = const_cast<char*>(topic.c_str());
+        msg.payload = const_cast<char*>(payload.c_str());
 
-        for (auto &item: GetObservers())
+        for (auto& item: GetObservers())
             item->OnMessage(&msg);
     }
 
