@@ -1,22 +1,22 @@
 #include "mqtt_converters.h"
 
-#include <string>
-#include <sstream>
-#include <cstring>
 #include <algorithm>
-   
+#include <cstring>
+#include <sstream>
+#include <string>
+
 #include <iomanip>
 
-#define FLOAT_MAX_WIDTH 15 
+#define FLOAT_MAX_WIDTH 15
 
 using namespace std;
-
 
 /****************************************************************************
  * Helper functions
  */
-namespace {
-    void _SwapBytes(uint16_t *data, size_t size)
+namespace
+{
+    void _SwapBytes(uint16_t* data, size_t size)
     {
         for (; size > 0; size--, data++) {
             uint8_t tmp = *data & 0xFF;
@@ -25,7 +25,7 @@ namespace {
         }
     }
 
-    void _SwapWords(uint16_t *data, size_t size)
+    void _SwapWords(uint16_t* data, size_t size)
     {
         const int limit = size / 2;
         for (int i = 0; i < limit; i++) {
@@ -61,13 +61,12 @@ namespace {
     }
 };
 
-
 /****************************************************************************
  * Discrete types converter
  */
-string TMQTTDiscrConverter::Unpack(const void *_data, size_t size) const
+string TMQTTDiscrConverter::Unpack(const void* _data, size_t size) const
 {
-    const uint8_t *data = static_cast<const uint8_t *>(_data);
+    const uint8_t* data = static_cast<const uint8_t*>(_data);
 
     if (*data)
         return string("1");
@@ -75,7 +74,7 @@ string TMQTTDiscrConverter::Unpack(const void *_data, size_t size) const
         return string("0");
 }
 
-void *TMQTTDiscrConverter::Pack(const std::string &value, void *_data, size_t size)
+void* TMQTTDiscrConverter::Pack(const std::string& value, void* _data, size_t size)
 {
     uint8_t res = 0;
     if (atoi(value.c_str()))
@@ -87,140 +86,136 @@ void *TMQTTDiscrConverter::Pack(const std::string &value, void *_data, size_t si
 /****************************************************************************
  * Integer types converter
  */
-string TMQTTIntConverter::Unpack(const void *_data, size_t size) const
+string TMQTTIntConverter::Unpack(const void* _data, size_t size) const
 {
     size /= 2; // size in bytes, now in words
-    const uint16_t *data = static_cast<const uint16_t *>(_data);
+    const uint16_t* data = static_cast<const uint16_t*>(_data);
 
     stringstream ss;
 
     ss.unsetf(ios::floatfield);
 
-#define PROCESS_VALS() do {\
-        for (unsigned i = 0; i < Size / 2; i++) {\
-            uval <<= 16;\
-            uval |= data[i];\
-        }\
-        if (ByteSwap)\
-            _SwapBytes(regs, Size / 2);\
-        if (WordSwap)\
-            _SwapWords(regs, Size / 2);\
-        switch (Type) {\
-            case SIGNED:\
-                ss << val / Scale;\
-                break;\
-            case UNSIGNED:\
-                ss << uval / Scale;\
-                break;\
-            case BCD:\
-                ss << _BcdToInt(uval) / Scale;\
-                break;\
-        }\
-        return ss.str();\
+#define PROCESS_VALS()                                                                                                 \
+    do {                                                                                                               \
+        for (unsigned i = 0; i < Size / 2; i++) {                                                                      \
+            uval <<= 16;                                                                                               \
+            uval |= data[i];                                                                                           \
+        }                                                                                                              \
+        if (ByteSwap)                                                                                                  \
+            _SwapBytes(regs, Size / 2);                                                                                \
+        if (WordSwap)                                                                                                  \
+            _SwapWords(regs, Size / 2);                                                                                \
+        switch (Type) {                                                                                                \
+            case SIGNED:                                                                                               \
+                ss << val / Scale;                                                                                     \
+                break;                                                                                                 \
+            case UNSIGNED:                                                                                             \
+                ss << uval / Scale;                                                                                    \
+                break;                                                                                                 \
+            case BCD:                                                                                                  \
+                ss << _BcdToInt(uval) / Scale;                                                                         \
+                break;                                                                                                 \
+        }                                                                                                              \
+        return ss.str();                                                                                               \
     } while (0)
 
     switch (Size) {
-    case 2:
-    {
-        union {
-            uint16_t uval;
-            int16_t val;
-            uint16_t regs[1];
-        };
+        case 2: {
+            union
+            {
+                uint16_t uval;
+                int16_t val;
+                uint16_t regs[1];
+            };
 
-        PROCESS_VALS();
-    }
-    break;
-    case 4:
-    {
-        union {
-            uint32_t uval;
-            int32_t val;
-            uint16_t regs[2];
-        };
+            PROCESS_VALS();
+        } break;
+        case 4: {
+            union
+            {
+                uint32_t uval;
+                int32_t val;
+                uint16_t regs[2];
+            };
 
-        PROCESS_VALS();
-    }
-    break;
-    case 8:
-    {
-        union {
-            uint64_t uval;
-            int64_t val;
-            uint16_t regs[4];
-        };
+            PROCESS_VALS();
+        } break;
+        case 8: {
+            union
+            {
+                uint64_t uval;
+                int64_t val;
+                uint16_t regs[4];
+            };
 
-        PROCESS_VALS();
+            PROCESS_VALS();
+        } break;
     }
-    break;
-    }
-    
+
 #undef PROCESS_VALS
 
     return "";
 }
 
-void *TMQTTIntConverter::Pack(const std::string &value, void *_data, size_t size)
+void* TMQTTIntConverter::Pack(const std::string& value, void* _data, size_t size)
 {
     size /= 2;
-    uint16_t *data = static_cast<uint16_t *>(_data);
-    
+    uint16_t* data = static_cast<uint16_t*>(_data);
+
     stringstream ss;
     ss << value;
     double num_value;
     ss >> num_value;
 
-#define PROCESS_VALS() do { \
-        if (Type == SIGNED) \
-            val = num_value * Scale;\
-        else\
-            uval = num_value * Scale;\
-        if (Type == BCD)\
-            uval = _IntToBcd(uval);\
-        if (WordSwap)\
-            _SwapWords(regs, Size / 2);\
-        if (ByteSwap)\
-            _SwapBytes(regs, Size / 2);\
-        for (int i = (Size / 2) - 1; i >= 0; i--) {\
-            data[i] = uval & 0xFFFF;\
-            uval >>= 16;\
-        }\
+#define PROCESS_VALS()                                                                                                 \
+    do {                                                                                                               \
+        if (Type == SIGNED)                                                                                            \
+            val = num_value * Scale;                                                                                   \
+        else                                                                                                           \
+            uval = num_value * Scale;                                                                                  \
+        if (Type == BCD)                                                                                               \
+            uval = _IntToBcd(uval);                                                                                    \
+        if (WordSwap)                                                                                                  \
+            _SwapWords(regs, Size / 2);                                                                                \
+        if (ByteSwap)                                                                                                  \
+            _SwapBytes(regs, Size / 2);                                                                                \
+        for (int i = (Size / 2) - 1; i >= 0; i--) {                                                                    \
+            data[i] = uval & 0xFFFF;                                                                                   \
+            uval >>= 16;                                                                                               \
+        }                                                                                                              \
     } while (0)
 
     switch (Size) {
-    case 2:
-    {
-        union {
-            uint16_t uval;
-            int16_t val;
-            uint16_t regs[1];
-        };
-        
-        PROCESS_VALS();
-    }
-    break;
-    case 4:
-    {
-        union {
-            uint32_t uval;
-            int32_t val;
-            uint16_t regs[2];
-        };
+        case 2: {
+            union
+            {
+                uint16_t uval;
+                int16_t val;
+                uint16_t regs[1];
+            };
 
-        PROCESS_VALS();
-    }
-    break;
-    case 8:
-    {
-        union {
-            uint64_t uval;
-            int64_t val;
-            uint16_t regs[4];
-        };
+            PROCESS_VALS();
+        } break;
+        case 4: {
+            union
+            {
+                uint32_t uval;
+                int32_t val;
+                uint16_t regs[2];
+            };
 
-        PROCESS_VALS();
-    }
-    break;
+            PROCESS_VALS();
+        } break;
+        case 8: {
+            union
+            {
+                uint64_t uval;
+                int64_t val;
+                uint16_t regs[4];
+            };
+
+            PROCESS_VALS();
+        } break;
     }
 
     return _data;
@@ -229,122 +224,122 @@ void *TMQTTIntConverter::Pack(const std::string &value, void *_data, size_t size
 /****************************************************************************
  * Float types converter
  */
-string TMQTTFloatConverter::Unpack(const void *_data, size_t size) const
+string TMQTTFloatConverter::Unpack(const void* _data, size_t size) const
 {
     size /= 2; // size in bytes, now in words
-    const uint8_t *data = static_cast<const uint8_t *>(_data);
-    
+    const uint8_t* data = static_cast<const uint8_t*>(_data);
+
     stringstream ss;
-    
+
     switch (Size) {
-    case 4:
-    {
-        union {
-            float result;
-            uint32_t whole;
-            uint16_t regs[2];
-        };
+        case 4: {
+            union
+            {
+                float result;
+                uint32_t whole;
+                uint16_t regs[2];
+            };
 
-        whole = 0;
+            whole = 0;
 
-        for (int i = 0; i < 4; i++) {
-            whole <<= 8;
-            whole |= data[i];
+            for (int i = 0; i < 4; i++) {
+                whole <<= 8;
+                whole |= data[i];
+            }
+
+            if (ByteSwap)
+                _SwapBytes(regs, 2);
+
+            if (WordSwap)
+                _SwapWords(regs, 2);
+
+            ss << result;
+            return ss.str();
         }
+        case 8: {
+            union
+            {
+                double result;
+                uint64_t whole;
+                uint16_t regs[4];
+            };
 
-        if (ByteSwap)
-            _SwapBytes(regs, 2);
-        
-        if (WordSwap)
-            _SwapWords(regs, 2);
-        
-        ss << result;
-        return ss.str();
-    }
-    case 8:
-    {
-        union {
-            double result;
-            uint64_t whole;
-            uint16_t regs[4];
-        };
+            whole = 0;
 
-        whole = 0;
+            for (int i = 0; i < 8; i++) {
+                whole <<= 8;
+                whole |= data[i];
+            }
 
-        for (int i = 0; i < 8; i++) {
-            whole <<= 8;
-            whole |= data[i];
+            if (ByteSwap)
+                _SwapBytes(regs, 4);
+
+            if (WordSwap)
+                _SwapWords(regs, 4);
+
+            ss << result;
+            return ss.str();
         }
-
-        if (ByteSwap)
-            _SwapBytes(regs, 4);
-
-        if (WordSwap)
-            _SwapWords(regs, 4);
-
-        ss << result;
-        return ss.str();
-    }
     }
 
     // TODO: error handling
     return "";
 }
 
-void *TMQTTFloatConverter::Pack(const std::string &value, void *_data, size_t size)
+void* TMQTTFloatConverter::Pack(const std::string& value, void* _data, size_t size)
 {
     size /= 2; // size in words
-    uint8_t *data = static_cast<uint8_t *>(_data);
+    uint8_t* data = static_cast<uint8_t*>(_data);
 
     stringstream ss;
 
     switch (Size) {
-    case 4:
-    {
-        union {
-            float result;
-            uint32_t whole;
-            uint16_t regs[2];
-        };
+        case 4: {
+            union
+            {
+                float result;
+                uint32_t whole;
+                uint16_t regs[2];
+            };
 
-        ss << value;
-        ss >> result;
+            ss << value;
+            ss >> result;
 
-        if (ByteSwap)
-            _SwapBytes(regs, 2);
+            if (ByteSwap)
+                _SwapBytes(regs, 2);
 
-        if (WordSwap)
-            _SwapWords(regs, 2);
+            if (WordSwap)
+                _SwapWords(regs, 2);
 
-        for (int i = 3; i >= 0; i--) {
-            data[i] = whole & 0xFF;
-            whole >>= 8;
+            for (int i = 3; i >= 0; i--) {
+                data[i] = whole & 0xFF;
+                whole >>= 8;
+            }
+            break;
         }
-        break;
-    }
-    case 8:
-    {
-        union {
-            double result;
-            uint64_t whole;
-            uint16_t regs[4];
-        };
+        case 8: {
+            union
+            {
+                double result;
+                uint64_t whole;
+                uint16_t regs[4];
+            };
 
-        ss << value;
-        ss >> result;
+            ss << value;
+            ss >> result;
 
-        if (ByteSwap)
-            _SwapBytes(regs, 4);
+            if (ByteSwap)
+                _SwapBytes(regs, 4);
 
-        if (WordSwap)
-            _SwapWords(regs, 4);
+            if (WordSwap)
+                _SwapWords(regs, 4);
 
-        for (int i = 7; i >= 0; i--) {
-            data[i] = whole & 0xFF;
-            whole >>= 8;
+            for (int i = 7; i >= 0; i--) {
+                data[i] = whole & 0xFF;
+                whole >>= 8;
+            }
+            break;
         }
-        break;
-    }
     }
     return _data;
 }
@@ -352,36 +347,35 @@ void *TMQTTFloatConverter::Pack(const std::string &value, void *_data, size_t si
 /****************************************************************************
  * String types converter
  */
-string TMQTTTextConverter::Unpack(const void *_data, size_t size) const
+string TMQTTTextConverter::Unpack(const void* _data, size_t size) const
 {
     stringstream ss;
-    const char *data = static_cast<const char *>(_data);
-
+    const char* data = static_cast<const char*>(_data);
 
     if (WordSwap) {
         for (int i = Size - 1; i >= 0; i--)
-            ss << data[(ByteSwap ? (2*i + 1) : (2*i))];
+            ss << data[(ByteSwap ? (2 * i + 1) : (2 * i))];
     } else {
         for (unsigned i = 0; i < Size; i++)
-            ss << data[(ByteSwap ? (2*i + 1) : (2*i))];
+            ss << data[(ByteSwap ? (2 * i + 1) : (2 * i))];
     }
 
     return ss.str();
 }
 
-void *TMQTTTextConverter::Pack(const std::string &value, void *_data, size_t size)
+void* TMQTTTextConverter::Pack(const std::string& value, void* _data, size_t size)
 {
     stringstream ss;
-    char *data = static_cast<char *>(_data);
+    char* data = static_cast<char*>(_data);
 
     ss << value;
 
     if (WordSwap) {
         for (int i = Size - 1; i >= 0; i--)
-            ss >> data[(ByteSwap ? (2*i + 1) : (2*i))];
+            ss >> data[(ByteSwap ? (2 * i + 1) : (2 * i))];
     } else {
         for (unsigned i = 0; i < Size; i++)
-            ss >> data[(ByteSwap ? (2*i + 1) : (2*i))];
+            ss >> data[(ByteSwap ? (2 * i + 1) : (2 * i))];
     }
 
     return _data;

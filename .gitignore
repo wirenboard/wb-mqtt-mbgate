@@ -13,6 +13,7 @@ debhelper-build-stamp
 
 ### Visual Studio Code ###
 .vscode
+.clang-format
 .devcontainer
 
 ### CLion ###

@@ -1,28 +1,27 @@
-#include <gtest/gtest.h>
 #include <gmock/gmock.h>
+#include <gtest/gtest.h>
 
 #include "address_range.h"
-#include <memory>
-#include <iostream>
 #include <exception>
+#include <iostream>
+#include <memory>
 
 using namespace std;
 
 using ::testing::_;
 using ::testing::ElementsAre;
 
-
 typedef TAddressRange<int> TestAddressRange;
 typedef TAddressRange<std::shared_ptr<int>> TestPtrAddressRange;
 
-class TAddressRangeTest : public ::testing::Test
+class TAddressRangeTest: public ::testing::Test
 {
 protected:
-    void SetUp() {}
-    void TearDown() {}
-
+    void SetUp()
+    {}
+    void TearDown()
+    {}
 };
-
 
 TEST_F(TAddressRangeTest, IntersectionTest)
 {
@@ -50,7 +49,7 @@ TEST_F(TAddressRangeTest, IntersectionTest)
 
     result_range.insert(-10, 30, 1);
     EXPECT_EQ(test_range, result_range);
-    
+
     test_range.clear();
     result_range.clear();
 
@@ -59,19 +58,19 @@ TEST_F(TAddressRangeTest, IntersectionTest)
     // --[---------)----
     test_range.insert(10, 30, 1);
     test_range.insert(20, 10, 1);
-    
+
     result_range.insert(10, 30, 1);
     EXPECT_EQ(test_range, result_range);
 
     test_range.clear();
     result_range.clear();
-    
+
     // ----[-----)------ +
     // --[---------)---- =
     // --[---------)----
     test_range.insert(20, 10, 1);
     test_range.insert(10, 30, 1);
-    
+
     result_range.insert(10, 30, 1);
     EXPECT_EQ(test_range, result_range);
 
@@ -84,7 +83,7 @@ TEST_F(TAddressRangeTest, IntersectionTest)
     test_range.insert(0, 10, 1);
     test_range.insert(20, 10, 1);
     test_range.insert(5, 10, 1);
-    
+
     result_range.insert(0, 15, 1);
     result_range.insert(20, 10, 1);
     EXPECT_EQ(test_range, result_range);
@@ -92,14 +91,13 @@ TEST_F(TAddressRangeTest, IntersectionTest)
     test_range.clear();
     result_range.clear();
 
-
     // ---[---)----[---)--- +
     // ----------[----)---- =
     // ---[---)--[-----)---
     test_range.insert(0, 10, 1);
     test_range.insert(20, 10, 1);
     test_range.insert(15, 10, 1);
-    
+
     result_range.insert(0, 10, 1);
     result_range.insert(15, 15, 1);
     EXPECT_EQ(test_range, result_range);
@@ -113,13 +111,13 @@ TEST_F(TAddressRangeTest, IntersectionTest)
     test_range.insert(0, 10, 1);
     test_range.insert(20, 10, 1);
     test_range.insert(5, 20, 1);
-    
+
     result_range.insert(0, 30, 1);
     EXPECT_EQ(test_range, result_range);
 
     test_range.clear();
     result_range.clear();
-    
+
     // ---[---)-[)--[---)--- +
     // --[---------------)-- =
     // --[---------------)--
@@ -127,7 +125,7 @@ TEST_F(TAddressRangeTest, IntersectionTest)
     test_range.insert(20, 10, 1);
     test_range.insert(35, 10, 1);
     test_range.insert(-10, 80, 1);
-    
+
     result_range.insert(-10, 80, 1);
     EXPECT_EQ(test_range, result_range);
 
@@ -215,7 +213,7 @@ TEST_F(TAddressRangeTest, GetParamTest)
     EXPECT_EQ(r1.getParam(10), 2);
     EXPECT_EQ(r1.getParam(100), -1);
     EXPECT_EQ(r1.getParam(9), 1);
-    
+
     EXPECT_THROW(r1.getParam(20), WrongSegmentException);
     EXPECT_THROW(r1.getParam(8, 4), WrongSegmentException);
     EXPECT_THROW(r1.getParam(0, 11), WrongSegmentException);
@@ -224,7 +222,7 @@ TEST_F(TAddressRangeTest, GetParamTest)
 TEST_F(TAddressRangeTest, InsertFailureTest)
 {
     TestAddressRange r(0, 20, 1);
-    
+
     EXPECT_THROW(r + TestAddressRange(10, 20, 2), WrongSegmentException);
     EXPECT_THROW(r.insert(10, 20, 2), WrongSegmentException);
     EXPECT_THROW(TestAddressRange(2, 1, 1) + TestAddressRange(0, 15, 2), WrongSegmentException);
@@ -250,15 +248,14 @@ TEST_F(TAddressRangeTest, MultiSegmentsTest)
 
     r5 = TestAddressRange(40, 5, 1);
 
-
     r = r1 + r2 + r3 + r4 + r5;
     auto list1 = r.getSegments(1, 14);
     EXPECT_THAT(list1, ElementsAre(TestAddressRange(1, 4, 1), r2, TestAddressRange(10, 5, 1)));
-    
+
     try {
-    auto list2 = r.getSegments(4, 2);
-    EXPECT_THAT(list2, ElementsAre(TestAddressRange(4, 1, 1), TestAddressRange(5, 1, 2)));
-    } catch (const WrongSegmentException &e) {
+        auto list2 = r.getSegments(4, 2);
+        EXPECT_THAT(list2, ElementsAre(TestAddressRange(4, 1, 1), TestAddressRange(5, 1, 2)));
+    } catch (const WrongSegmentException& e) {
         cerr << e.what() << endl;
     }
 
@@ -270,7 +267,7 @@ TEST_F(TAddressRangeTest, ShiftTest)
     TestAddressRange r(0, 10, 1);
     r += TestAddressRange(40, 10, 2);
     TestAddressRange r2 = r + 10;
-    
+
     TestAddressRange result1(10, 10, 1);
     result1.insert(50, 10, 2);
 

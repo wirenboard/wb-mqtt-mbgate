@@ -10,7 +10,7 @@
 #include "modbus_wrapper.h"
 #include "mqtt_converters.h"
 
-class TGatewayObserver : public IModbusServerObserver
+class TGatewayObserver: public IModbusServerObserver
 {
 public:
     TGatewayObserver(const std::string& topic, PMQTTConverter conv, WBMQTT::PMqttClient mqtt);
@@ -19,7 +19,7 @@ public:
     TReplyState OnSetValue(TStoreType type, uint8_t unit_id, uint16_t start, unsigned count, const void* data) override;
     void OnCacheAllocate(TStoreType type, uint8_t area, const TModbusCacheAddressRange& cache) override;
     // no need of OnGetValue, use cache instead
-    
+
 protected:
     /*! Pointer to Modbus cache area */
     void* Cache;

@@ -14,9 +14,8 @@
 // Maximum number of connections
 #define NB_CONNECTIONS 2
 
-
 /*! Modbus base backend */
-class TModbusBaseBackend : public IModbusBackend
+class TModbusBaseBackend: public IModbusBackend
 {
 public:
     TModbusBaseBackend();
@@ -27,42 +26,41 @@ public:
     void* GetCache(TStoreType type, uint8_t slave_id = 0) override;
     uint8_t GetSlave() override;
     bool Available() override;
-    void Reply(const TModbusQuery &q) override;
-    void ReplyException(TReplyState e, const TModbusQuery &q) override;
+    void Reply(const TModbusQuery& q) override;
+    void ReplyException(TReplyState e, const TModbusQuery& q) override;
     int GetError() override;
     TModbusQuery ReceiveQuery(bool block = false) override;
 
 protected:
-    virtual void PreReply(const TModbusQuery & q) = 0;
-    virtual void PostReply(const TModbusQuery & q) = 0;
+    virtual void PreReply(const TModbusQuery& q) = 0;
+    virtual void PostReply(const TModbusQuery& q) = 0;
 
-    modbus_t *_context;
-    std::map<uint8_t, modbus_mapping_t *> _mappings;
+    modbus_t* _context;
+    std::map<uint8_t, modbus_mapping_t*> _mappings;
     int _error;
     uint8_t slaveId;
-    uint8_t *queryBuffer;
+    uint8_t* queryBuffer;
 
     std::queue<TModbusQuery> QueuedQueries;
 
     fd_set refset;
 };
 
-
 /*! Modbus TCP backend */
-class TModbusTCPBackend : public TModbusBaseBackend
+class TModbusTCPBackend: public TModbusBaseBackend
 {
     using Base = TModbusBaseBackend;
 
 public:
-    TModbusTCPBackend(const char *hostname = "127.0.0.1", int port = 502);
+    TModbusTCPBackend(const char* hostname = "127.0.0.1", int port = 502);
 
     void Listen() override;
     int WaitForMessages(int timeout = -1) override;
     void Close() override;
 
 private:
-    void PreReply(const TModbusQuery & q) override;
-    void PostReply(const TModbusQuery & q) override;
+    void PreReply(const TModbusQuery& q) override;
+    void PostReply(const TModbusQuery& q) override;
 
     int server_socket;
     int fd_max;
@@ -71,27 +69,27 @@ private:
 struct TModbusRTUBackendArgs
 {
     std::string Device;
-    int         BaudRate = 9600;
-    char        Parity   = 'N';
-    int         DataBits = 8;
-    int         StopBits  = 1;
+    int BaudRate = 9600;
+    char Parity = 'N';
+    int DataBits = 8;
+    int StopBits = 1;
 };
 
 /*! Modbus RTU backend */
-class TModbusRTUBackend : public TModbusBaseBackend
+class TModbusRTUBackend: public TModbusBaseBackend
 {
     using Base = TModbusBaseBackend;
 
 public:
-    TModbusRTUBackend(const TModbusRTUBackendArgs & args);
+    TModbusRTUBackend(const TModbusRTUBackendArgs& args);
 
     void Listen() override;
     int WaitForMessages(int timeout = -1) override;
     void Close() override;
 
 private:
-    void PreReply(const TModbusQuery & q) override;
-    void PostReply(const TModbusQuery & q) override;
+    void PreReply(const TModbusQuery& q) override;
+    void PostReply(const TModbusQuery& q) override;
 
     int fd;
 };

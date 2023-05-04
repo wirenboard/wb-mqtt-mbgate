@@ -8,9 +8,8 @@
 #include <wblib/json_utils.h>
 #include <wblib/mqtt.h>
 
-#include "mqtt_converters.h"
 #include "modbus_wrapper.h"
-
+#include "mqtt_converters.h"
 
 /*! Interface of config file parser
  * Takes configuration file, builds all observers
@@ -30,7 +29,7 @@ public:
 };
 
 /*! JSON config file parser */
-class TJSONConfigParser : public IConfigParser
+class TJSONConfigParser: public IConfigParser
 {
 public:
     TJSONConfigParser(const std::string& config_file, const std::string& schema_file);
@@ -40,10 +39,7 @@ public:
     virtual bool Debug();
 
 private:
-    void _BuildStore(TStoreType          type,
-                     const Json::Value&  list,
-                     PModbusServer       modbus,
-                     WBMQTT::PMqttClient mqtt);
+    void _BuildStore(TStoreType type, const Json::Value& list, PModbusServer modbus, WBMQTT::PMqttClient mqtt);
 
 protected:
     Json::Value Root;

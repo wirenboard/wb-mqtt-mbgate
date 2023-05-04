@@ -4,18 +4,18 @@
 #include <map>
 #include <queue>
 
-class TFakeModbusBackend : public IModbusBackend
+class TFakeModbusBackend: public IModbusBackend
 {
 public:
     virtual ~TFakeModbusBackend()
     {
-        for (auto &slave: Caches) {
-            for (auto &item: slave.second) {
+        for (auto& slave: Caches) {
+            for (auto& item: slave.second) {
                 if (item.second) {
                     if (item.first == COIL || item.first == DISCRETE_INPUT)
-                        delete [] static_cast<uint8_t *>(item.second);
+                        delete[] static_cast<uint8_t*>(item.second);
                     else
-                        delete [] static_cast<uint16_t *>(item.second);
+                        delete[] static_cast<uint16_t*>(item.second);
                 }
             }
         }
@@ -31,7 +31,8 @@ public:
         return _slaveId;
     }
 
-    virtual void Listen() {}
+    virtual void Listen()
+    {}
 
     /*! Allocate cache areas for this instance and given slave ID
      * \param slave_id Slave ID
@@ -55,7 +56,7 @@ public:
      * \param type Store type we want to get cache for
      * \return Pointer to cache base address
      */
-    virtual void *GetCache(TStoreType type, uint8_t slave_id = 0)
+    virtual void* GetCache(TStoreType type, uint8_t slave_id = 0)
     {
         if (Caches.find(slave_id) == Caches.end())
             throw TModbusException(std::string("Cache for slave id ") + std::to_string(slave_id) + " is not allocated");
@@ -88,14 +89,12 @@ public:
     }
 
     virtual void Close()
-    {
-
-    }
+    {}
 
     /*! Send reply
      * \param query Query to reply on
      */
-    virtual void Reply(const TModbusQuery &query)
+    virtual void Reply(const TModbusQuery& query)
     {
         RepliedQueries.push(query);
     }
@@ -103,7 +102,7 @@ public:
     /*! Send exception reply
      * \param exception Exception code
      */
-    virtual void ReplyException(TReplyState state, const TModbusQuery &query)
+    virtual void ReplyException(TReplyState state, const TModbusQuery& query)
     {
         RepliedQueries.push(TModbusQuery::exceptionQuery(state));
     }
@@ -117,13 +116,13 @@ public:
     /***********************************************
      * Fake backend methods
      */
-    void PushQuery(const TModbusQuery &q)
+    void PushQuery(const TModbusQuery& q)
     {
         IncomingQueries.push(q);
     }
 
 public:
-    std::map<uint8_t, std::map<TStoreType, void *>> Caches;
+    std::map<uint8_t, std::map<TStoreType, void*>> Caches;
     std::queue<TModbusQuery> IncomingQueries;
     std::queue<TModbusQuery> RepliedQueries;
 
