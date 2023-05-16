@@ -238,6 +238,9 @@
                 { "$ref": "#/definitions/tcp" },
                 { "$ref": "#/definitions/rtu" }
             ],
+            "options": {
+                "keep_oneof_values": false
+            },
             "propertyOrder": 20,
             "_format": "grid"
         },
