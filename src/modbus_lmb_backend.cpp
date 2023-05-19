@@ -73,6 +73,11 @@ uint8_t TModbusBaseBackend::GetSlave()
     return slaveId;
 }
 
+void TModbusBaseBackend::SetDebug(bool debug)
+{
+    modbus_set_debug(_context, debug ? 1 : 0);
+}
+
 bool TModbusBaseBackend::Available()
 {
     return !QueuedQueries.empty();
