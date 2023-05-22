@@ -25,6 +25,7 @@ public:
     void AllocateCache(uint8_t slave_id, size_t di, size_t co, size_t ir, size_t hr) override;
     void* GetCache(TStoreType type, uint8_t slave_id = 0) override;
     uint8_t GetSlave() override;
+    void SetDebug(bool debug) override;
     bool Available() override;
     void Reply(const TModbusQuery& q) override;
     void ReplyException(TReplyState e, const TModbusQuery& q) override;

@@ -31,6 +31,9 @@ public:
         return _slaveId;
     }
 
+    virtual void SetDebug(bool debug)
+    {}
+
     virtual void Listen()
     {}
 

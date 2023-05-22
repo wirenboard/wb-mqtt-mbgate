@@ -126,6 +126,7 @@ public:
         tie(modbus, client) = parser.Build();
 
         modbus->AllocateCache();
+        modbus->Backend()->SetDebug(parser.Debug());
         modbus->Backend()->Listen();
 
         return make_tuple(modbus, client);

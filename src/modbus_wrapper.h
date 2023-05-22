@@ -184,6 +184,8 @@ public:
     /*! Get current slave ID */
     virtual uint8_t GetSlave() = 0;
 
+    virtual void SetDebug(bool debug) = 0;
+
     /*! Start listening port/socket */
     virtual void Listen() = 0;
 

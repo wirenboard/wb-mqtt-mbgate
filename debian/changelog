@@ -1,3 +1,9 @@
+wb-mqtt-mbgate (1.5.4) stable; urgency=medium
+
+  * Enable debug logging from libmodbus
+
+ -- Nikolay Korotkiy <nikolay.korotkiy@wirenboard.com>  Fri, 19 May 2023 10:20:00 +0400
+
 wb-mqtt-mbgate (1.5.3) stable; urgency=medium
 
   * Fix error in config editor when switching between rtu and tcp modes
