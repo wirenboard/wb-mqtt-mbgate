@@ -328,6 +328,12 @@ public:
                          uint8_t slave_id = 0);
     /* virtual void Unobserve(PModbusServerObserver o) = 0; */
 
+    /*! Check if slave ID is observed
+     * \param slave Slave ID
+     * \return true if slave ID is observed
+     */
+    virtual bool IsObserved(uint8_t slave_id) const;
+
 private:
     void _ProcessQuery(const TModbusQuery& query);
     void _ProcessReadQuery(TStoreType type,

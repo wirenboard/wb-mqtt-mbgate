@@ -64,6 +64,11 @@ void TModbusServer::Observe(PModbusServerObserver o,
 #undef PROCESS
 }
 
+bool TModbusServer::IsObserved(uint8_t slave_id) const
+{
+    return _maxSlaveAddresses.find(slave_id) != _maxSlaveAddresses.end();
+}
+
 static void _callCacheAllocate(const TModbusAddressRange& range, uint8_t slave_id, TStoreType store, void* cache_start)
 {
     map<PModbusServerObserver, TModbusCacheAddressRange> observers;
@@ -121,8 +126,10 @@ int TModbusServer::Loop(int timeoutMilliS)
     // receive message, process, run callback
     while (mb->Available()) {
         TModbusQuery q = mb->ReceiveQuery();
-        if (q.size > 0)
+        auto slave_id = q.data[q.header_length - 1];
+        if (q.size > 0 && IsObserved(slave_id)) {
             _ProcessQuery(q);
+        }
     }
 
     return 0;
