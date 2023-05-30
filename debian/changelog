@@ -1,3 +1,9 @@
+wb-mqtt-mbgate (1.5.5) stable; urgency=medium
+
+  * Ignore requests with unknown Unit ID
+
+ -- Nikolay Korotkiy <nikolay.korotkiy@wirenboard.com>  Mon, 29 May 2023 17:30:00 +0400
+
 wb-mqtt-mbgate (1.5.4) stable; urgency=medium
 
   * Enable debug logging from libmodbus
