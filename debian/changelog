@@ -1,3 +1,9 @@
+wb-mqtt-mbgate (1.5.7) stable; urgency=medium
+
+  * Add arm64 build, no functional changes
+
+ -- Nikita Maslov <nikita.maslov@wirenboard.ru>  Mon, 13 Nov 2023 17:43:01 +0600
+
 wb-mqtt-mbgate (1.5.6) stable; urgency=medium
 
   * Add dependency from libwbmqtt1-4. No functional changes
