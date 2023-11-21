@@ -78,9 +78,9 @@
                 },
                 "size": {
                     "type": "integer",
-                    "title": "Size (in bytes)",
-                    "description": "Set -1 for text",
-                    "minimum": -1,
+                    "title": "Size (in registers)",
+                    "description": "Set size in registers",
+                    "minimum": 0,
                     "propertyOrder": 50
                 },
                 "max": {
@@ -401,7 +401,7 @@
             "Modbus unit ID": "ID данных Modbus",
             "Start address": "Начальный адрес",
             "Register format": "Тип данных",
-            "Size (in bytes)": "Размер данных в байтах",
+            "Size (in registers)": "Размер данных в символах",
             "Maximum value": "Максимальное значение",
             "Value scale": "Множитель",
             "Byte swap": "Изменить порядок байт",
@@ -442,7 +442,7 @@
             "BCD": "Двоично-десятичное (BCD) целое",
             "IEEE754 float": "Число с плавающей точкой (IEEE754)",
             "Varchar (fixed size string)": "Текстовое поле фиксированного размера",
-            "Set -1 for text": "Установите -1 для текстовых полей",
+            "Set size in registers": "Размер в символах (1 регистр = 1 символ)",
             "for range metatype, > 0": "Только для типа range, > 0",
             "value will be multiplied by this before convertion": "Значение канала будет умножено на это число"
         }
