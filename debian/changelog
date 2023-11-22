@@ -1,3 +1,9 @@
+wb-mqtt-mbgate (1.5.8) stable; urgency=medium
+
+  * Fix string size field hint
+
+ -- Ekaterina Volkova <ekaterina.volkova@wirenboard.ru>  Tue, 21 Nov 2023 16:31:26 +0300
+
 wb-mqtt-mbgate (1.5.7) stable; urgency=medium
 
   * Add arm64 build, no functional changes
