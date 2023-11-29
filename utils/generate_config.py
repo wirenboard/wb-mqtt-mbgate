@@ -187,6 +187,9 @@ def process_channel(obj, topic):
         cat = obj["category"]
         del obj["category"]
 
+        if obj["meta_type"] == "text" and obj["size"] == -1:
+            obj["size"] = 0
+
         if obj["meta_type"] in coil_formats:
             regs[cat].append(RegDiscr(**obj))
         else:
