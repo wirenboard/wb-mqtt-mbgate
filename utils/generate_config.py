@@ -69,7 +69,6 @@ class Register(RegDiscr):
         byteswap=False,
         wordswap=False,
     ):
-
         RegDiscr.__init__(self, topic, meta_type, enabled, address, unitId)
         self.format = format
         self.size = size
@@ -212,12 +211,12 @@ def process_channel(obj, topic):
     else:  # double format by default, but changeable by user
         if "readonly" in obj and obj["readonly"]:
             if text:
-                regs["inputs"].append(Register(topic, obj["meta_type"], size=-1, format="varchar"))
+                regs["inputs"].append(Register(topic, obj["meta_type"], size=0, format="varchar"))
             else:
                 regs["inputs"].append(Register(topic, obj["meta_type"]))
         else:
             if text:
-                regs["holdings"].append(Register(topic, obj["meta_type"], size=-1, format="varchar"))
+                regs["holdings"].append(Register(topic, obj["meta_type"], size=0, format="varchar"))
             else:
                 regs["holdings"].append(Register(topic, obj["meta_type"]))
 
@@ -262,7 +261,6 @@ def mqtt_on_message(arg0, arg1, arg2=None):
 
 
 def main(args=None):
-
     global old_config, config_file, retain_hack_topic, hostname, port
 
     if args is None:
