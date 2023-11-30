@@ -187,6 +187,8 @@ def process_channel(obj, topic):
         cat = obj["category"]
         del obj["category"]
 
+        # Starting from v.1.5.8 minimum text field size is 0, so to fix exsting configs
+        # we should replace -1 to 0
         if obj["meta_type"] == "text" and obj["size"] == -1:
             obj["size"] = 0
 
