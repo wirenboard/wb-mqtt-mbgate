@@ -1,3 +1,9 @@
+wb-mqtt-mbgate (1.5.9) stable; urgency=medium
+
+  * Fix text default length 
+
+ -- Ekaterina Volkova <ekaterina.volkova@wirenboard.ru>  Wed, 29 Nov 2023 14:06:44 +0300
+
 wb-mqtt-mbgate (1.5.8) stable; urgency=medium
 
   * Fix string size field hint

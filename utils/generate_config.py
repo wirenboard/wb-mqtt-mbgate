@@ -69,7 +69,6 @@ class Register(RegDiscr):
         byteswap=False,
         wordswap=False,
     ):
-
         RegDiscr.__init__(self, topic, meta_type, enabled, address, unitId)
         self.format = format
         self.size = size
@@ -188,6 +187,11 @@ def process_channel(obj, topic):
         cat = obj["category"]
         del obj["category"]
 
+        # Starting from v.1.5.8 minimum text field size is 0, so to fix exsting configs
+        # we should replace -1 to 0
+        if obj["meta_type"] == "text" and obj["size"] == -1:
+            obj["size"] = 0
+
         if obj["meta_type"] in coil_formats:
             regs[cat].append(RegDiscr(**obj))
         else:
@@ -212,12 +216,12 @@ def process_channel(obj, topic):
     else:  # double format by default, but changeable by user
         if "readonly" in obj and obj["readonly"]:
             if text:
-                regs["inputs"].append(Register(topic, obj["meta_type"], size=-1, format="varchar"))
+                regs["inputs"].append(Register(topic, obj["meta_type"], size=0, format="varchar"))
             else:
                 regs["inputs"].append(Register(topic, obj["meta_type"]))
         else:
             if text:
-                regs["holdings"].append(Register(topic, obj["meta_type"], size=-1, format="varchar"))
+                regs["holdings"].append(Register(topic, obj["meta_type"], size=0, format="varchar"))
             else:
                 regs["holdings"].append(Register(topic, obj["meta_type"]))
 
@@ -262,7 +266,6 @@ def mqtt_on_message(arg0, arg1, arg2=None):
 
 
 def main(args=None):
-
     global old_config, config_file, retain_hack_topic, hostname, port
 
     if args is None:
