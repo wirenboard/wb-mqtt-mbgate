@@ -111,10 +111,14 @@ protected:
     /*! Swap words (reverse order) */
     bool WordSwap;
 
+    /*! Data scale multiplier (e.g. for "fixed point") */
+    double Scale;
+
 public:
-    TMQTTFloatConverter(unsigned size = 4, bool byteswap = false, bool wordswap = false)
+    TMQTTFloatConverter(unsigned size = 4, bool byteswap = false, bool wordswap = false, double scale = 1.0)
         : ByteSwap(byteswap),
-          WordSwap(wordswap)
+          WordSwap(wordswap),
+          Scale(scale)
     {
         if (size > 4)
             Size = 8;

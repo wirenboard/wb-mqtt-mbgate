@@ -20,8 +20,8 @@ public:
 
 TEST_F(MQTTConvertersTest, FloatTest)
 {
-    TMQTTFloatConverter f(4), fb(4, true), fw(4, false, true), fbw(4, true, true);
-    TMQTTFloatConverter d(8), db(8, true), dw(8, false, true), dbw(8, true, true);
+    TMQTTFloatConverter f(4), fb(4, true), fw(4, false, true), fbw(4, true, true), fbws(4, true, true, 2.0);
+    TMQTTFloatConverter d(8), db(8, true), dw(8, false, true), dbw(8, true, true), dbws(8, true, true, 2.0);
 
     /* float a = -1.2345; // 0xBF9E0419 */
     /* double b = 1.23456; // 0x3FF3C0C1FC8F3238 */
@@ -54,6 +54,12 @@ TEST_F(MQTTConvertersTest, FloatTest)
     result = fbw.Unpack(fbuffer, 4);
     EXPECT_EQ(result, a);
 
+    // -1.2345 * 2.0 = -2.469, 0xC01E0419
+    fbws.Pack(a, fbuffer, 4);
+    EXPECT_THAT(fbuffer, ElementsAre(0x19, 0x04, 0x1E, 0xC0));
+    result = fbws.Unpack(fbuffer, 4);
+    EXPECT_EQ(result, a);
+
     // double tests
     /* double b = 1.23456; // 0x3FF3C0C1FC8F3238 */
     d.Pack(b, dbuffer, 8);
@@ -74,6 +80,12 @@ TEST_F(MQTTConvertersTest, FloatTest)
     dbw.Pack(b, dbuffer, 8);
     EXPECT_THAT(dbuffer, ElementsAre(0x38, 0x32, 0x8F, 0xFC, 0xC1, 0xC0, 0xF3, 0x3F));
     result = dbw.Unpack(dbuffer, 8);
+    EXPECT_EQ(result, b);
+
+    // 1.23456 * 2.0 = 2.46912, 0x4003C0C1FC8F3238
+    dbws.Pack(b, dbuffer, 8);
+    EXPECT_THAT(dbuffer, ElementsAre(0x38, 0x32, 0x8F, 0xFC, 0xC1, 0xC0, 0x03, 0x40));
+    result = dbws.Unpack(dbuffer, 8);
     EXPECT_EQ(result, b);
 }
 
