@@ -1,3 +1,9 @@
+wb-mqtt-mbgate (1.5.10) stable; urgency=medium
+
+  * Handle scale property for float values
+
+ -- Nikita Maslov <nikita.maslov@wirenboard.ru>  Mon, 04 Dec 2023 17:16:05 +0600
+
 wb-mqtt-mbgate (1.5.9) stable; urgency=medium
 
   * Fix text default length 

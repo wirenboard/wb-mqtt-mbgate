@@ -253,7 +253,7 @@ string TMQTTFloatConverter::Unpack(const void* _data, size_t size) const
             if (WordSwap)
                 _SwapWords(regs, 2);
 
-            ss << result;
+            ss << result / Scale;
             return ss.str();
         }
         case 8: {
@@ -277,7 +277,7 @@ string TMQTTFloatConverter::Unpack(const void* _data, size_t size) const
             if (WordSwap)
                 _SwapWords(regs, 4);
 
-            ss << result;
+            ss << result / Scale;
             return ss.str();
         }
     }
@@ -304,6 +304,7 @@ void* TMQTTFloatConverter::Pack(const std::string& value, void* _data, size_t si
 
             ss << value;
             ss >> result;
+            result *= Scale;
 
             if (ByteSwap)
                 _SwapBytes(regs, 2);
@@ -327,6 +328,7 @@ void* TMQTTFloatConverter::Pack(const std::string& value, void* _data, size_t si
 
             ss << value;
             ss >> result;
+            result *= Scale;
 
             if (ByteSwap)
                 _SwapBytes(regs, 4);

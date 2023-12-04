@@ -144,7 +144,8 @@ void TJSONConfigParser::_BuildStore(TStoreType type, const Json::Value& list, PM
             if (format == "varchar") {
                 conv = make_shared<TMQTTTextConverter>(size, byteswap, wordswap);
             } else if (format == "float") {
-                conv = make_shared<TMQTTFloatConverter>(size, byteswap, wordswap);
+                double scale = reg_item["scale"].asFloat();
+                conv = make_shared<TMQTTFloatConverter>(size, byteswap, wordswap, scale);
                 size /= 2;
             } else {
                 double scale = reg_item["scale"].asFloat();
