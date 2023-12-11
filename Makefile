@@ -60,7 +60,7 @@ test: $(BUILD_DIR)/$(TEST_DIR)/$(TEST_TARGET)
 		if [ $$? = 180 ]; then \
 			echo "*** VALGRIND DETECTED ERRORS ***" 1>& 2; \
 			exit 1; \
-		fi \
+		else exit 1; fi; \
 	else \
 		$(BUILD_DIR)/$(TEST_DIR)/$(TEST_TARGET); \
 	fi

@@ -1,3 +1,9 @@
+wb-mqtt-mbgate (1.5.11) stable; urgency=medium
+
+  * Fix makefile, no functional changes
+
+ -- Nikolay Korotkiy <nikolay.korotkiy@wirenboard.com>  Mon, 11 Dec 2023 15:00:06 +0400
+
 wb-mqtt-mbgate (1.5.10) stable; urgency=medium
 
   * Handle scale property for float values
