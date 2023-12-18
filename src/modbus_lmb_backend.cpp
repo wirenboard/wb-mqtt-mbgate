@@ -315,7 +315,8 @@ int TModbusRTUBackend::WaitForMessages(int timeout)
         ++num_msgs;
     } else {
         // TODO: error handling
-        LOG(Debug) << "modbus_receive returned " << rc;
+        LOG(Error) << "modbus_receive returned " << rc;
+        return rc;
     }
 
     return num_msgs;

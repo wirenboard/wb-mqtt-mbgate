@@ -169,7 +169,7 @@ int main(int argc, char* argv[])
 
         while (running) {
             if (s->Loop(1000) == -1)
-                break;
+                throw runtime_error("Error occured in work syscle");
         }
 
         LOG(Info) << "Shutting down";
