@@ -126,9 +126,11 @@ int TModbusServer::Loop(int timeoutMilliS)
     // receive message, process, run callback
     while (mb->Available()) {
         TModbusQuery q = mb->ReceiveQuery();
-        auto slave_id = q.data[q.header_length - 1];
-        if (q.size > 0 && IsObserved(slave_id)) {
-            _ProcessQuery(q);
+        if (q.header_length > 0) {
+            auto slave_id = q.data[q.header_length - 1];
+            if (q.size > 0 && IsObserved(slave_id)) {
+                _ProcessQuery(q);
+            }
         }
     }
 
