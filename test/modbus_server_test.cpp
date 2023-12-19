@@ -85,38 +85,35 @@ TEST_F(ModbusServerTest, ReadCallbackTest)
     obs1 = make_shared<MockModbusServerObserver>();
     obs2 = make_shared<MockModbusServerObserver>();
 
-    Server->Observe(obs1, DISCRETE_INPUT, range1, 1);
-    Server->Observe(obs2, DISCRETE_INPUT, range2, 1);
-    Server->Observe(obs1, HOLDING_REGISTER, range3, 1);
+    Server->Observe(obs1, DISCRETE_INPUT, range1);
+    Server->Observe(obs2, DISCRETE_INPUT, range2);
+    Server->Observe(obs1, HOLDING_REGISTER, range3);
 
-    TModbusCacheAddressRange cache_range1(0, 10, Backend->GetCache(DISCRETE_INPUT, 1));
-    TModbusCacheAddressRange cache_range2(10, 10, static_cast<uint8_t*>(Backend->GetCache(DISCRETE_INPUT, 1)) + 10);
-    TModbusCacheAddressRange cache_range3(40, 10, static_cast<uint16_t*>(Backend->GetCache(HOLDING_REGISTER, 1)) + 40);
+    TModbusCacheAddressRange cache_range1(0, 10, Backend->GetCache(DISCRETE_INPUT));
+    TModbusCacheAddressRange cache_range2(10, 10, static_cast<uint8_t*>(Backend->GetCache(DISCRETE_INPUT)) + 10);
+    TModbusCacheAddressRange cache_range3(40, 10, static_cast<uint16_t*>(Backend->GetCache(HOLDING_REGISTER)) + 40);
 
     // test allocators again, with same allocator for different ranges
-    EXPECT_CALL(*obs1, OnCacheAllocate(DISCRETE_INPUT, 1, cache_range1)).Times(1);
-    EXPECT_CALL(*obs1, OnCacheAllocate(HOLDING_REGISTER, 1, cache_range3)).Times(1);
-    EXPECT_CALL(*obs2, OnCacheAllocate(DISCRETE_INPUT, 1, cache_range2)).Times(1);
+    EXPECT_CALL(*obs1, OnCacheAllocate(DISCRETE_INPUT, _, cache_range1)).Times(1);
+    EXPECT_CALL(*obs1, OnCacheAllocate(HOLDING_REGISTER, _, cache_range3)).Times(1);
+    EXPECT_CALL(*obs2, OnCacheAllocate(DISCRETE_INPUT, _, cache_range2)).Times(1);
 
     Server->AllocateCache();
 
     // form read requests and send them to server
-    uint8_t q1[] = {0x01, 0x02, 0x00, 0x05, 0x00, 0x02};
-    uint8_t q2[] = {0x01, 0x02, 0x00, 0x0A, 0x00, 0x02};
-    TModbusQuery read1(q1, sizeof(q1), 1);
-    TModbusQuery read2(q2, sizeof(q2), 1);
+    uint8_t q1[] = {0x02, 0x00, 0x05, 0x00, 0x02};
+    uint8_t q2[] = {0x02, 0x00, 0x0A, 0x00, 0x02};
+    TModbusQuery read1(q1, sizeof(q1), 0);
+    TModbusQuery read2(q2, sizeof(q2), 0);
 
     Backend->PushQuery(read1);
     Backend->PushQuery(read2);
 
-    EXPECT_TRUE(Backend->Available());
-    EXPECT_EQ(Backend->WaitForMessages(), 2);
-
     EXPECT_CALL(*obs1,
-                OnGetValue(DISCRETE_INPUT, 1, 5, 2, static_cast<uint8_t*>(Backend->GetCache(DISCRETE_INPUT, 1)) + 5))
+                OnGetValue(DISCRETE_INPUT, 0, 5, 2, static_cast<uint8_t*>(Backend->GetCache(DISCRETE_INPUT)) + 5))
         .WillOnce(Return(REPLY_CACHED));
     EXPECT_CALL(*obs2,
-                OnGetValue(DISCRETE_INPUT, 1, 10, 2, static_cast<uint8_t*>(Backend->GetCache(DISCRETE_INPUT, 1)) + 10))
+                OnGetValue(DISCRETE_INPUT, 0, 10, 2, static_cast<uint8_t*>(Backend->GetCache(DISCRETE_INPUT)) + 10))
         .WillOnce(Return(REPLY_CACHED));
 
     while (!Backend->IncomingQueries.empty())
@@ -131,34 +128,31 @@ TEST_F(ModbusServerTest, WriteCallbackTest)
     obs1 = make_shared<MockModbusServerObserver>();
     obs2 = make_shared<MockModbusServerObserver>();
 
-    Server->Observe(obs1, DISCRETE_INPUT, range1, 1);
-    Server->Observe(obs2, DISCRETE_INPUT, range2, 1);
-    Server->Observe(obs1, HOLDING_REGISTER, range3, 1);
+    Server->Observe(obs1, DISCRETE_INPUT, range1);
+    Server->Observe(obs2, DISCRETE_INPUT, range2);
+    Server->Observe(obs1, HOLDING_REGISTER, range3);
 
-    TModbusCacheAddressRange cache_range1(0, 2, Backend->GetCache(DISCRETE_INPUT, 1));
-    TModbusCacheAddressRange cache_range2(10, 10, static_cast<uint8_t*>(Backend->GetCache(DISCRETE_INPUT, 1)) + 10);
-    TModbusCacheAddressRange cache_range3(40, 10, static_cast<uint16_t*>(Backend->GetCache(HOLDING_REGISTER, 1)) + 40);
+    TModbusCacheAddressRange cache_range1(0, 2, Backend->GetCache(DISCRETE_INPUT));
+    TModbusCacheAddressRange cache_range2(10, 10, static_cast<uint8_t*>(Backend->GetCache(DISCRETE_INPUT)) + 10);
+    TModbusCacheAddressRange cache_range3(40, 10, static_cast<uint16_t*>(Backend->GetCache(HOLDING_REGISTER)) + 40);
 
     // test allocators again, with same allocator for different ranges
-    EXPECT_CALL(*obs1, OnCacheAllocate(DISCRETE_INPUT, 1, cache_range1)).Times(1);
-    EXPECT_CALL(*obs1, OnCacheAllocate(HOLDING_REGISTER, 1, cache_range3)).Times(1);
-    EXPECT_CALL(*obs2, OnCacheAllocate(DISCRETE_INPUT, 1, cache_range2)).Times(1);
+    EXPECT_CALL(*obs1, OnCacheAllocate(DISCRETE_INPUT, _, cache_range1)).Times(1);
+    EXPECT_CALL(*obs1, OnCacheAllocate(HOLDING_REGISTER, _, cache_range3)).Times(1);
+    EXPECT_CALL(*obs2, OnCacheAllocate(DISCRETE_INPUT, _, cache_range2)).Times(1);
 
     Server->AllocateCache();
 
     // form read requests and send them to server
-    uint8_t q1[] = {0x01, 0x10, 0x00, 40, 0x00, 0x02, 0x04, 0x12, 0x34, 0x56, 0x78};
-    /* uint8_t q2[] = { 0x01, 0x10, 0x00, 0x0A, 0x00, 0x02 }; */
-    TModbusQuery write1(q1, sizeof(q1), 1);
-    /* TModbusQuery read2(q2, sizeof (q2), 1); */
+    uint8_t q1[] = {0x10, 0x00, 40, 0x00, 0x02, 0x04, 0x12, 0x34, 0x56, 0x78};
+    /* uint8_t q2[] = { 0x10, 0x00, 0x0A, 0x00, 0x02 }; */
+    TModbusQuery write1(q1, sizeof(q1), 0);
+    /* TModbusQuery read2(q2, sizeof (q2), 0); */
 
     Backend->PushQuery(write1);
     /* Backend->PushQuery(read2); */
 
-    EXPECT_TRUE(Backend->Available());
-    EXPECT_EQ(Backend->WaitForMessages(), 1);
-
-    EXPECT_CALL(*obs1, OnSetValue(HOLDING_REGISTER, 1, 40, 2, Pointee16_2(0x1234, 0x5678))).WillOnce(Return(REPLY_OK));
+    EXPECT_CALL(*obs1, OnSetValue(HOLDING_REGISTER, 0, 40, 2, Pointee16_2(0x1234, 0x5678))).WillOnce(Return(REPLY_OK));
 
     while (!Backend->IncomingQueries.empty())
         Server->Loop();
