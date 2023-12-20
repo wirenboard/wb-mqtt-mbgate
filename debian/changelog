@@ -1,8 +1,14 @@
-wb-mqtt-mbgate (1.5.12) stable; urgency=medium
+wb-mqtt-mbgate (1.5.13) stable; urgency=medium
 
   * Fix can exception handling
 
  -- Ekaterina Volkova <ekaterina.volkova@wirenboard.ru>  Mon, 18 Dec 2023 22:20:50 +0300
+
+wb-mqtt-mbgate (1.5.12) stable; urgency=medium
+
+  * Fix potential issue with processing modbus query
+
+ -- Nikolay Korotkiy <nikolay.korotkiy@wirenboard.com>  Tue, 19 Dec 2023 13:00:06 +0400
 
 wb-mqtt-mbgate (1.5.11) stable; urgency=medium
 
