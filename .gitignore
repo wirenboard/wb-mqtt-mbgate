@@ -10,6 +10,7 @@ debian/wb-mqtt-mbgate
 debian/*.substvars
 debian/files
 debhelper-build-stamp
+vgcore.*
 
 ### Visual Studio Code ###
 .vscode
