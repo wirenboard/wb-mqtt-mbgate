@@ -3,6 +3,8 @@
 
 #include <map>
 
+#define LOG(logger) ::logger.Log() << "[modbus] "
+
 using namespace std;
 
 TModbusServer::TModbusServer(PModbusBackend backend): mb(backend)
@@ -114,14 +116,16 @@ void TModbusServer::AllocateCache()
         _callCacheAllocate(_hr, slave_id, HOLDING_REGISTER, mb->GetCache(HOLDING_REGISTER, slave_id));
     }
 
-    Debug.Log() << "[modbus] Modbus cache allocated";
+    LOG(Debug) << "Modbus cache allocated";
 }
 
 int TModbusServer::Loop(int timeoutMilliS)
 {
-    int rc;
-    if ((rc = mb->WaitForMessages(timeoutMilliS)) == -1)
+    int rc = mb->WaitForMessages(timeoutMilliS);
+    if (rc == -1) {
+        LOG(Error) << mb->GetStrError();
         return -1;
+    }
 
     // receive message, process, run callback
     while (mb->Available()) {

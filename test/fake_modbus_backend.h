@@ -116,6 +116,12 @@ public:
         return 0;
     }
 
+    /*! Get last error message*/
+    virtual std::string GetStrError()
+    {
+        return "";
+    }
+
     /***********************************************
      * Fake backend methods
      */

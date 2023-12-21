@@ -138,6 +138,11 @@ int TModbusBaseBackend::GetError()
     return _error;
 }
 
+std::string TModbusBaseBackend::GetStrError()
+{
+    return std::string("libmodbus error: ") + std::string((char*)modbus_strerror(_error));
+}
+
 TModbusQuery TModbusBaseBackend::ReceiveQuery(bool block)
 {
     if (block && !Available())
@@ -316,6 +321,10 @@ int TModbusRTUBackend::WaitForMessages(int timeout)
     } else {
         // TODO: error handling
         LOG(Debug) << "modbus_receive returned " << rc;
+        if (rc < 0) {
+            _error = errno;
+            return rc;
+        }
     }
 
     return num_msgs;

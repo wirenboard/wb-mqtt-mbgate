@@ -30,6 +30,7 @@ public:
     void Reply(const TModbusQuery& q) override;
     void ReplyException(TReplyState e, const TModbusQuery& q) override;
     int GetError() override;
+    std::string GetStrError() override;
     TModbusQuery ReceiveQuery(bool block = false) override;
 
 protected:
