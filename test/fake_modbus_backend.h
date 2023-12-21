@@ -117,7 +117,7 @@ public:
     }
 
     /*! Get last error message*/
-    virtual const char* GetStrError()
+    virtual std::string GetStrError()
     {
         return "";
     }

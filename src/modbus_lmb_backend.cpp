@@ -138,9 +138,9 @@ int TModbusBaseBackend::GetError()
     return _error;
 }
 
-const char* TModbusBaseBackend::GetStrError()
+std::string TModbusBaseBackend::GetStrError()
 {
-    return (char*)modbus_strerror(_error);
+    return std::string("libmodbus error: ") + std::string((char*)modbus_strerror(_error));
 }
 
 TModbusQuery TModbusBaseBackend::ReceiveQuery(bool block)

@@ -235,7 +235,7 @@ public:
     virtual int GetError() = 0;
 
     /*! Get last error message*/
-    virtual const char* GetStrError() = 0;
+    virtual std::string GetStrError() = 0;
 
     /*! Close connection */
     virtual void Close() = 0;
