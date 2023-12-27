@@ -126,7 +126,7 @@ struct TModbusQuery
           header_length(_header_length),
           socket_fd(_fd)
     {
-        if (size > 0) {
+        if (_data != nullptr && size > 0) {
             data = new uint8_t[size];
             std::memcpy(data, _data, size);
         }

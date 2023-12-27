@@ -11,6 +11,7 @@ debian/*.substvars
 debian/files
 debhelper-build-stamp
 vgcore.*
+compile_commands.json
 
 ### Visual Studio Code ###
 .vscode
