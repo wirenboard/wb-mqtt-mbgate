@@ -42,6 +42,7 @@ typedef std::shared_ptr<IMQTTConverter> PMQTTConverter;
 class TMQTTDiscrConverter: public IMQTTConverter
 {
 public:
+    virtual ~TMQTTDiscrConverter() = default;
     std::string Unpack(const void* data, size_t size) const;
     void* Pack(const std::string& value, void* data, size_t size);
 };
@@ -93,6 +94,7 @@ public:
         else
             Size = 2;
     }
+    virtual ~TMQTTIntConverter() = default;
 
     std::string Unpack(const void* data, size_t size) const;
     void* Pack(const std::string& value, void* data, size_t size);
@@ -125,6 +127,7 @@ public:
         else
             Size = 4;
     }
+    virtual ~TMQTTFloatConverter() = default;
 
     std::string Unpack(const void* data, size_t size) const;
     void* Pack(const std::string& value, void* data, size_t size);
@@ -149,6 +152,7 @@ public:
           ByteSwap(byteswap),
           WordSwap(wordswap)
     {}
+    virtual ~TMQTTTextConverter() = default;
 
     std::string Unpack(const void* data, size_t size) const;
     void* Pack(const std::string& value, void* data, size_t size);

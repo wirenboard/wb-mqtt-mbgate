@@ -88,7 +88,6 @@ void* TMQTTDiscrConverter::Pack(const std::string& value, void* _data, size_t si
  */
 string TMQTTIntConverter::Unpack(const void* _data, size_t size) const
 {
-    size /= 2; // size in bytes, now in words
     const uint16_t* data = static_cast<const uint16_t*>(_data);
 
     stringstream ss;
@@ -98,7 +97,7 @@ string TMQTTIntConverter::Unpack(const void* _data, size_t size) const
 #define PROCESS_VALS()                                                                                                 \
     do {                                                                                                               \
         for (unsigned i = 0; i < Size / 2; i++) {                                                                      \
-            uval <<= 16;                                                                                               \
+            uval <<= 16; /* NOLINT(clang-diagnostic-shift-count-overflow) */                                           \
             uval |= data[i];                                                                                           \
         }                                                                                                              \
         if (ByteSwap)                                                                                                  \
@@ -159,7 +158,6 @@ string TMQTTIntConverter::Unpack(const void* _data, size_t size) const
 
 void* TMQTTIntConverter::Pack(const std::string& value, void* _data, size_t size)
 {
-    size /= 2;
     uint16_t* data = static_cast<uint16_t*>(_data);
 
     stringstream ss;
@@ -181,7 +179,7 @@ void* TMQTTIntConverter::Pack(const std::string& value, void* _data, size_t size
             _SwapBytes(regs, Size / 2);                                                                                \
         for (int i = (Size / 2) - 1; i >= 0; i--) {                                                                    \
             data[i] = uval & 0xFFFF;                                                                                   \
-            uval >>= 16;                                                                                               \
+            uval >>= 16; /* // NOLINT(clang-diagnostic-shift-count-overflow) */                                        \
         }                                                                                                              \
     } while (0)
 
@@ -226,7 +224,6 @@ void* TMQTTIntConverter::Pack(const std::string& value, void* _data, size_t size
  */
 string TMQTTFloatConverter::Unpack(const void* _data, size_t size) const
 {
-    size /= 2; // size in bytes, now in words
     const uint8_t* data = static_cast<const uint8_t*>(_data);
 
     stringstream ss;
@@ -288,7 +285,6 @@ string TMQTTFloatConverter::Unpack(const void* _data, size_t size) const
 
 void* TMQTTFloatConverter::Pack(const std::string& value, void* _data, size_t size)
 {
-    size /= 2; // size in words
     uint8_t* data = static_cast<uint8_t*>(_data);
 
     stringstream ss;
