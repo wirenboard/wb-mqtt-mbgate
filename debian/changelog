@@ -1,6 +1,6 @@
 wb-mqtt-mbgate (1.5.14) stable; urgency=medium
 
-  * Fix clang-tidy issues
+  * Fix clang-tidy issues. No functional changes
 
  -- Nikolay Korotkiy <nikolay.korotkiy@wirenboard.com>  Wed, 27 Dec 2023 18:00:00 +0400
 
