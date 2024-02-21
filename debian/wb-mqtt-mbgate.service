@@ -6,7 +6,7 @@ After=wb-configs.service
 [Service]
 Type=simple
 Restart=always
-RestartSec=1
+RestartSec=10
 User=root
 ExecStart=/usr/bin/wb-mqtt-mbgate -c /etc/wb-mqtt-mbgate.conf
 ExecStartPre=/usr/bin/wb-mqtt-mbgate-confgen -c /etc/wb-mqtt-mbgate.conf

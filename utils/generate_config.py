@@ -293,6 +293,7 @@ def main(args=None):
 
             except:
                 print("Failed to open config")
+                sys.exit(1)
 
         config_file = open(args.config, "w")
 
