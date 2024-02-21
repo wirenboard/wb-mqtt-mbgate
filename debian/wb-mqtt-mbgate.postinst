@@ -1,0 +1,10 @@
+#!/bin/bash
+
+
+CONFFILE=/etc/wb-mqtt-mbgate.conf
+
+if [ ! -e $CONFFILE ]; then
+    cp /usr/share/wb-mqtt-mbgate/wb-mqtt-mbgate.sample.conf $CONFFILE
+fi
+
+#DEBHELPER#
