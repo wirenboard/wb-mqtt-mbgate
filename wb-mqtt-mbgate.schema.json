@@ -24,8 +24,12 @@
                     "title": "MQTT Device (from topic name)",
                     "propertyOrder": 10,
                     "options": {
-                        "input_width": "300px"
-                    }
+                        "input_width": "300px",
+                        "wb": {
+                            "data": "devices"
+                        }
+                    },
+                    "format": "wb-autocomplete"
                 },
                 // Meta-type is only for reference, don't change it in editor
                 "meta_type": {
