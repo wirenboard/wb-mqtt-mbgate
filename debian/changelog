@@ -1,3 +1,9 @@
+wb-mqtt-mbgate (1.6.2) stable; urgency=medium
+
+  * Fix size property description
+
+ -- Nikolay Korotkiy <nikolay.korotkiy@wirenboard.com>  Thu, 06 Jun 2024 17:00:00 +0400
+
 wb-mqtt-mbgate (1.6.1) stable; urgency=medium
 
   * Add json editor autocomplete for devices

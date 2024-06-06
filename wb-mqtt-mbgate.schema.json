@@ -61,13 +61,7 @@
                 // TODO: global description for types and formats
                 "format": {
                     "type": "string",
-                    "enum": [
-                        "signed",
-                        "unsigned",
-                        "bcd",
-                        "float",
-                        "varchar"
-                    ],
+                    "enum": ["signed", "unsigned", "bcd", "float", "varchar"],
                     "title": "Register format",
                     "options": {
                         "enum_titles": [
@@ -82,8 +76,8 @@
                 },
                 "size": {
                     "type": "integer",
-                    "title": "Size (in registers)",
-                    "description": "Set size in registers",
+                    "title": "Size",
+                    "description": "Set size in bytes (in registers for text)",
                     "minimum": 0,
                     "propertyOrder": 50
                 },
@@ -191,10 +185,7 @@
                 "baud_rate": {
                     "type": "integer",
                     "title": "Baud rate",
-                    "enum": [
-                        110, 300, 600, 1200, 2400, 4800,
-                        9600, 19200, 38400, 57600, 115200
-                    ],
+                    "enum": [110, 300, 600, 1200, 2400, 4800, 9600, 19200, 38400, 57600, 115200],
                     "default": 9600,
                     "propertyOrder": 3
                 },
@@ -239,8 +230,12 @@
         "modbus": {
             "title": "Modbus binding",
             "oneOf": [
-                { "$ref": "#/definitions/tcp" },
-                { "$ref": "#/definitions/rtu" }
+                {
+                    "$ref": "#/definitions/tcp"
+                },
+                {
+                    "$ref": "#/definitions/rtu"
+                }
             ],
             "options": {
                 "keep_oneof_values": false
@@ -385,10 +380,10 @@
     },
     "required": ["debug", "modbus", "mqtt", "registers"],
     "options": {
+        "disable_edit_json": true,
         "disable_properties": true,
         "disable_collapse": true
     },
-
     "translations": {
         "en": {
             "mbgate_schema_description": "Modbus RTU/TCP slave mode configuration",
@@ -398,14 +393,13 @@
         "ru": {
             "MQTT to Modbus TCP and RTU slave gateway configuration": "Шлюз MQTT - Modbus RTU/TCP slave",
             "mbgate_schema_description": "Конфигурирование режима Modbus RTU/TCP slave",
-
             "Enabled": "Включить",
             "MQTT Device (from topic name)": "Канал MQTT",
             "Meta-type": "Тип",
             "Modbus unit ID": "ID данных Modbus",
             "Start address": "Начальный адрес",
             "Register format": "Тип данных",
-            "Size (in registers)": "Размер данных в символах",
+            "Size": "Размер данных",
             "Maximum value": "Максимальное значение",
             "Value scale": "Множитель",
             "Byte swap": "Изменить порядок байт",
@@ -446,7 +440,7 @@
             "BCD": "Двоично-десятичное (BCD) целое",
             "IEEE754 float": "Число с плавающей точкой (IEEE754)",
             "Varchar (fixed size string)": "Текстовое поле фиксированного размера",
-            "Set size in registers": "Размер в символах (1 регистр = 1 символ)",
+            "Set size in bytes (in registers for text)": "Размер в байтах (в символах для текста)",
             "for range metatype, > 0": "Только для типа range, > 0",
             "value will be multiplied by this before convertion": "Значение канала будет умножено на это число"
         }
