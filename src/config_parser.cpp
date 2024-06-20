@@ -113,8 +113,9 @@ tuple<PModbusServer, PMqttClient> TJSONConfigParser::Build()
     any_enabled |= _BuildStore(HOLDING_REGISTER, Root["registers"]["holdings"], modbus, mqtt);
     any_enabled |= _BuildStore(INPUT_REGISTER, Root["registers"]["inputs"], modbus, mqtt);
 
-    if (!any_enabled)
-        throw TConfigException("Found no enabled channels");
+    if (!any_enabled) {
+        throw TConfigException("All channels are disabled");
+    }
 
     return make_tuple(modbus, mqtt);
 }
@@ -126,10 +127,12 @@ bool TJSONConfigParser::_BuildStore(TStoreType type, const Json::Value& list, PM
     bool enabled = false;
 
     for (const auto& reg_item: list) {
-        if (reg_item["enabled"].asBool())
+        if (reg_item["enabled"].asBool()) {
             enabled = true;
-        else
+        }
+        else {
             continue;
+        }
 
         int address = reg_item["address"].asInt();
         int slave_id = reg_item["unitId"].asInt();
