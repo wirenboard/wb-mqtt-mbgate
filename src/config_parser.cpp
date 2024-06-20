@@ -127,12 +127,10 @@ bool TJSONConfigParser::_BuildStore(TStoreType type, const Json::Value& list, PM
     bool enabled = false;
 
     for (const auto& reg_item: list) {
-        if (reg_item["enabled"].asBool()) {
-            enabled = true;
-        }
-        else {
+        if (!reg_item["enabled"].asBool()) {
             continue;
         }
+        enabled = true;
 
         int address = reg_item["address"].asInt();
         int slave_id = reg_item["unitId"].asInt();

@@ -1,3 +1,9 @@
+wb-mqtt-mbgate (1.6.4) stable; urgency=medium
+
+  * Slight clang-tidy fixups
+
+ -- Vladimir Romanov <v.romanov@wirenboard.com>  Thu, 20 Jun 2024 17:59:43 +0300
+
 wb-mqtt-mbgate (1.6.3) stable; urgency=medium
 
   * Fail if no channels enabled
