@@ -105,22 +105,34 @@ tuple<PModbusServer, PMqttClient> TJSONConfigParser::Build()
 
     PMqttClient mqtt = NewMosquittoMqttClient(mqtt_config);
 
+    bool any_enabled = false;
+
     // create observers and link'em with MQTT and Modbus
-    _BuildStore(COIL, Root["registers"]["coils"], modbus, mqtt);
-    _BuildStore(DISCRETE_INPUT, Root["registers"]["discretes"], modbus, mqtt);
-    _BuildStore(HOLDING_REGISTER, Root["registers"]["holdings"], modbus, mqtt);
-    _BuildStore(INPUT_REGISTER, Root["registers"]["inputs"], modbus, mqtt);
+    any_enabled |= _BuildStore(COIL, Root["registers"]["coils"], modbus, mqtt);
+    any_enabled |= _BuildStore(DISCRETE_INPUT, Root["registers"]["discretes"], modbus, mqtt);
+    any_enabled |= _BuildStore(HOLDING_REGISTER, Root["registers"]["holdings"], modbus, mqtt);
+    any_enabled |= _BuildStore(INPUT_REGISTER, Root["registers"]["inputs"], modbus, mqtt);
+
+    if (!any_enabled) {
+        throw TConfigException("All channels are disabled");
+    }
 
     return make_tuple(modbus, mqtt);
 }
 
-void TJSONConfigParser::_BuildStore(TStoreType type, const Json::Value& list, PModbusServer modbus, PMqttClient mqtt)
+bool TJSONConfigParser::_BuildStore(TStoreType type, const Json::Value& list, PModbusServer modbus, PMqttClient mqtt)
 {
     LOG(Debug) << "Processing store " << type;
 
+    bool enabled = false;
+
     for (const auto& reg_item: list) {
-        if (!reg_item["enabled"].asBool())
+        if (reg_item["enabled"].asBool()) {
+            enabled = true;
+        }
+        else {
             continue;
+        }
 
         int address = reg_item["address"].asInt();
         int slave_id = reg_item["unitId"].asInt();
@@ -176,4 +188,5 @@ void TJSONConfigParser::_BuildStore(TStoreType type, const Json::Value& list, PM
             throw TConfigException(string("Address overlapping: ") + StoreTypeToString(type) + ": topic " + topic);
         }
     }
+    return enabled;
 }
