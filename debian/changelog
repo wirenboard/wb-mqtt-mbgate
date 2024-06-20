@@ -1,3 +1,9 @@
+wb-mqtt-mbgate (1.6.3) stable; urgency=medium
+
+  * Fail if no channels enabled
+
+ -- Vladimir Romanov <v.romanov@wirenboard.com>  Thu, 20 Jun 2024 16:48:25 +0300
+
 wb-mqtt-mbgate (1.6.2) stable; urgency=medium
 
   * Fix size property description

@@ -39,7 +39,7 @@ public:
     virtual bool Debug();
 
 private:
-    void _BuildStore(TStoreType type, const Json::Value& list, PModbusServer modbus, WBMQTT::PMqttClient mqtt);
+    bool _BuildStore(TStoreType type, const Json::Value& list, PModbusServer modbus, WBMQTT::PMqttClient mqtt);
 
 protected:
     Json::Value Root;
