@@ -256,8 +256,7 @@ def mqtt_on_message(arg0, arg1, arg2=None):
             table[devName]["value"] = msg.payload
         elif mqtt.topic_matches_sub("/devices/+/controls/+/meta/readonly", msg.topic):
             try:
-                if int(msg.payload) == 1:
-                    table[devName]["readonly"] = True
+                table[devName]["readonly"] = (int(msg.payload) == 1)
             except ValueError:
                 if payloadStr == "true":
                     table[devName]["readonly"] = True

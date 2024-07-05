@@ -1,3 +1,9 @@
+wb-mqtt-mbgate (1.6.4) stable; urgency=medium
+
+  * Fix holding registers detection
+
+ -- Petr Krasnoshchekov <petr.krasnoshchekov@wirenboard.com>  Fri, 05 Jul 2024 17:08:31 +0500
+
 wb-mqtt-mbgate (1.6.3) stable; urgency=medium
 
   * Fail if no channels enabled
