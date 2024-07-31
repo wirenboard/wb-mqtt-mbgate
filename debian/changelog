@@ -1,3 +1,9 @@
+wb-mqtt-mbgate (1.6.5) stable; urgency=medium
+
+  * Add option to prevent config regeneration
+
+ -- Nikolay Korotkiy <nikolay.korotkiy@wirenboard.com>  Wed, 31 Jul 2024 10:10:00 +0400
+
 wb-mqtt-mbgate (1.6.4) stable; urgency=medium
 
   * Fix holding registers detection

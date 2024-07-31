@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/usr/bin/env python3
 
 # TODO: allocation error on address space overflow
 
@@ -35,6 +35,7 @@ mb_hostname = "*"
 mb_port = 502
 
 c_debug = False
+regenerate_config = False
 remap_values = False
 
 
@@ -145,7 +146,8 @@ def process_table(table):
     old_registers = []
     old_topics = []
 
-    result["debug"] = False
+    result["debug"] = c_debug
+    result["regenerate_config"] = False
     result["modbus"] = {"host": mb_hostname, "port": mb_port}
     result["mqtt"] = {"host": hostname, "port": port}
 
@@ -256,7 +258,7 @@ def mqtt_on_message(arg0, arg1, arg2=None):
             table[devName]["value"] = msg.payload
         elif mqtt.topic_matches_sub("/devices/+/controls/+/meta/readonly", msg.topic):
             try:
-                table[devName]["readonly"] = (int(msg.payload) == 1)
+                table[devName]["readonly"] = int(msg.payload) == 1
             except ValueError:
                 if payloadStr == "true":
                     table[devName]["readonly"] = True
@@ -279,22 +281,25 @@ def main(args=None):
 
     if args.config == "":
         config_file = sys.stdout
-    else:
-        if not args.force_create:
-            try:
-                with open(args.config, encoding="utf-8") as f:
-                    old_config = json.load(f)
+    elif not args.force_create:
+        try:
+            with open(args.config, encoding="utf-8") as f:
+                old_config = json.load(f)
+        except:
+            print("Failed to open config")
+            sys.exit(1)
 
-                if "remap_values" in old_config["registers"]:
-                    global remap_values
-                    remap_values = old_config["registers"]["remap_values"]
-                    del old_config["registers"]["remap_values"]
+        global c_debug, regenerate_config
+        c_debug = old_config.get("c_debug", False)
+        regenerate_config = old_config.get("regenerate_config", False)
 
-            except:
-                print("Failed to open config")
-                sys.exit(1)
+        if not regenerate_config:
+            sys.exit(0)
 
-        config_file = open(args.config, "w")
+        if "remap_values" in old_config["registers"]:
+            global remap_values
+            remap_values = old_config["registers"]["remap_values"]
+            del old_config["registers"]["remap_values"]
 
     client = MQTTClient("wb-mqtt-mbgate-confgen", args.broker, False)
 
@@ -309,7 +314,19 @@ def main(args=None):
         eprint("Unsupported broker url scheme: %s" % url.scheme)
         sys.exit(1)
 
-    client.start()
+    try:
+        client.start()
+    except (ConnectionError, ConnectionRefusedError):
+        eprint("Cannot connect to broker %s" % args.broker)
+        sys.exit(1)
+
+    if args.config != "":
+        try:
+            config_file = open(args.config, "w")
+        except:
+            print("Failed to open config")
+            sys.exit(1)
+
     client.on_message = mqtt_on_message
 
     client.subscribe("/devices/+/controls/+/meta/+")
