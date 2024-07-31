@@ -1,4 +1,4 @@
-wb-mqtt-mbgate (1.6.5) stable; urgency=medium
+wb-mqtt-mbgate (1.7.0) stable; urgency=medium
 
   * Add option to prevent config regeneration
 
