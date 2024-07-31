@@ -220,6 +220,14 @@
         }
     },
     "properties": {
+        "regenerate_config": {
+            "type": "boolean",
+            "title": "Regenerate config",
+            "description": "regenerate_config_description",
+            "default": false,
+            "_format": "checkbox",
+            "propertyOrder": 5
+        },
         "debug": {
             "type": "boolean",
             "title": "Enable debug logging",
@@ -387,6 +395,7 @@
     "translations": {
         "en": {
             "mbgate_schema_description": "Modbus RTU/TCP slave mode configuration",
+            "regenerate_config_description": "This flag will be cleared on next start of daemon",
             "remap_values_description": "Change base addresses to fit all resized values. This flag will be cleared on next start of daemon",
             "keepalive_description": "Request to broker repeats if data was not received within specified interval"
         },
@@ -415,6 +424,8 @@
             "Data bits": "Число бит данных",
             "Stop bits": "Стоп биты",
             "Enable debug logging": "Включить отладочные сообщения",
+            "Regenerate config": "Перегенерировать конфигурационный файл",
+            "regenerate_config_description": "Опция будет сброшена при следующем запуске сервиса",
             "Modbus binding": "Режим работы шлюза",
             "MQTT connection": "Настройки подключения к брокеру MQTT",
             "Address": "Адрес",
