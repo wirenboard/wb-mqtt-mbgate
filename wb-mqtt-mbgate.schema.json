@@ -422,7 +422,7 @@
             "Data bits": "Число бит данных",
             "Stop bits": "Стоп биты",
             "Enable debug logging": "Включить отладочные сообщения",
-            "Regenerate config": "Перегенерировать конфиг",
+            "Regenerate config": "Перегенерировать конфигурационный файл",
             "Modbus binding": "Режим работы шлюза",
             "MQTT connection": "Настройки подключения к брокеру MQTT",
             "Address": "Адрес",
