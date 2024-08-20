@@ -1,5 +1,5 @@
 [Unit]
-Description=Wiren Board MQTT to Modbus TCP gateway
+Description=Wiren Board MQTT to Modbus gateway
 After=mosquitto.service
 After=wb-configs.service
 
