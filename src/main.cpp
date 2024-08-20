@@ -34,7 +34,7 @@ const auto DRIVER_STOP_TIMEOUT_S = chrono::seconds(10);
 namespace
 {
     constexpr auto EXIT_NOTCONFIGURED = 6; // The program is not configured
-    constexpr auto EXIT_NOTRUNNING = 7; // The program is not running
+    constexpr auto EXIT_NOTRUNNING = 7;    // The program is not running
 
     void PrintUsage()
     {

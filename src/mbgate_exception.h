@@ -9,7 +9,8 @@ public:
     explicit TConfigException(const std::string& message);
 };
 
-class TEmptyConfigException: public std::runtime_error {
+class TEmptyConfigException: public std::runtime_error
+{
 public:
     explicit TEmptyConfigException();
 };
