@@ -114,7 +114,7 @@ tuple<PModbusServer, PMqttClient> TJSONConfigParser::Build()
     any_enabled |= _BuildStore(INPUT_REGISTER, Root["registers"]["inputs"], modbus, mqtt);
 
     if (!any_enabled) {
-        throw TConfigException("All channels are disabled");
+        throw TEmptyConfigException();
     }
 
     return make_tuple(modbus, mqtt);

@@ -34,6 +34,7 @@ const auto DRIVER_STOP_TIMEOUT_S = chrono::seconds(10);
 namespace
 {
     constexpr auto EXIT_NOTCONFIGURED = 6; // The program is not configured
+    constexpr auto EXIT_NOTRUNNING = 7;    // The program is not running
 
     void PrintUsage()
     {
@@ -176,6 +177,9 @@ int main(int argc, char* argv[])
 
         t->Stop();
         WBMQTT::SignalHandling::Wait();
+    } catch (const TEmptyConfigException&) {
+        LOG(Error) << "All channels are disabled, stopping service gracefully";
+        return EXIT_NOTRUNNING;
     } catch (const TConfigException& e) {
         LOG(Error) << "FATAL: " << e.what();
         return EXIT_NOTCONFIGURED;
