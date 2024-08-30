@@ -5,7 +5,8 @@
     "description": "mbgate_schema_description",
     "configFile": {
         "path": "/etc/wb-mqtt-mbgate.conf",
-        "service": "wb-mqtt-mbgate"
+        "service": "wb-mqtt-mbgate",
+        "needRealod": true
     },
     "definitions": {
         "reg_common": {
