@@ -6,7 +6,7 @@
     "configFile": {
         "path": "/etc/wb-mqtt-mbgate.conf",
         "service": "wb-mqtt-mbgate",
-        "needRealod": true
+        "needReload": true
     },
     "definitions": {
         "reg_common": {
