@@ -3,12 +3,12 @@ Maintainer: Nikita Maslov <nikita.maslov@wirenboard.ru>
 Section: misc
 Priority: optional
 Standards-Version: 3.9.2
-Build-Depends: debhelper (>= 10), pkg-config, libwbmqtt1-4-dev, libmodbus-dev (>= 3.0.3), libgmock-dev, git
+Build-Depends: debhelper (>= 10), pkg-config, libwbmqtt1-5-dev, libmodbus-dev (>= 3.0.3), libgmock-dev, git
 Homepage: https://github.com/wirenboard/wb-mqtt-mbgate
 
 Package: wb-mqtt-mbgate
 Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}, libmodbus5 (>= 3.0.3), python3 (>= 3.5), python3-wb-common (>= 2.1.0)
+Depends: ${shlibs:Depends}, ${misc:Depends}, libmodbus5 (>= 3.0.3), wb-mqtt-homeui (>= 2.97.0~~)
 Breaks: wb-mqtt-homeui (<< 1.7)
 Description: Wiren Board MQTT to Modbus gateway
  wb-mqtt-mbgate is a service which acts as Modbus slave on
