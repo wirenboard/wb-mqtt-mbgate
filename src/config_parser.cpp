@@ -68,9 +68,8 @@ tuple<PModbusServer, PMqttClient> TJSONConfigParser::Build()
         args.StopBits = modbus_data.get("stop_bits", args.StopBits).asInt();
         args.Parity = modbus_data.get("parity", std::string(1, args.Parity)).asString()[0];
 
-        LOG(Debug) << "Modbus configuration: device " << args.Device << ", baud rate " << args.BaudRate
-                    << ", parity " << args.Parity << ", data bits " << args.DataBits << ", stop bits "
-                    << args.StopBits;
+        LOG(Debug) << "Modbus configuration: device " << args.Device << ", baud rate " << args.BaudRate << ", parity "
+                   << args.Parity << ", data bits " << args.DataBits << ", stop bits " << args.StopBits;
 
         modbusBackend = make_shared<TModbusRTUBackend>(args);
     } else {
