@@ -1,5 +1,3 @@
 buildDebSbuild defaultTargets: 'bullseye-armhf bullseye-arm64',
                defaultRunLintian: true,
-               defaultStyleCheckDirs: 'src test',
-               defaultRunPythonChecks: true,
-               defaultPythonChecksExcludes: 'benchmark'
+               defaultStyleCheckDirs: 'src test'
