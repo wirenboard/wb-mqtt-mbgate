@@ -57,33 +57,27 @@ tuple<PModbusServer, PMqttClient> TJSONConfigParser::Build()
     PModbusBackend modbusBackend = nullptr;
 
     auto modbus_data = Root["modbus"];
-    auto type = modbus_data.get("type", "tcp").asString();
 
-    if (type == "tcp") {
+    if (modbus_data.isMember("path")) {
+        TModbusRTUBackendArgs args{};
+
+        args.Device = modbus_data["path"].asCString();
+
+        args.BaudRate = modbus_data.get("baud_rate", args.BaudRate).asInt();
+        args.DataBits = modbus_data.get("data_bits", args.DataBits).asInt();
+        args.StopBits = modbus_data.get("stop_bits", args.StopBits).asInt();
+        args.Parity = modbus_data.get("parity", std::string(1, args.Parity)).asString()[0];
+
+        LOG(Debug) << "Modbus configuration: device " << args.Device << ", baud rate " << args.BaudRate << ", parity "
+                   << args.Parity << ", data bits " << args.DataBits << ", stop bits " << args.StopBits;
+
+        modbusBackend = make_shared<TModbusRTUBackend>(args);
+    } else {
         string modbus_host = modbus_data["host"].asString();
         int modbus_port = modbus_data["port"].asInt();
 
         LOG(Debug) << "Modbus configuration: host " << modbus_host << ", port " << modbus_port;
         modbusBackend = make_shared<TModbusTCPBackend>(modbus_host.c_str(), modbus_port);
-    } else {
-        if (type == "rtu") {
-            TModbusRTUBackendArgs args{};
-
-            args.Device = modbus_data["path"].asCString();
-
-            args.BaudRate = modbus_data.get("baud_rate", args.BaudRate).asInt();
-            args.DataBits = modbus_data.get("data_bits", args.DataBits).asInt();
-            args.StopBits = modbus_data.get("stop_bits", args.StopBits).asInt();
-            args.Parity = modbus_data.get("parity", std::string(1, args.Parity)).asString()[0];
-
-            LOG(Debug) << "Modbus configuration: device " << args.Device << ", baud rate " << args.BaudRate
-                       << ", parity " << args.Parity << ", data bits " << args.DataBits << ", stop bits "
-                       << args.StopBits;
-
-            modbusBackend = make_shared<TModbusRTUBackend>(args);
-        } else {
-            throw TConfigException("invalid modbus type: '" + type + "'");
-        }
     }
 
     PModbusServer modbus = make_shared<TModbusServer>(modbusBackend);

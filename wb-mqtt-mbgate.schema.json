@@ -5,38 +5,23 @@
     "description": "mbgate_schema_description",
     "configFile": {
         "path": "/etc/wb-mqtt-mbgate.conf",
-        "service": "wb-mqtt-mbgate"
+        "service": "wb-mqtt-mbgate",
+        "editor": "mbgate"
     },
     "definitions": {
         "reg_common": {
             "type": "object",
-            "headerTemplate": "Channel {{self.topic}}",
-            "_format": "grid",
             "properties": {
                 "enabled": {
                     "type": "boolean",
                     "title": "Enabled",
-                    "propertyOrder": 1,
-                    "_format": "checkbox"
+                    "propertyOrder": 1
                 },
                 "topic": {
                     "type": "string",
                     "title": "MQTT Device (from topic name)",
-                    "propertyOrder": 10,
-                    "options": {
-                        "input_width": "300px",
-                        "wb": {
-                            "data": "devices"
-                        }
-                    },
-                    "format": "wb-autocomplete"
-                },
-                // Meta-type is only for reference, don't change it in editor
-                "meta_type": {
-                    "type": "string",
-                    "title": "Meta-type",
                     "readOnly": true,
-                    "propertyOrder": 11
+                    "propertyOrder": 10
                 },
                 "unitId": {
                     "type": "integer",
@@ -56,9 +41,32 @@
             "required": ["unitId", "address", "topic"]
         },
         "reg_format": {
-            "$ref": "#/definitions/reg_common",
             "properties": {
-                // TODO: global description for types and formats
+                "enabled": {
+                    "type": "boolean",
+                    "title": "Enabled",
+                    "propertyOrder": 1
+                },
+                "topic": {
+                    "type": "string",
+                    "title": "MQTT Device (from topic name)",
+                    "propertyOrder": 10,
+                    "readOnly": true
+                },
+                "unitId": {
+                    "type": "integer",
+                    "title": "Modbus unit ID",
+                    "minimum": 1,
+                    "maximum": 255,
+                    "propertyOrder": 20
+                },
+                "address": {
+                    "type": "integer",
+                    "title": "Start address",
+                    "minimum": 0,
+                    "maximum": 65535,
+                    "propertyOrder": 30
+                },
                 "format": {
                     "type": "string",
                     "enum": ["signed", "unsigned", "bcd", "float", "varchar"],
@@ -76,39 +84,25 @@
                 },
                 "size": {
                     "type": "integer",
-                    "title": "Size",
-                    "description": "Set size in bytes (in registers for text)",
+                    "title": "Size in bytes (in registers for text)",
                     "minimum": 0,
                     "propertyOrder": 50
-                },
-                "max": {
-                    "type": "integer",
-                    "title": "Maximum value",
-                    "description": "for range metatype, > 0",
-                    "propertyOrder": 60
                 },
                 "scale": {
                     "type": "number",
                     "title": "Value scale",
-                    "description": "value will be multiplied by this before convertion",
                     "propertyOrder": 70
                 },
                 "byteswap": {
                     "type": "boolean",
-                    "title": "Byte swap",
-                    "description": "little-endian for bytes in words",
-                    //"description": "Write bytes in words in little-endian (default is big-endian)",
+                    "title": "Little-endian for bytes in words",
                     "default": false,
-                    "_format": "checkbox",
                     "propertyOrder": 80
                 },
                 "wordswap": {
                     "type": "boolean",
-                    "title": "Word swap",
-                    "description": "little-endian for words",
-                    //"description": "Write complex (multi-register) values in \"little-endian\" (least significant word first)",
+                    "title": "Little-endian for words",
                     "default": false,
-                    "_format": "checkbox",
                     "propertyOrder": 90
                 }
             },
@@ -119,17 +113,6 @@
             "type": "object",
             "additionalProperties": false,
             "properties": {
-                "type": {
-                    "type": "string",
-                    "title": "Port type",
-                    "enum": ["tcp"],
-                    "default": "tcp",
-                    "propertyOrder": 1,
-                    "options": {
-                        "hidden": true,
-                        "forceDefault": true
-                    }
-                },
                 "host": {
                     "type": "string",
                     "title": "Bind address",
@@ -153,29 +136,13 @@
                     }
                 }
             },
-            "required": ["host", "port"],
-            "options": {
-                "disable_properties": true,
-                "disable_collapse": true,
-                "disable_edit_json": true
-            }
+            "required": ["host", "port"]
         },
         "rtu": {
             "title": "RTU",
             "type": "object",
             "additionalProperties": false,
             "properties": {
-                "type": {
-                    "type": "string",
-                    "title": "Port type",
-                    "enum": ["rtu"],
-                    "default": "rtu",
-                    "propertyOrder": 1,
-                    "options": {
-                        "hidden": true,
-                        "forceDefault": true
-                    }
-                },
                 "path": {
                     "type": "string",
                     "title": "Path to device",
@@ -187,53 +154,51 @@
                     "title": "Baud rate",
                     "enum": [110, 300, 600, 1200, 2400, 4800, 9600, 19200, 38400, 57600, 115200],
                     "default": 9600,
-                    "propertyOrder": 3
+                    "propertyOrder": 3,
+                    "options": {
+                        "grid_columns": 3
+                    }
                 },
                 "parity": {
                     "type": "string",
                     "title": "Parity",
                     "enum": ["N", "E", "O"],
                     "default": "N",
-                    "propertyOrder": 4
+                    "propertyOrder": 4,
+                    "options": {
+                        "grid_columns": 3
+                    }
                 },
                 "data_bits": {
                     "type": "integer",
                     "title": "Data bits",
                     "enum": [5, 6, 7, 8],
                     "default": 8,
-                    "propertyOrder": 5
+                    "propertyOrder": 5,
+                    "options": {
+                        "grid_columns": 3
+                    }
                 },
                 "stop_bits": {
                     "type": "integer",
                     "title": "Stop bits",
                     "enum": [1, 2],
                     "default": 1,
-                    "propertyOrder": 5
+                    "propertyOrder": 5,
+                    "options": {
+                        "grid_columns": 3
+                    }
                 }
             },
-            "required": ["path"],
-            "options": {
-                "disable_properties": true,
-                "disable_collapse": true,
-                "disable_edit_json": true
-            }
+            "required": ["path"]
         }
     },
     "properties": {
-        "regenerate_config": {
-            "type": "boolean",
-            "title": "Regenerate config",
-            "description": "regenerate_config_description",
-            "default": false,
-            "_format": "checkbox",
-            "propertyOrder": 5
-        },
         "debug": {
             "type": "boolean",
             "title": "Enable debug logging",
             "default": false,
-            "_format": "checkbox",
-            "propertyOrder": 10
+            "propertyOrder": 36
         },
         "modbus": {
             "title": "Modbus binding",
@@ -245,11 +210,7 @@
                     "$ref": "#/definitions/rtu"
                 }
             ],
-            "options": {
-                "keep_oneof_values": false
-            },
-            "propertyOrder": 20,
-            "_format": "grid"
+            "propertyOrder": 20
         },
         "mqtt": {
             "type": "object",
@@ -289,9 +250,8 @@
                 },
                 "auth": {
                     "type": "boolean",
-                    "title": "Enable username+password authentification",
+                    "title": "Enable username+password authentication",
                     "default": false,
-                    "_format": "checkbox",
                     "propertyOrder": 30,
                     "options": {
                         "grid_columns": 12
@@ -300,111 +260,72 @@
                 "username": {
                     "type": "string",
                     "title": "Login",
-                    "propertyOrder": 40
+                    "propertyOrder": 40,
+                    "options": {
+                        "grid_columns": 6
+                    }
                 },
                 "password": {
                     "type": "string",
                     "title": "Password",
-                    "_format": "password",
-                    "propertyOrder": 50
+                    "propertyOrder": 50,
+                    "options": {
+                        "grid_columns": 6
+                    }
                 }
             },
             "required": ["host", "port"],
-            "propertyOrder": 35,
-            "options": {
-                "disable_collapse": true,
-                "disable_edit_json": true
-            },
-            "_format": "grid"
+            "propertyOrder": 35
         },
         "registers": {
             "type": "object",
             "title": "Register bindings",
             "propertyOrder": 40,
             "properties": {
-                "remap_values": {
-                    "type": "boolean",
-                    "title": "Remap addresses after edit",
-                    "description": "remap_values_description",
-                    "default": false,
-                    "_format": "checkbox",
-                    "propertyOrder": 1
-                },
                 "discretes": {
                     "type": "array",
                     "title": "Discrete inputs (read-only one-bit values)",
                     "propertyOrder": 10,
-                    "_format": "table",
                     "items": {
                         "$ref": "#/definitions/reg_common"
-                    },
-                    "options": {
-                        "disable_array_reorder": true
                     }
                 },
                 "coils": {
                     "type": "array",
                     "title": "Coils (read/write one-bit values)",
                     "propertyOrder": 20,
-                    "_format": "table",
                     "items": {
                         "$ref": "#/definitions/reg_common"
-                    },
-                    "options": {
-                        "disable_array_reorder": true
                     }
                 },
                 "inputs": {
                     "type": "array",
                     "title": "Input registers (read-only registers)",
                     "propertyOrder": 30,
-                    "_format": "table",
                     "items": {
                         "$ref": "#/definitions/reg_format"
-                    },
-                    "options": {
-                        "disable_array_reorder": true
                     }
                 },
                 "holdings": {
                     "type": "array",
                     "title": "Holding registers (read/write registers)",
                     "propertyOrder": 40,
-                    "_format": "table",
                     "items": {
                         "$ref": "#/definitions/reg_format"
-                    },
-                    "options": {
-                        "disable_array_reorder": true
                     }
                 }
-            },
-            "options": {
-                "disable_properties": true,
-                "disable_collapse": true,
-                "disable_edit_json": true
             }
         }
     },
     "required": ["debug", "modbus", "mqtt", "registers"],
-    "options": {
-        "disable_edit_json": true,
-        "disable_properties": true,
-        "disable_collapse": true
-    },
     "translations": {
         "en": {
-            "mbgate_schema_description": "Modbus RTU/TCP slave mode configuration",
-            "regenerate_config_description": "This flag will be cleared on next start of daemon",
-            "remap_values_description": "Change base addresses to fit all resized values. This flag will be cleared on next start of daemon",
             "keepalive_description": "Request to broker repeats if data was not received within specified interval"
         },
         "ru": {
             "MQTT to Modbus TCP and RTU slave gateway configuration": "Шлюз MQTT - Modbus RTU/TCP slave",
-            "mbgate_schema_description": "Конфигурирование режима Modbus RTU/TCP slave",
             "Enabled": "Включить",
             "MQTT Device (from topic name)": "Канал MQTT",
-            "Meta-type": "Тип",
             "Modbus unit ID": "ID данных Modbus",
             "Start address": "Начальный адрес",
             "Register format": "Тип данных",
@@ -424,8 +345,6 @@
             "Data bits": "Число бит данных",
             "Stop bits": "Стоп биты",
             "Enable debug logging": "Включить отладочные сообщения",
-            "Regenerate config": "Перегенерировать конфигурационный файл",
-            "regenerate_config_description": "Опция будет сброшена при следующем запуске сервиса",
             "Modbus binding": "Режим работы шлюза",
             "MQTT connection": "Настройки подключения к брокеру MQTT",
             "Address": "Адрес",
@@ -434,12 +353,10 @@
             "Broker port": "Порт брокера MQTT",
             "Keep-alive interval": "Интервал ожидания ответа",
             "keepalive_description": "Запрос к брокеру повторяется, если данные не были получены в течение заданного интервала",
-            "Enable username+password authentification": "Включить аутентификацию по логину и паролю",
+            "Enable username+password authentication": "Включить аутентификацию по логину и паролю",
             "Login": "Логин",
             "Password": "Пароль",
             "Register bindings": "Соответствия каналов и регистров",
-            "Remap addresses after edit": "Обновить адреса устройств",
-            "remap_values_description": "Опция позволяет устранить наложения адресов. Опция будет сброшена при следующем запуске сервиса",
             "Discrete inputs (read-only one-bit values)": "Дискретные входы (однобитовые значения, только для чтения)",
             "Coils (read/write one-bit values)": "Дискретные выходы (однобитовые значения, чтение/запись)",
             "Input registers (read-only registers)": "Регистры Input (только для чтения)",
@@ -451,9 +368,9 @@
             "BCD": "Двоично-десятичное (BCD) целое",
             "IEEE754 float": "Число с плавающей точкой (IEEE754)",
             "Varchar (fixed size string)": "Текстовое поле фиксированного размера",
-            "Set size in bytes (in registers for text)": "Размер в байтах (в символах для текста)",
-            "for range metatype, > 0": "Только для типа range, > 0",
-            "value will be multiplied by this before convertion": "Значение канала будет умножено на это число"
+            "Size in bytes (in registers for text)": "Размер в байтах (в регистрах для текста)",
+            "Little-endian for bytes in words": "Обратный порядок байт в словах",
+            "Little-endian for words": "Обратный порядок слов"
         }
     }
 }

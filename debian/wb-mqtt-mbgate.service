@@ -11,7 +11,6 @@ RestartPreventExitStatus=2 3 4 5 6
 SuccessExitStatus=7
 User=root
 ExecStart=/usr/bin/wb-mqtt-mbgate -c /etc/wb-mqtt-mbgate.conf
-ExecStartPre=/usr/bin/wb-mqtt-mbgate-confgen -c /etc/wb-mqtt-mbgate.conf
 
 [Install]
 WantedBy=multi-user.target

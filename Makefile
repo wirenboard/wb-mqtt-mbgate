@@ -81,7 +81,6 @@ clean:
 install:
 	install -Dm0644 wb-mqtt-mbgate.wbconfigs $(DESTDIR)/etc/wb-configs.d/31wb-mqtt-mbgate
 	install -Dm0644 wb-mqtt-mbgate.schema.json -t $(DESTDIR)$(PREFIX)/share/wb-mqtt-confed/schemas
-	install -Dm0755 utils/generate_config.py $(DESTDIR)$(PREFIX)/bin/wb-mqtt-mbgate-confgen
 	install -Dm0755 $(BUILD_DIR)/$(TARGET) -t $(DESTDIR)$(PREFIX)/bin
 	install -Dm0644 wb-mqtt-mbgate.sample.conf $(DESTDIR)$(PREFIX)/share/wb-mqtt-mbgate/wb-mqtt-mbgate.sample.conf
 
