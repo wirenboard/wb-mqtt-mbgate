@@ -88,11 +88,6 @@
                     "minimum": 0,
                     "propertyOrder": 50
                 },
-                "max": {
-                    "type": "integer",
-                    "title": "Maximum value for range metatype",
-                    "propertyOrder": 60
-                },
                 "scale": {
                     "type": "number",
                     "title": "Value scale",
@@ -374,7 +369,6 @@
             "IEEE754 float": "Число с плавающей точкой (IEEE754)",
             "Varchar (fixed size string)": "Текстовое поле фиксированного размера",
             "Size in bytes (in registers for text)": "Размер в байтах (в регистрах для текста)",
-            "Maximum value for range metatype": "Максимальное значение для типа range",
             "Little-endian for bytes in words": "Обратный порядок байт в словах",
             "Little-endian for words": "Обратный порядок слов"
         }
