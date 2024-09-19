@@ -1,3 +1,9 @@
+wb-mqtt-mbgate (1.7.2-wb100) stable; urgency=medium
+
+  * Fix "Regenerate config" checkbox visibility
+
+ -- Nikolay Korotkiy <nikolay.korotkiy@wirenboard.com>  Wed, 18 Sep 2024 18:10:00 +0400
+
 wb-mqtt-mbgate (1.7.2) stable; urgency=medium
 
   * Make service not fail on empty configuration
