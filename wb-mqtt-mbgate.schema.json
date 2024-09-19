@@ -226,7 +226,12 @@
             "description": "regenerate_config_description",
             "default": false,
             "_format": "checkbox",
-            "propertyOrder": 5
+            "propertyOrder": 5,
+            "options": {
+                "wb": {
+                    "show_editor": true
+                }
+            }
         },
         "debug": {
             "type": "boolean",
