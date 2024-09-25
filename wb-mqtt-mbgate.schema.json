@@ -111,7 +111,6 @@
         "tcp": {
             "title": "TCP",
             "type": "object",
-            "additionalProperties": false,
             "properties": {
                 "host": {
                     "type": "string",
@@ -141,7 +140,6 @@
         "rtu": {
             "title": "RTU",
             "type": "object",
-            "additionalProperties": false,
             "properties": {
                 "path": {
                     "type": "string",
