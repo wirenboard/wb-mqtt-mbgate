@@ -23,7 +23,7 @@ DEB_VERSION := $(shell head -1 debian/changelog | awk '{ print $$2 }' | sed 's/[
 
 TARGET = wb-mqtt-mbgate
 SRC_DIR = src
-COMMON_SRCS := $(shell find $(SRC_DIR) -name *.cpp -and -not -name main.cpp)
+COMMON_SRCS := $(shell find $(SRC_DIR) -name "*.cpp" -and -not -name main.cpp)
 COMMON_OBJS := $(COMMON_SRCS:%=$(BUILD_DIR)/%.o)
 
 CXXFLAGS = -std=c++14 -Wall -Werror -I$(SRC_DIR) -DWBMQTT_COMMIT="$(GIT_REVISION)" -DWBMQTT_VERSION="$(DEB_VERSION)"
@@ -32,17 +32,23 @@ LDFLAGS = -lmodbus -lwbmqtt1 -lpthread
 ifeq ($(DEBUG),)
 	CXXFLAGS += -O2
 else
-	CXXFLAGS += -g -O0 -fprofile-arcs -ftest-coverage -Wno-error=cpp
-	LDFLAGS += -lgcov
+	CXXFLAGS += -g -O0 --coverage -Wno-error=cpp
+	LDFLAGS += --coverage
 endif
 
 TEST_DIR = test
-TEST_SRCS := $(shell find $(TEST_DIR) -name *.cpp)
+TEST_SRCS := $(shell find $(TEST_DIR) -name "*.cpp")
 TEST_OBJS := $(TEST_SRCS:%=$(BUILD_DIR)/%.o)
 TEST_TARGET = test-app
 TEST_LDFLAGS = -lgtest -lgmock
 
 VALGRIND_FLAGS = --error-exitcode=180 -q
+
+COV_REPORT ?= $(BUILD_DIR)/cov
+GCOVR_FLAGS := -s --html $(COV_REPORT).html -x $(COV_REPORT).xml
+ifneq ($(COV_FAIL_UNDER),)
+	GCOVR_FLAGS += --fail-under-line $(COV_FAIL_UNDER)
+endif
 
 all: $(BUILD_DIR)/$(TARGET)
 
@@ -66,11 +72,8 @@ test: $(BUILD_DIR)/$(TEST_DIR)/$(TEST_TARGET)
 	else \
 		$(BUILD_DIR)/$(TEST_DIR)/$(TEST_TARGET); \
 	fi
-
-lcov: test
-ifeq ($(DEBUG), 1)
-	geninfo --no-external -b . -o $(BUILD_DIR)/coverage.info $(BUILD_DIR)/src
-	genhtml $(BUILD_DIR)/coverage.info -o $(BUILD_DIR)/cov_html
+ifneq ($(DEBUG),)
+	gcovr $(GCOVR_FLAGS) $(BUILD_DIR)/$(SRC_DIR) $(BUILD_DIR)/$(TEST_DIR)
 endif
 
 distclean: clean
@@ -82,6 +85,6 @@ install:
 	install -Dm0644 wb-mqtt-mbgate.wbconfigs $(DESTDIR)/etc/wb-configs.d/31wb-mqtt-mbgate
 	install -Dm0644 wb-mqtt-mbgate.schema.json -t $(DESTDIR)$(PREFIX)/share/wb-mqtt-confed/schemas
 	install -Dm0755 $(BUILD_DIR)/$(TARGET) -t $(DESTDIR)$(PREFIX)/bin
-	install -Dm0644 wb-mqtt-mbgate.sample.conf $(DESTDIR)$(PREFIX)/share/wb-mqtt-mbgate/wb-mqtt-mbgate.sample.conf
+	install -Dm0644 wb-mqtt-mbgate.sample.conf -t $(DESTDIR)$(PREFIX)/share/wb-mqtt-mbgate
 
 .PHONY: all test clean
