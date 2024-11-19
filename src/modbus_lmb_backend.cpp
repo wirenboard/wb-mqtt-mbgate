@@ -320,7 +320,7 @@ int TModbusRTUBackend::WaitForMessages(int timeout)
         ++num_msgs;
     } else {
         // TODO: error handling
-        LOG(Debug) << "modbus_receive returned " << rc;
+        LOG(Debug) << "modbus_receive returned " << rc << " errno " << errno;
         if (rc < 0) {
             _error = errno;
             return rc;

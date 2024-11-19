@@ -1,5 +1,6 @@
 #include "modbus_wrapper.h"
 #include "log.h"
+#include <modbus/modbus.h>
 
 #include <map>
 
@@ -124,7 +125,15 @@ int TModbusServer::Loop(int timeoutMilliS)
     int rc = mb->WaitForMessages(timeoutMilliS);
     if (rc == -1) {
         LOG(Error) << mb->GetStrError();
-        return -1;
+
+        int error = mb->GetError();
+        // if /dev/ttyRS485-2 is configured as CAN, this error is occurring
+        // and service needs to restart
+        if (error == ECONNRESET) {
+            return -1;
+        }
+        // in other cases (CRC error for example) just skip message and keep working
+        return 0;
     }
 
     // receive message, process, run callback
