@@ -38,9 +38,7 @@ TReplyState TGatewayObserver::OnSetValue(TStoreType type,
                                          const void* data)
 {
 
-    TMqttMessage msg;
-    msg.Payload = Conv->Unpack(data, count);
-    msg.Topic = Topic + "/on";
+    TMqttMessage msg(Topic + "/on", Conv->Unpack(data, count), 1, false);
 
     Mqtt->Publish(msg);
 

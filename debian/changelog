@@ -1,3 +1,9 @@
+wb-mqtt-mbgate (1.8.4) stable; urgency=medium
+
+  * Fix writing to coils
+
+ -- Petr Krasnoshchekov <petr.krasnoshchekov@wirenboard.com>  Thu, 26 Dec 2024 11:34:12 +0500
+
 wb-mqtt-mbgate (1.8.3) stable; urgency=medium
 
   * Fix service restart on CRC error
