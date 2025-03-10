@@ -154,7 +154,7 @@ TEST_F(MQTTConvertersTest, TextTest)
     EXPECT_THAT(buffer, ElementsAre('H', 'e', 'l', 'l', 'o', '1', '2', '3', '4', '5'));
     result = t.Unpack(buffer, 10);
     EXPECT_EQ(result, "Hello1234");
-    memset(buffer, 0, 20); 
+    memset(buffer, 0, 20);
 }
 
 TEST_F(MQTTConvertersTest, DiscreteTest)

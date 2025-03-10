@@ -367,7 +367,7 @@ void* TMQTTTextConverter::Pack(const std::string& value, void* _data, size_t siz
     char* data = static_cast<char*>(_data);
 
     ss << value << std::setw(Size - value.size()) << std::setfill((char)0) << "";
-    
+
     if (WordSwap) {
         for (int i = Size - 1; i >= 0; i--)
             ss >> data[(ByteSwap ? (2 * i + 1) : (2 * i))];
