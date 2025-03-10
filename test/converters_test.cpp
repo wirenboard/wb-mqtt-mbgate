@@ -141,6 +141,20 @@ TEST_F(MQTTConvertersTest, TextTest)
     result = tbw.Unpack(buffer, 10);
     EXPECT_EQ(result, val);
     memset(buffer, 0, 20);
+
+    val = "Hello";
+    t.Pack(val, buffer, 10);
+    EXPECT_THAT(buffer, ElementsAre('H', 'e', 'l', 'l', 'o', 0, 0, 0, 0, 0));
+    result = t.Unpack(buffer, 10);
+    EXPECT_EQ(result, val);
+    memset(buffer, 0, 20);
+
+    val = "Hello1234567890";
+    t.Pack(val, buffer, 10);
+    EXPECT_THAT(buffer, ElementsAre('H', 'e', 'l', 'l', 'o', '1', '2', '3', '4', '5'));
+    result = t.Unpack(buffer, 10);
+    EXPECT_EQ(result, "Hello1234");
+    memset(buffer, 0, 20); 
 }
 
 TEST_F(MQTTConvertersTest, DiscreteTest)
