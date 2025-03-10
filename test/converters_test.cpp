@@ -153,7 +153,7 @@ TEST_F(MQTTConvertersTest, TextTest)
     t.Pack(val, buffer, 10);
     EXPECT_THAT(buffer, ElementsAre('H', 'e', 'l', 'l', 'o', '1', '2', '3', '4', '5'));
     result = t.Unpack(buffer, 10);
-    EXPECT_EQ(result, "Hello1234");
+    EXPECT_EQ(result, "Hello12345");
     memset(buffer, 0, 20);
 }
 
