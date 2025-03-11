@@ -358,7 +358,11 @@ string TMQTTTextConverter::Unpack(const void* _data, size_t size) const
             ss << data[(ByteSwap ? (2 * i + 1) : (2 * i))];
     }
 
-    return ss.str();
+    auto result = ss.str();
+    auto pos = result.find('\0');
+    if (pos != string::npos)
+        result = result.erase(pos);
+    return result;
 }
 
 void* TMQTTTextConverter::Pack(const std::string& value, void* _data, size_t size)
@@ -366,7 +370,7 @@ void* TMQTTTextConverter::Pack(const std::string& value, void* _data, size_t siz
     stringstream ss;
     char* data = static_cast<char*>(_data);
 
-    ss << value;
+    ss << value << std::setw(Size - value.size()) << std::setfill((char)0) << "";
 
     if (WordSwap) {
         for (int i = Size - 1; i >= 0; i--)
