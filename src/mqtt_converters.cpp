@@ -126,6 +126,7 @@ string TMQTTIntConverter::Unpack(const void* _data, size_t size) const
                 int16_t val;
                 uint16_t regs[1];
             };
+            uval = 0;
 
             PROCESS_VALS();
         } break;
@@ -136,6 +137,7 @@ string TMQTTIntConverter::Unpack(const void* _data, size_t size) const
                 int32_t val;
                 uint16_t regs[2];
             };
+            uval = 0;
 
             PROCESS_VALS();
         } break;
@@ -146,6 +148,7 @@ string TMQTTIntConverter::Unpack(const void* _data, size_t size) const
                 int64_t val;
                 uint16_t regs[4];
             };
+            uval = 0;
 
             PROCESS_VALS();
         } break;
