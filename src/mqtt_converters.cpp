@@ -5,6 +5,7 @@
 #include <sstream>
 #include <string>
 
+#include <cstdint>
 #include <iomanip>
 
 #define FLOAT_MAX_WIDTH 15
