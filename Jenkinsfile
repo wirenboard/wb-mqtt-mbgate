@@ -3,4 +3,5 @@ buildDebSbuild defaultTargets: 'bullseye-armhf bullseye-arm64',
                defaultStyleCheckDirs: 'src test',
                defaultRunCoverage: true,
                defaultCoverageMin: '70',
+               defaultDoCoverallsReporting: true,
                defaultBuildNode: 'heavy-duty'
