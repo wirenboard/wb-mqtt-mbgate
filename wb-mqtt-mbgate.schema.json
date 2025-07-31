@@ -85,7 +85,7 @@
                 "size": {
                     "type": "integer",
                     "title": "Size in bytes (in registers for text)",
-                    "minimum": 0,
+                    "minimum": -1,
                     "propertyOrder": 50
                 },
                 "scale": {

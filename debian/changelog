@@ -1,3 +1,9 @@
+wb-mqtt-mbgate (1.8.8) stable; urgency=medium
+
+  * Add function to change negative varchar register size to 1 for compatibility with old version configuration
+
+ -- Ilya Titov <ilya.titov@wirenboard.com>  Thu, 31 Jul 2025 13:21:45 +0300
+
 wb-mqtt-mbgate (1.8.7) stable; urgency=medium
 
   * Fix build with gcc15

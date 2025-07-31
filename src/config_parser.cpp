@@ -146,6 +146,10 @@ bool TJSONConfigParser::_BuildStore(TStoreType type, const Json::Value& list, PM
             size = reg_item["size"].asInt();
 
             if (format == "varchar") {
+                // old version config may contain varchar registers with negative size value (-1)
+                // set this registers size to 1
+                if (size < 0)
+                    size = 1;
                 conv = make_shared<TMQTTTextConverter>(size, byteswap, wordswap);
             } else if (format == "float") {
                 double scale = reg_item["scale"].asFloat();
