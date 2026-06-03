@@ -26,7 +26,7 @@ SRC_DIR = src
 COMMON_SRCS := $(shell find $(SRC_DIR) -name "*.cpp" -and -not -name main.cpp)
 COMMON_OBJS := $(COMMON_SRCS:%=$(BUILD_DIR)/%.o)
 
-CXXFLAGS = -std=c++14 -Wall -Werror -I$(SRC_DIR) -DWBMQTT_COMMIT="$(GIT_REVISION)" -DWBMQTT_VERSION="$(DEB_VERSION)"
+CXXFLAGS = -std=c++20 -Wall -Werror -I$(SRC_DIR) -DWBMQTT_COMMIT="$(GIT_REVISION)" -DWBMQTT_VERSION="$(DEB_VERSION)"
 LDFLAGS = -lmodbus -lwbmqtt1 -lpthread
 
 ifeq ($(DEBUG),)
