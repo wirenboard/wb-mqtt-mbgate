@@ -78,8 +78,8 @@ public:
         auto prev = m.lower_bound(start);
         if (prev != m.begin())
             --prev;
-        if (prev != m.end() && prev->second.first >= start && prev->first < start)
-        { // have intersection with previous segment
+        if (prev != m.end() && prev->second.first >= start &&
+            prev->first < start) { // have intersection with previous segment
             if (prev->second.second != obs) {
                 if (prev->second.first > start) {
                     throw WrongSegmentException(start, count);
