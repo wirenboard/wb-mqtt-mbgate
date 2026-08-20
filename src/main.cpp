@@ -178,7 +178,7 @@ int main(int argc, char* argv[])
         t->Stop();
         WBMQTT::SignalHandling::Wait();
     } catch (const TEmptyConfigException&) {
-        LOG(Error) << "All channels are disabled, stopping service gracefully";
+        LOG(Info) << "All channels are disabled, stopping service gracefully";
         return EXIT_NOTRUNNING;
     } catch (const TConfigException& e) {
         LOG(Error) << "FATAL: " << e.what();
@@ -188,5 +188,5 @@ int main(int argc, char* argv[])
         return EXIT_FAILURE;
     }
 
-    return EXIT_SUCCESS;
+    return EXIT_NOTRUNNING;
 }

@@ -1,3 +1,11 @@
+wb-mqtt-mbgate (1.10.0) stable; urgency=medium
+
+  * Exit with 7 on SIGTERM/SIGINT, 6 on malformed config file
+  * Log the all-channels-disabled message as Info
+  * systemd unit: RestartSec=1
+
+ -- Ekaterina Volkova <ekaterina.volkova@wirenboard.com>  Thu, 20 Aug 2026 13:18:25 +0000
+
 wb-mqtt-mbgate (1.9.2) stable; urgency=medium
 
   * Fix coverage reporting with GNU make 4.4 (trixie): export coverage

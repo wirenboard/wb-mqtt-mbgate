@@ -35,9 +35,10 @@ namespace
 IConfigParser::~IConfigParser()
 {}
 
-TJSONConfigParser::TJSONConfigParser(const string& config_file, const string& schema_file): Root(Parse(config_file))
+TJSONConfigParser::TJSONConfigParser(const string& config_file, const string& schema_file)
 {
     try {
+        Root = Parse(config_file);
         auto schema(Parse(schema_file));
         Validate(Root, schema);
     } catch (const std::runtime_error& e) {
