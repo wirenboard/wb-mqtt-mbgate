@@ -1,4 +1,4 @@
-wb-mqtt-mbgate (1.9.3) stable; urgency=medium
+wb-mqtt-mbgate (1.10.0) stable; urgency=medium
 
   * Reply with an exception for unsupported Modbus function codes
 
