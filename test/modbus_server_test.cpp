@@ -158,15 +158,21 @@ TEST_F(ModbusServerTest, WriteCallbackTest)
         Server->Loop();
 }
 
-TEST_F(ModbusServerTest, UnsupportedFunctionCodeTest)
+TEST_F(ModbusServerTest, UnsupportedFunctionCodesTest)
 {
     auto observer = make_shared<IModbusServerObserver>();
-    Server->Observe(observer, HOLDING_REGISTER, TModbusAddressRange(0, 1));
+    Server->Observe(observer, HOLDING_REGISTER, TModbusAddressRange(0, 1), 1);
 
-    uint8_t query_data[] = {0x07, 0x00, 0x00, 0x00, 0x01, 0x02, 0x12, 0x34};
-    Backend->PushQuery(TModbusQuery(query_data, sizeof(query_data), 0));
+    uint8_t read_exception_status_query[] = {0x00, 0x01, 0x00, 0x00, 0x00, 0x02, 0x01, 0x07};
+    Backend->PushQuery(TModbusQuery(read_exception_status_query, sizeof(read_exception_status_query), 7));
+
+    uint8_t read_device_identification_query[] = {0x00, 0x02, 0x00, 0x00, 0x00, 0x05, 0x01, 0x2B, 0x0E, 0x01, 0x00};
+    Backend->PushQuery(TModbusQuery(read_device_identification_query, sizeof(read_device_identification_query), 7));
 
     EXPECT_EQ(Server->Loop(), 0);
-    ASSERT_EQ(Backend->RepliedQueries.size(), 1);
-    EXPECT_EQ(Backend->RepliedQueries.front().size, -REPLY_ILLEGAL_FUNCTION);
+    ASSERT_EQ(Backend->RepliedQueries.size(), 2);
+    while (!Backend->RepliedQueries.empty()) {
+        EXPECT_EQ(Backend->RepliedQueries.front().size, -REPLY_ILLEGAL_FUNCTION);
+        Backend->RepliedQueries.pop();
+    }
 }

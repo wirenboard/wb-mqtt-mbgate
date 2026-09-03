@@ -250,7 +250,7 @@ typedef std::shared_ptr<IModbusBackend> PModbusBackend;
 /*! Modbus server wrapper base class */
 class TModbusServer
 {
-    enum Command
+    enum Command : uint8_t
     {
         READ_COIL_STATUS = 0x01,
         READ_DISCRETE_INPUTS = 0x02,
