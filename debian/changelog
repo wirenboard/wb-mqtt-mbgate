@@ -1,3 +1,9 @@
+wb-mqtt-mbgate (1.9.3) stable; urgency=medium
+
+  * Reply with an exception for unsupported Modbus function codes
+
+ -- Ekaterina Volkova <ekaterina.volkova@wirenboard.com>  Thu, 03 Sep 2026 08:52:06 +0000
+
 wb-mqtt-mbgate (1.9.2) stable; urgency=medium
 
   * Fix coverage reporting with GNU make 4.4 (trixie): export coverage

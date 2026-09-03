@@ -153,6 +153,11 @@ void TModbusServer::_ProcessQuery(const TModbusQuery& query)
     // get command code
     Command command = static_cast<Command>(query.data[query.header_length]);
 
+    if (!_IsReadCmd(command) && !_IsWriteCmd(command)) {
+        mb->ReplyException(TReplyState::REPLY_ILLEGAL_FUNCTION, query);
+        return;
+    }
+
     // get register address
     uint16_t start_address = _ReadU16(&(query.data[query.header_length + 1]));
     uint8_t slave_id = 0;

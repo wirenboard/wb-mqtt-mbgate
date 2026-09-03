@@ -157,3 +157,16 @@ TEST_F(ModbusServerTest, WriteCallbackTest)
     while (!Backend->IncomingQueries.empty())
         Server->Loop();
 }
+
+TEST_F(ModbusServerTest, UnsupportedFunctionCodeTest)
+{
+    auto observer = make_shared<IModbusServerObserver>();
+    Server->Observe(observer, HOLDING_REGISTER, TModbusAddressRange(0, 1));
+
+    uint8_t query_data[] = {0x07, 0x00, 0x00, 0x00, 0x01, 0x02, 0x12, 0x34};
+    Backend->PushQuery(TModbusQuery(query_data, sizeof(query_data), 0));
+
+    EXPECT_EQ(Server->Loop(), 0);
+    ASSERT_EQ(Backend->RepliedQueries.size(), 1);
+    EXPECT_EQ(Backend->RepliedQueries.front().size, -REPLY_ILLEGAL_FUNCTION);
+}
