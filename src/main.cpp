@@ -1,7 +1,11 @@
+#include <atomic>
 #include <cstring>
 #include <getopt.h>
+#include <mutex>
 #include <string>
+#include <thread>
 #include <tuple>
+#include <vector>
 
 #include "config_parser.h"
 #include "log.h"
@@ -119,18 +123,20 @@ namespace
 class ModbusGatewayBuilder
 {
 public:
-    static tuple<PModbusServer, PMqttClient> fromConfig(IConfigParser& parser)
+    static tuple<vector<PModbusServer>, PMqttClient> fromConfig(IConfigParser& parser)
     {
-        PModbusServer modbus;
+        vector<PModbusServer> servers;
         PMqttClient client;
 
-        tie(modbus, client) = parser.Build();
+        tie(servers, client) = parser.Build();
 
-        modbus->AllocateCache();
-        modbus->Backend()->SetDebug(parser.Debug());
-        modbus->Backend()->Listen();
+        for (auto& modbus: servers) {
+            modbus->AllocateCache();
+            modbus->Backend()->SetDebug(parser.Debug());
+            modbus->Backend()->Listen();
+        }
 
-        return make_tuple(modbus, client);
+        return make_tuple(servers, client);
     }
 };
 
@@ -149,18 +155,18 @@ int main(int argc, char* argv[])
         exit(1);
     });
 
-    bool running = true;
+    atomic<bool> running = true;
 
     WBMQTT::SignalHandling::OnSignals({SIGINT, SIGTERM}, [&] { running = false; });
 
     try {
-        PModbusServer s;
+        vector<PModbusServer> servers;
         PMqttClient t;
         TJSONConfigParser configParser(configFile, "/usr/share/wb-mqtt-confed/schemas/wb-mqtt-mbgate.schema.json");
         if (configParser.Debug())
             ::Debug.SetEnabled(true);
 
-        tie(s, t) = ModbusGatewayBuilder::fromConfig(configParser);
+        tie(servers, t) = ModbusGatewayBuilder::fromConfig(configParser);
 
         LOG(Info) << "Start loops";
 
@@ -168,14 +174,36 @@ int main(int argc, char* argv[])
 
         t->Start();
 
-        while (running) {
-            if (s->Loop(1000) == -1)
-                throw runtime_error("IO Error occured in server work cycle");
+        // each port is served in its own thread, the first error stops all of them
+        mutex errorMutex;
+        string error;
+        vector<thread> threads;
+        for (auto& s: servers) {
+            threads.emplace_back([&, s] {
+                try {
+                    while (running) {
+                        if (s->Loop(1000) == -1)
+                            throw runtime_error("IO Error occured in server work cycle");
+                    }
+                } catch (const exception& e) {
+                    lock_guard<mutex> lock(errorMutex);
+                    if (error.empty())
+                        error = e.what();
+                    running = false;
+                }
+            });
+        }
+        for (auto& thread: threads) {
+            thread.join();
         }
 
         LOG(Info) << "Shutting down";
 
         t->Stop();
+
+        if (!error.empty())
+            throw runtime_error(error);
+
         WBMQTT::SignalHandling::Wait();
     } catch (const TEmptyConfigException&) {
         LOG(Error) << "All channels are disabled, stopping service gracefully";

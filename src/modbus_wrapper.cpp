@@ -8,6 +8,12 @@
 
 using namespace std;
 
+std::mutex& ModbusCacheMutex()
+{
+    static std::mutex mutex;
+    return mutex;
+}
+
 TModbusServer::TModbusServer(PModbusBackend backend): mb(backend)
 {
     // fill _CmdRangeMap for quick and pretty access in parser
@@ -137,6 +143,7 @@ int TModbusServer::Loop(int timeoutMilliS)
     }
 
     // receive message, process, run callback
+    std::lock_guard<std::mutex> lock(ModbusCacheMutex());
     while (mb->Available()) {
         TModbusQuery q = mb->ReceiveQuery();
         auto slave_id = q.header_length > 0 ? q.data[q.header_length - 1] : 0;

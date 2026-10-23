@@ -4,6 +4,7 @@
  */
 
 #include <tuple>
+#include <vector>
 
 #include <wblib/json_utils.h>
 #include <wblib/mqtt.h>
@@ -18,8 +19,8 @@
 class IConfigParser
 {
 public:
-    /*! Create gateway structure and get actual Modbus server and MQTT client */
-    virtual std::tuple<PModbusServer, WBMQTT::PMqttClient> Build() = 0;
+    /*! Create gateway structure and get Modbus servers of all ports with enabled channels and MQTT client */
+    virtual std::tuple<std::vector<PModbusServer>, WBMQTT::PMqttClient> Build() = 0;
 
     /*! Check if debug logging is required */
     virtual bool Debug() = 0;
@@ -35,10 +36,16 @@ public:
     TJSONConfigParser(const std::string& config_file, const std::string& schema_file);
     ~TJSONConfigParser() = default;
 
-    virtual std::tuple<PModbusServer, WBMQTT::PMqttClient> Build();
+    virtual std::tuple<std::vector<PModbusServer>, WBMQTT::PMqttClient> Build();
     virtual bool Debug();
 
 private:
+    void _CheckPortConflicts();
+    PModbusBackend _BuildBackend(const Json::Value& modbus_data);
+    PModbusServer _BuildPort(const std::string& name,
+                             const Json::Value& modbus_data,
+                             const Json::Value& registers,
+                             WBMQTT::PMqttClient mqtt);
     bool _BuildStore(TStoreType type, const Json::Value& list, PModbusServer modbus, WBMQTT::PMqttClient mqtt);
 
 protected:
