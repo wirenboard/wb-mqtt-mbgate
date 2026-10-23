@@ -1,3 +1,9 @@
+wb-mqtt-mbgate (1.11.0) stable; urgency=medium
+
+  * Support additional Modbus TCP and RTU ports with their own register bindings
+
+ -- Ilya Titov <ilya.titov@wirenboard.com>  Fri, 23 Oct 2026 11:06:10 +0300
+
 wb-mqtt-mbgate (1.10.0) stable; urgency=medium
 
   * Reply with an exception for unsupported Modbus function codes
