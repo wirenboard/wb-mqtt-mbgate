@@ -6,6 +6,7 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
+#include <map>
 #include <memory>
 #include <string>
 
@@ -22,9 +23,13 @@ public:
 
     shared_ptr<TGatewayObserver> observers[5];
 
+    map<string, TMqttMessageHandler> Handlers;
+
     void SetUp()
     {
         Mqtt = make_shared<NiceMock<MockMQTTClient>>();
+        ON_CALL(*Mqtt, Subscribe(_, Matcher<const string&>(_)))
+            .WillByDefault(Invoke([this](TMqttMessageHandler handler, const string& topic) { Handlers[topic] = handler; }));
         ModbusBackend = make_shared<TFakeModbusBackend>();
         ModbusServer = make_shared<TModbusServer>(ModbusBackend);
 
@@ -53,7 +58,75 @@ public:
 
     void TearDown()
     {}
+
+    void Publish(const string& topic, const string& payload)
+    {
+        Handlers.at(topic)(TMqttMessage(topic, payload, 0, true));
+    }
+
+    // Read one item and return reply size, negative size is an exception code
+    int Read(uint8_t function, uint8_t address)
+    {
+        uint8_t q[] = {function, 0x00, address, 0x00, 0x01};
+        ModbusBackend->PushQuery(TModbusQuery(q, sizeof(q), 0));
+        ModbusServer->Loop();
+        auto reply = ModbusBackend->RepliedQueries.front();
+        ModbusBackend->RepliedQueries.pop();
+        return reply.size;
+    }
 };
+
+TEST_F(GatewayTest, ReadWithoutValueReportsGatewayTargetFailure)
+{
+    EXPECT_EQ(Read(0x03, 0), -REPLY_GATEWAY_TARGET_FAILED);
+    EXPECT_EQ(Read(0x01, 0), -REPLY_GATEWAY_TARGET_FAILED);
+}
+
+TEST_F(GatewayTest, ReadAfterValueSucceeds)
+{
+    Publish("/devices/device1/controls/topic1", "42");
+    Publish("/devices/device1/controls/coil1", "1");
+
+    EXPECT_GT(Read(0x03, 0), 0);
+    EXPECT_EQ(static_cast<uint16_t*>(ModbusBackend->GetCache(HOLDING_REGISTER))[0], 42);
+    EXPECT_GT(Read(0x01, 0), 0);
+}
+
+TEST_F(GatewayTest, ReadErrorOfSourceReportsGatewayTargetFailure)
+{
+    Publish("/devices/device1/controls/topic1", "42");
+    Publish("/devices/device1/controls/topic1/meta/error", "r");
+    EXPECT_EQ(Read(0x03, 0), -REPLY_GATEWAY_TARGET_FAILED);
+
+    Publish("/devices/device1/controls/topic1/meta/error", "");
+    EXPECT_GT(Read(0x03, 0), 0);
+}
+
+TEST_F(GatewayTest, OtherSourceErrorsDoNotAffectRead)
+{
+    Publish("/devices/device1/controls/topic1", "42");
+    Publish("/devices/device1/controls/topic1/meta/error", "wp");
+    EXPECT_GT(Read(0x03, 0), 0);
+}
+
+TEST_F(GatewayTest, RemovedValueReportsGatewayTargetFailure)
+{
+    Publish("/devices/device1/controls/topic1", "42");
+    Publish("/devices/device1/controls/topic1", "");
+    EXPECT_EQ(Read(0x03, 0), -REPLY_GATEWAY_TARGET_FAILED);
+}
+
+TEST_F(GatewayTest, ErrorOfOneSourceFailsWholeRequest)
+{
+    Publish("/devices/device1/controls/topic1", "1");
+    Publish("/devices/device1/controls/topic2", "2");
+    Publish("/devices/device1/controls/topic2/meta/error", "r");
+
+    uint8_t q[] = {0x03, 0x00, 0x00, 0x00, 0x02};
+    ModbusBackend->PushQuery(TModbusQuery(q, sizeof(q), 0));
+    ModbusServer->Loop();
+    EXPECT_EQ(ModbusBackend->RepliedQueries.front().size, -REPLY_GATEWAY_TARGET_FAILED);
+}
 
 TEST_F(GatewayTest, SingleWriteTest)
 {
