@@ -25,8 +25,8 @@ namespace
 
     string Holding(const string& topic, int unitId, int address)
     {
-        return R"({"enabled": true, "topic": ")" + topic + R"(", "unitId": )" + to_string(unitId) +
-               R"(, "address": )" + to_string(address) + R"(, "format": "signed", "size": 2, "scale": 1})";
+        return R"({"enabled": true, "topic": ")" + topic + R"(", "unitId": )" + to_string(unitId) + R"(, "address": )" +
+               to_string(address) + R"(, "format": "signed", "size": 2, "scale": 1})";
     }
 
     string Registers(const string& holdings = "")
@@ -115,9 +115,10 @@ TEST_F(ConfigParserTest, AdditionalPortsGetOwnServers)
 
 TEST_F(ConfigParserTest, PortWithoutEnabledChannelsIsSkipped)
 {
-    auto servers = Build(Config(Tcp("*", 502),
-                                Registers(),
-                                {Port(Tcp("*", 503), Registers(Holding("dev/b", 2, 0))), Port(Tcp("*", 504), Registers())}));
+    auto servers =
+        Build(Config(Tcp("*", 502),
+                     Registers(),
+                     {Port(Tcp("*", 503), Registers(Holding("dev/b", 2, 0))), Port(Tcp("*", 504), Registers())}));
 
     ASSERT_EQ(servers.size(), 1);
     EXPECT_TRUE(servers[0]->IsObserved(2));
@@ -180,9 +181,10 @@ TEST_F(ConfigParserTest, SameTopicAndAddressOnDifferentPorts)
 TEST_F(ConfigParserTest, OverlappingAddressesOnOnePortNamePort)
 {
     try {
-        Build(Config(Tcp("*", 502),
-                     Registers(Holding("dev/a", 1, 0)),
-                     {Port(Tcp("*", 503), Registers(Holding("dev/b", 1, 0) + ", " + Holding("dev/c", 1, 0)), "SCADA")}));
+        Build(
+            Config(Tcp("*", 502),
+                   Registers(Holding("dev/a", 1, 0)),
+                   {Port(Tcp("*", 503), Registers(Holding("dev/b", 1, 0) + ", " + Holding("dev/c", 1, 0)), "SCADA")}));
         FAIL() << "TConfigException expected";
     } catch (const TConfigException& e) {
         EXPECT_THAT(e.what(), HasSubstr("Additional port 1 (SCADA)"));

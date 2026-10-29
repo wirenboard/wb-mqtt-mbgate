@@ -128,7 +128,8 @@ void TJSONConfigParser::_CheckPortConflicts()
     for (size_t i = 0; i < ports.size(); ++i) {
         for (size_t j = i + 1; j < ports.size(); ++j) {
             if (IsSameBinding(ports[i].second, ports[j].second)) {
-                throw TConfigException(ports[i].first + " and " + ports[j].first + " have the same connection settings");
+                throw TConfigException(ports[i].first + " and " + ports[j].first +
+                                       " have the same connection settings");
             }
         }
     }
