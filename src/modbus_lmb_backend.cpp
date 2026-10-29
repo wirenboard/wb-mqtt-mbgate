@@ -121,6 +121,9 @@ void TModbusBaseBackend::ReplyException(TReplyState e, const TModbusQuery& q)
         case REPLY_SERVER_FAILURE:
             code = MODBUS_EXCEPTION_SLAVE_OR_SERVER_FAILURE;
             break;
+        case REPLY_GATEWAY_TARGET_FAILED:
+            code = MODBUS_EXCEPTION_GATEWAY_TARGET;
+            break;
         default:
             return; // wtf
     }

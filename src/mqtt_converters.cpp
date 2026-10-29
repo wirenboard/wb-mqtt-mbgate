@@ -166,7 +166,8 @@ void* TMQTTIntConverter::Pack(const std::string& value, void* _data, size_t size
 
     stringstream ss;
     ss << value;
-    double num_value;
+    // stays unchanged if value can't be parsed
+    double num_value = 0;
     ss >> num_value;
 
 #define PROCESS_VALS()                                                                                                 \
@@ -302,6 +303,8 @@ void* TMQTTFloatConverter::Pack(const std::string& value, void* _data, size_t si
                 uint16_t regs[2];
             };
 
+            // stays unchanged if value can't be parsed
+            result = 0;
             ss << value;
             ss >> result;
             result *= Scale;
@@ -326,6 +329,8 @@ void* TMQTTFloatConverter::Pack(const std::string& value, void* _data, size_t si
                 uint16_t regs[4];
             };
 
+            // stays unchanged if value can't be parsed
+            result = 0;
             ss << value;
             ss >> result;
             result *= Scale;

@@ -457,3 +457,22 @@ TEST_F(MQTTConvertersTest, IntFormatsTest)
     uint16_t buffer[1] = {1234};
     EXPECT_EQ(conv2.Unpack(buffer, 2), string("1234"));
 }
+
+TEST_F(MQTTConvertersTest, UnparsableValueIsZero)
+{
+    TMQTTFloatConverter f(4), d(8);
+    TMQTTIntConverter i(TMQTTIntConverter::SIGNED, 1.0, 2);
+
+    for (const string value: {"", " ", "\n", "null"}) {
+        uint8_t fbuffer[4] = {0xAA, 0xAA, 0xAA, 0xAA};
+        uint8_t dbuffer[8] = {0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA};
+        uint16_t ibuffer[1] = {0xAAAA};
+
+        f.Pack(value, fbuffer, 4);
+        EXPECT_THAT(fbuffer, ElementsAre(0, 0, 0, 0)) << "value: '" << value << "'";
+        d.Pack(value, dbuffer, 8);
+        EXPECT_THAT(dbuffer, ElementsAre(0, 0, 0, 0, 0, 0, 0, 0)) << "value: '" << value << "'";
+        i.Pack(value, ibuffer, 2);
+        EXPECT_THAT(ibuffer, ElementsAre(0)) << "value: '" << value << "'";
+    }
+}
