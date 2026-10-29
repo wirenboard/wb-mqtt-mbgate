@@ -42,9 +42,9 @@ enum TReplyState
     REPLY_OK = 0,      /*!< Reply is correct */
 
     REPLY_ILLEGAL_FUNCTION = 0x01,
-    REPLY_ILLEGAL_ADDRESS = 0x02, /*!< Wrong address for this datablock */
-    REPLY_ILLEGAL_VALUE = 0x03,   /*!< Wrong value given for this datablock */
-    REPLY_SERVER_FAILURE = 0x04,  /*!< Server failure */
+    REPLY_ILLEGAL_ADDRESS = 0x02,       /*!< Wrong address for this datablock */
+    REPLY_ILLEGAL_VALUE = 0x03,         /*!< Wrong value given for this datablock */
+    REPLY_SERVER_FAILURE = 0x04,        /*!< Server failure */
     REPLY_GATEWAY_TARGET_FAILED = 0x0B, /*!< Source of the value is unavailable */
 };
 
