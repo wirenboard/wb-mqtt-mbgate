@@ -1,7 +1,6 @@
 wb-mqtt-mbgate (1.12.0) stable; urgency=medium
 
   * Support additional Modbus TCP and RTU ports with their own register bindings
-  * Hope Jenkins triggered by this commit
 
  -- Ilya Titov <ilya.titov@wirenboard.com>  Thu, 29 Oct 2026 13:03:14 +0300
 
