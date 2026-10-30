@@ -194,8 +194,9 @@ TEST_F(ConfigParserTest, OverlappingAddressesOnOnePortNamePort)
 TEST(MultiPortGatewayTest, SameTopicUpdatesCachesOfAllPorts)
 {
     auto mqtt = make_shared<NiceMock<MockMQTTClient>>();
+    const string topic = "/devices/dev/controls/a";
     vector<TMqttMessageHandler> handlers;
-    ON_CALL(*mqtt, Subscribe(_, Matcher<const string&>(_)))
+    ON_CALL(*mqtt, Subscribe(_, Matcher<const string&>(topic)))
         .WillByDefault(Invoke([&](TMqttMessageHandler handler, const string&) { handlers.push_back(handler); }));
 
     vector<shared_ptr<TFakeModbusBackend>> backends;
@@ -203,7 +204,7 @@ TEST(MultiPortGatewayTest, SameTopicUpdatesCachesOfAllPorts)
     for (int i = 0; i < 2; ++i) {
         backends.push_back(make_shared<TFakeModbusBackend>());
         servers.push_back(make_shared<TModbusServer>(backends.back()));
-        auto observer = make_shared<TGatewayObserver>("/devices/dev/controls/a",
+        auto observer = make_shared<TGatewayObserver>(topic,
                                                       make_shared<TMQTTIntConverter>(TMQTTIntConverter::SIGNED, 1.0, 2),
                                                       mqtt);
         servers.back()->Observe(observer, HOLDING_REGISTER, TModbusAddressRange(i, 1), 1);
@@ -212,7 +213,7 @@ TEST(MultiPortGatewayTest, SameTopicUpdatesCachesOfAllPorts)
 
     ASSERT_EQ(handlers.size(), 2);
     for (auto& handler: handlers) {
-        handler(TMqttMessage("/devices/dev/controls/a", "42", 0, false));
+        handler(TMqttMessage(topic, "42", 0, false));
     }
 
     EXPECT_EQ(static_cast<uint16_t*>(backends[0]->GetCache(HOLDING_REGISTER, 1))[0], 42);
