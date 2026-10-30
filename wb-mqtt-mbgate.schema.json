@@ -189,14 +189,6 @@
                 }
             },
             "required": ["path"]
-        }
-    },
-    "properties": {
-        "debug": {
-            "type": "boolean",
-            "title": "Enable debug logging",
-            "default": false,
-            "propertyOrder": 36
         },
         "modbus": {
             "title": "Modbus binding",
@@ -207,7 +199,76 @@
                 {
                     "$ref": "#/definitions/rtu"
                 }
-            ],
+            ]
+        },
+        "registers": {
+            "type": "object",
+            "title": "Register bindings",
+            "properties": {
+                "discretes": {
+                    "type": "array",
+                    "title": "Discrete inputs (read-only one-bit values)",
+                    "propertyOrder": 10,
+                    "items": {
+                        "$ref": "#/definitions/reg_common"
+                    }
+                },
+                "coils": {
+                    "type": "array",
+                    "title": "Coils (read/write one-bit values)",
+                    "propertyOrder": 20,
+                    "items": {
+                        "$ref": "#/definitions/reg_common"
+                    }
+                },
+                "inputs": {
+                    "type": "array",
+                    "title": "Input registers (read-only registers)",
+                    "propertyOrder": 30,
+                    "items": {
+                        "$ref": "#/definitions/reg_format"
+                    }
+                },
+                "holdings": {
+                    "type": "array",
+                    "title": "Holding registers (read/write registers)",
+                    "propertyOrder": 40,
+                    "items": {
+                        "$ref": "#/definitions/reg_format"
+                    }
+                }
+            }
+        },
+        "additional_port": {
+            "type": "object",
+            "title": "Additional port",
+            "properties": {
+                "name": {
+                    "type": "string",
+                    "title": "Port name",
+                    "propertyOrder": 10
+                },
+                "modbus": {
+                    "$ref": "#/definitions/modbus",
+                    "propertyOrder": 20
+                },
+                "registers": {
+                    "$ref": "#/definitions/registers",
+                    "propertyOrder": 30
+                }
+            },
+            "required": ["modbus", "registers"]
+        }
+    },
+    "properties": {
+        "debug": {
+            "type": "boolean",
+            "title": "Enable debug logging",
+            "default": false,
+            "propertyOrder": 36
+        },
+        "modbus": {
+            "$ref": "#/definitions/modbus",
             "propertyOrder": 20
         },
         "mqtt": {
@@ -276,42 +337,15 @@
             "propertyOrder": 35
         },
         "registers": {
-            "type": "object",
-            "title": "Register bindings",
-            "propertyOrder": 40,
-            "properties": {
-                "discretes": {
-                    "type": "array",
-                    "title": "Discrete inputs (read-only one-bit values)",
-                    "propertyOrder": 10,
-                    "items": {
-                        "$ref": "#/definitions/reg_common"
-                    }
-                },
-                "coils": {
-                    "type": "array",
-                    "title": "Coils (read/write one-bit values)",
-                    "propertyOrder": 20,
-                    "items": {
-                        "$ref": "#/definitions/reg_common"
-                    }
-                },
-                "inputs": {
-                    "type": "array",
-                    "title": "Input registers (read-only registers)",
-                    "propertyOrder": 30,
-                    "items": {
-                        "$ref": "#/definitions/reg_format"
-                    }
-                },
-                "holdings": {
-                    "type": "array",
-                    "title": "Holding registers (read/write registers)",
-                    "propertyOrder": 40,
-                    "items": {
-                        "$ref": "#/definitions/reg_format"
-                    }
-                }
+            "$ref": "#/definitions/registers",
+            "propertyOrder": 40
+        },
+        "additional_ports": {
+            "type": "array",
+            "title": "Additional ports",
+            "propertyOrder": 50,
+            "items": {
+                "$ref": "#/definitions/additional_port"
             }
         }
     },
@@ -337,6 +371,9 @@
             "Server TCP port": "Порт",
             "TCP port number to bing gateway to": "Номер порта для сервера Modbus TCP",
             "Port type": "Тип порта",
+            "Additional ports": "Дополнительные порты",
+            "Additional port": "Дополнительный порт",
+            "Port name": "Название порта",
             "Path to device": "Путь к устройству",
             "Baud rate": "Скорость обмена",
             "Parity": "Контроль чётности",

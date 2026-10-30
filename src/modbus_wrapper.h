@@ -9,6 +9,7 @@
 #include <cstring>
 #include <list>
 #include <memory>
+#include <mutex>
 
 #include "address_range.h"
 
@@ -376,3 +377,6 @@ protected:
 
 /*! Shared pointer to TModbusServer */
 typedef std::shared_ptr<TModbusServer> PModbusServer;
+
+/*! Guards Modbus caches of all servers: they are read and written by port threads and by MQTT callbacks */
+std::mutex& ModbusCacheMutex();
