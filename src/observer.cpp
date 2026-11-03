@@ -26,6 +26,7 @@ void TGatewayObserver::OnMessage(const TMqttMessage& message)
 
     // pack incoming message into Modbus cache
     if (!message.Payload.empty()) {
+        std::lock_guard<std::mutex> lock(ModbusCacheMutex());
         Conv->Pack(message.Payload, Cache, CacheSize);
     }
     HasValue = !message.Payload.empty();

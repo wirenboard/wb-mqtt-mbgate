@@ -7,6 +7,7 @@
 #include <error.h>
 #include <iostream>
 #include <string>
+#include <thread>
 
 #include <arpa/inet.h>
 #include <cstring>
@@ -266,7 +267,17 @@ void TModbusTCPBackend::PreReply(const TModbusQuery& q)
 void TModbusTCPBackend::PostReply(const TModbusQuery& q)
 {}
 
-TModbusRTUBackend::TModbusRTUBackend(const TModbusRTUBackendArgs& args): fd(-1)
+std::chrono::microseconds GetRTUFrameDelay(const TModbusRTUBackendArgs& args)
+{
+    // Modbus over serial line specification recommends fixed 1750 us interval for baud rates above 19200
+    if (args.BaudRate > 19200) {
+        return std::chrono::microseconds(1750);
+    }
+    int bitsPerChar = 1 + args.DataBits + (args.Parity == 'N' ? 0 : 1) + args.StopBits;
+    return std::chrono::microseconds(bitsPerChar * 3500000 / args.BaudRate);
+}
+
+TModbusRTUBackend::TModbusRTUBackend(const TModbusRTUBackendArgs& args): fd(-1), FrameDelay(GetRTUFrameDelay(args))
 {
     _context = modbus_new_rtu(args.Device.c_str(), args.BaudRate, args.Parity, args.DataBits, args.StopBits);
 
@@ -321,6 +332,8 @@ int TModbusRTUBackend::WaitForMessages(int timeout)
     if (rc > 0) {
         QueuedQueries.push(TModbusQuery(queryBuffer, rc, modbus_get_header_length(_context), fd));
         ++num_msgs;
+        // keep the line silent before reply, so the master has time to switch to receiving
+        std::this_thread::sleep_for(FrameDelay);
     } else {
         // TODO: error handling
         LOG(Debug) << "modbus_receive returned " << rc << " errno " << errno;
