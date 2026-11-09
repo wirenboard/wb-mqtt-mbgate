@@ -7,6 +7,7 @@
 
 #include "modbus_wrapper.h"
 
+#include <chrono>
 #include <queue>
 
 #include <modbus/modbus.h>
@@ -94,4 +95,10 @@ private:
     void PostReply(const TModbusQuery& q) override;
 
     int fd;
+
+    /*! Silent interval (3.5 characters) to keep before reply, as required by Modbus RTU */
+    std::chrono::microseconds FrameDelay;
 };
+
+/*! Modbus RTU silent interval between frames for given serial port settings */
+std::chrono::microseconds GetRTUFrameDelay(const TModbusRTUBackendArgs& args);

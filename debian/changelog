@@ -1,3 +1,9 @@
+wb-mqtt-mbgate (1.12.0) stable; urgency=medium
+
+  * Support additional Modbus TCP and RTU ports with their own register bindings
+
+ -- Ilya Titov <ilya.titov@wirenboard.com>  Thu, 29 Oct 2026 13:03:14 +0300
+
 wb-mqtt-mbgate (1.11.0) stable; urgency=medium
 
   * Reply with "gateway target failed" exception when a channel has read error or no value
@@ -163,7 +169,7 @@ wb-mqtt-mbgate (1.5.10) stable; urgency=medium
 
 wb-mqtt-mbgate (1.5.9) stable; urgency=medium
 
-  * Fix text default length 
+  * Fix text default length
 
  -- Ekaterina Volkova <ekaterina.volkova@wirenboard.ru>  Wed, 29 Nov 2023 14:06:44 +0300
 

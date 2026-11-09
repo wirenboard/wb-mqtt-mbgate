@@ -30,6 +30,27 @@ namespace
         auto lst = StringSplit(t, '/');
         return string("/devices/") + lst[0] + "/controls/" + lst[1];
     }
+
+    string PortName(const Json::Value& port, Json::ArrayIndex index)
+    {
+        auto name = port["name"].asString();
+        return "Additional port " + to_string(index + 1) + (name.empty() ? "" : " (" + name + ")");
+    }
+
+    bool IsAnyHost(const string& host)
+    {
+        return host.empty() || host == "*" || host == "0.0.0.0";
+    }
+
+    bool IsSameBinding(const Json::Value& a, const Json::Value& b)
+    {
+        if (a.isMember("path") || b.isMember("path")) {
+            return a["path"].asString() == b["path"].asString();
+        }
+        auto host_a = a["host"].asString();
+        auto host_b = b["host"].asString();
+        return a["port"].asInt() == b["port"].asInt() && (host_a == host_b || IsAnyHost(host_a) || IsAnyHost(host_b));
+    }
 };
 
 IConfigParser::~IConfigParser()
@@ -52,35 +73,9 @@ bool TJSONConfigParser::Debug()
     return debug;
 }
 
-tuple<PModbusServer, PMqttClient> TJSONConfigParser::Build()
+tuple<vector<PModbusServer>, PMqttClient> TJSONConfigParser::Build()
 {
-    PModbusBackend modbusBackend = nullptr;
-
-    auto modbus_data = Root["modbus"];
-
-    if (modbus_data.isMember("path")) {
-        TModbusRTUBackendArgs args{};
-
-        args.Device = modbus_data["path"].asCString();
-
-        args.BaudRate = modbus_data.get("baud_rate", args.BaudRate).asInt();
-        args.DataBits = modbus_data.get("data_bits", args.DataBits).asInt();
-        args.StopBits = modbus_data.get("stop_bits", args.StopBits).asInt();
-        args.Parity = modbus_data.get("parity", std::string(1, args.Parity)).asString()[0];
-
-        LOG(Debug) << "Modbus configuration: device " << args.Device << ", baud rate " << args.BaudRate << ", parity "
-                   << args.Parity << ", data bits " << args.DataBits << ", stop bits " << args.StopBits;
-
-        modbusBackend = make_shared<TModbusRTUBackend>(args);
-    } else {
-        string modbus_host = modbus_data["host"].asString();
-        int modbus_port = modbus_data["port"].asInt();
-
-        LOG(Debug) << "Modbus configuration: host " << modbus_host << ", port " << modbus_port;
-        modbusBackend = make_shared<TModbusTCPBackend>(modbus_host.c_str(), modbus_port);
-    }
-
-    PModbusServer modbus = make_shared<TModbusServer>(modbusBackend);
+    _CheckPortConflicts();
 
     // create MQTT client
     string mqtt_host = Root["mqtt"]["host"].asString();
@@ -99,19 +94,94 @@ tuple<PModbusServer, PMqttClient> TJSONConfigParser::Build()
 
     PMqttClient mqtt = NewMosquittoMqttClient(mqtt_config);
 
-    bool any_enabled = false;
+    vector<PModbusServer> servers;
+    auto addPort = [&](const string& name, const Json::Value& modbus_data, const Json::Value& registers) {
+        auto server = _BuildPort(name, modbus_data, registers, mqtt);
+        if (server) {
+            servers.push_back(server);
+        } else {
+            LOG(Info) << name << " has no enabled channels, skipping it";
+        }
+    };
 
-    // create observers and link'em with MQTT and Modbus
-    any_enabled |= _BuildStore(COIL, Root["registers"]["coils"], modbus, mqtt);
-    any_enabled |= _BuildStore(DISCRETE_INPUT, Root["registers"]["discretes"], modbus, mqtt);
-    any_enabled |= _BuildStore(HOLDING_REGISTER, Root["registers"]["holdings"], modbus, mqtt);
-    any_enabled |= _BuildStore(INPUT_REGISTER, Root["registers"]["inputs"], modbus, mqtt);
+    addPort("Main port", Root["modbus"], Root["registers"]);
+    const auto& additional_ports = Root["additional_ports"];
+    for (Json::ArrayIndex i = 0; i < additional_ports.size(); ++i) {
+        addPort(PortName(additional_ports[i], i), additional_ports[i]["modbus"], additional_ports[i]["registers"]);
+    }
 
-    if (!any_enabled) {
+    if (servers.empty()) {
         throw TEmptyConfigException();
     }
 
-    return make_tuple(modbus, mqtt);
+    return make_tuple(servers, mqtt);
+}
+
+void TJSONConfigParser::_CheckPortConflicts()
+{
+    vector<pair<string, Json::Value>> ports{{"Main port", Root["modbus"]}};
+    const auto& additional_ports = Root["additional_ports"];
+    for (Json::ArrayIndex i = 0; i < additional_ports.size(); ++i) {
+        ports.emplace_back(PortName(additional_ports[i], i), additional_ports[i]["modbus"]);
+    }
+
+    for (size_t i = 0; i < ports.size(); ++i) {
+        for (size_t j = i + 1; j < ports.size(); ++j) {
+            if (IsSameBinding(ports[i].second, ports[j].second)) {
+                throw TConfigException(ports[i].first + " and " + ports[j].first +
+                                       " have the same connection settings");
+            }
+        }
+    }
+}
+
+PModbusBackend TJSONConfigParser::_BuildBackend(const Json::Value& modbus_data)
+{
+    if (modbus_data.isMember("path")) {
+        TModbusRTUBackendArgs args{};
+
+        args.Device = modbus_data["path"].asCString();
+
+        args.BaudRate = modbus_data.get("baud_rate", args.BaudRate).asInt();
+        args.DataBits = modbus_data.get("data_bits", args.DataBits).asInt();
+        args.StopBits = modbus_data.get("stop_bits", args.StopBits).asInt();
+        args.Parity = modbus_data.get("parity", std::string(1, args.Parity)).asString()[0];
+
+        LOG(Debug) << "Modbus configuration: device " << args.Device << ", baud rate " << args.BaudRate << ", parity "
+                   << args.Parity << ", data bits " << args.DataBits << ", stop bits " << args.StopBits;
+
+        return make_shared<TModbusRTUBackend>(args);
+    }
+
+    string modbus_host = modbus_data["host"].asString();
+    int modbus_port = modbus_data["port"].asInt();
+
+    LOG(Debug) << "Modbus configuration: host " << modbus_host << ", port " << modbus_port;
+    return make_shared<TModbusTCPBackend>(modbus_host.c_str(), modbus_port);
+}
+
+PModbusServer TJSONConfigParser::_BuildPort(const string& name,
+                                            const Json::Value& modbus_data,
+                                            const Json::Value& registers,
+                                            PMqttClient mqtt)
+{
+    LOG(Debug) << "Processing " << name;
+
+    PModbusServer modbus = make_shared<TModbusServer>(_BuildBackend(modbus_data));
+
+    bool any_enabled = false;
+
+    // create observers and link'em with MQTT and Modbus
+    try {
+        any_enabled |= _BuildStore(COIL, registers["coils"], modbus, mqtt);
+        any_enabled |= _BuildStore(DISCRETE_INPUT, registers["discretes"], modbus, mqtt);
+        any_enabled |= _BuildStore(HOLDING_REGISTER, registers["holdings"], modbus, mqtt);
+        any_enabled |= _BuildStore(INPUT_REGISTER, registers["inputs"], modbus, mqtt);
+    } catch (const TConfigException& e) {
+        throw TConfigException(name + ": " + e.what());
+    }
+
+    return any_enabled ? modbus : nullptr;
 }
 
 bool TJSONConfigParser::_BuildStore(TStoreType type, const Json::Value& list, PModbusServer modbus, PMqttClient mqtt)
