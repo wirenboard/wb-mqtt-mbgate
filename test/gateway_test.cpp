@@ -29,8 +29,7 @@ public:
     {
         Mqtt = make_shared<NiceMock<MockMQTTClient>>();
         ON_CALL(*Mqtt, Subscribe(_, Matcher<const string&>(_)))
-            .WillByDefault(
-                Invoke([this](TMqttMessageHandler handler, const string& topic) { Handlers[topic] = handler; }));
+            .WillByDefault([this](TMqttMessageHandler handler, const string& topic) { Handlers[topic] = handler; });
         ModbusBackend = make_shared<TFakeModbusBackend>();
         ModbusServer = make_shared<TModbusServer>(ModbusBackend);
 

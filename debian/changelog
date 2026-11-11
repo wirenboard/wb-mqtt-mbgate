@@ -1,3 +1,9 @@
+wb-mqtt-mbgate (1.12.1) stable; urgency=medium
+
+  * Fix deprecated Invoke() usage, no functional changes
+
+ -- Nikolay Korotkiy <nikolay.korotkiy@wirenboard.com>  Wed, 11 Nov 2026 16:40:00 +0400
+
 wb-mqtt-mbgate (1.12.0) stable; urgency=medium
 
   * Support additional Modbus TCP and RTU ports with their own register bindings
