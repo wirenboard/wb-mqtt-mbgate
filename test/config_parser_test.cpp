@@ -197,7 +197,7 @@ TEST(MultiPortGatewayTest, SameTopicUpdatesCachesOfAllPorts)
     const string topic = "/devices/dev/controls/a";
     vector<TMqttMessageHandler> handlers;
     ON_CALL(*mqtt, Subscribe(_, Matcher<const string&>(topic)))
-        .WillByDefault(Invoke([&](TMqttMessageHandler handler, const string&) { handlers.push_back(handler); }));
+        .WillByDefault([&](TMqttMessageHandler handler, const string&) { handlers.push_back(handler); });
 
     vector<shared_ptr<TFakeModbusBackend>> backends;
     vector<PModbusServer> servers;
