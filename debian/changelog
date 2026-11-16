@@ -1,3 +1,9 @@
+wb-mqtt-mbgate (1.13.0) stable; urgency=medium
+
+  * Fix lost Modbus RTU requests when other slaves respond on the same bus
+
+ -- Ilya Titov <ilya.titov@wirenboard.com>  Mon, 16 Nov 2026 17:14:11 +0300
+
 wb-mqtt-mbgate (1.12.1) stable; urgency=medium
 
   * Fix deprecated Invoke() usage, no functional changes
