@@ -6,6 +6,7 @@
  */
 
 #include "modbus_wrapper.h"
+#include "rtu_frame_parser.h"
 
 #include <queue>
 
@@ -94,4 +95,6 @@ private:
     void PostReply(const TModbusQuery& q) override;
 
     int fd;
+
+    TRTUFrameParser Parser;
 };
