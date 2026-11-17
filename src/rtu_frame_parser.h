@@ -19,9 +19,13 @@ public:
     void Append(const uint8_t* data, size_t size);
     void Clear();
     bool Empty() const;
-    std::vector<uint8_t> NextFrame();
+
+    // Returns next master request, other slaves responses are skipped
+    std::vector<uint8_t> NextRequest();
 
 private:
     std::vector<uint8_t> Buffer;
-    bool Aligned = true; // Buffer starts after line silence or after previous request
+
+    // Buffer starts after line silence or after previous request
+    bool Aligned = true;
 };

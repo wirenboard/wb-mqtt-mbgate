@@ -85,7 +85,7 @@ bool TRTUFrameParser::Empty() const
     return Buffer.empty();
 }
 
-std::vector<uint8_t> TRTUFrameParser::NextFrame()
+std::vector<uint8_t> TRTUFrameParser::NextRequest()
 {
     std::vector<uint8_t> frame;
     size_t skip = 0;

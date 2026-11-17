@@ -340,7 +340,7 @@ int TModbusRTUBackend::WaitForMessages(int timeout)
     }
     Parser.Append(queryBuffer, rc);
 
-    for (auto frame = Parser.NextFrame(); !frame.empty(); frame = Parser.NextFrame()) {
+    for (auto frame = Parser.NextRequest(); !frame.empty(); frame = Parser.NextRequest()) {
         QueuedQueries.push(TModbusQuery(frame.data(), frame.size(), modbus_get_header_length(_context), fd));
         ++num_msgs;
     }

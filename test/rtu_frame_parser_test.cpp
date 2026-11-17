@@ -61,7 +61,7 @@ protected:
     vector<TBytes> ReadAll()
     {
         vector<TBytes> frames;
-        for (auto frame = Parser.NextFrame(); !frame.empty(); frame = Parser.NextFrame()) {
+        for (auto frame = Parser.NextRequest(); !frame.empty(); frame = Parser.NextRequest()) {
             frames.push_back(frame);
         }
         return frames;
