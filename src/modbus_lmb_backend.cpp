@@ -319,6 +319,7 @@ int TModbusRTUBackend::WaitForMessages(int timeout)
 
     int res = select(fd + 1, &rdset, NULL, NULL, timeout == -1 ? NULL : &tv);
     if (res == 0) {
+        Parser.Clear();
         return 0; // just tell that no messages are available
     }
 
@@ -328,19 +329,25 @@ int TModbusRTUBackend::WaitForMessages(int timeout)
         throw TModbusException(std::string("Error while select(): ") + strerror(errno));
     }
 
-    int rc = modbus_receive(_context, queryBuffer);
-    if (rc > 0) {
-        QueuedQueries.push(TModbusQuery(queryBuffer, rc, modbus_get_header_length(_context), fd));
+    ssize_t rc = read(fd, queryBuffer, MODBUS_RTU_MAX_ADU_LENGTH);
+    if (rc <= 0) {
+        if (rc < 0 && (errno == EAGAIN || errno == EINTR))
+            return 0;
+        LOG(Debug) << "read returned " << rc << " errno " << errno;
+        // libmodbus reports closed port the same way
+        _error = (rc == 0) ? ECONNRESET : errno;
+        return -1;
+    }
+    Parser.Append(queryBuffer, rc);
+
+    for (auto frame = Parser.NextRequest(); !frame.empty(); frame = Parser.NextRequest()) {
+        QueuedQueries.push(TModbusQuery(frame.data(), frame.size(), modbus_get_header_length(_context), fd));
         ++num_msgs;
+    }
+
+    if (num_msgs > 0) {
         // keep the line silent before reply, so the master has time to switch to receiving
         std::this_thread::sleep_for(FrameDelay);
-    } else {
-        // TODO: error handling
-        LOG(Debug) << "modbus_receive returned " << rc << " errno " << errno;
-        if (rc < 0) {
-            _error = errno;
-            return rc;
-        }
     }
 
     return num_msgs;
