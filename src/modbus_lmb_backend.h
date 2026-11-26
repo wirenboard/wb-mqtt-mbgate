@@ -6,6 +6,7 @@
  */
 
 #include "modbus_wrapper.h"
+#include "rtu_frame_parser.h"
 
 #include <chrono>
 #include <queue>
@@ -98,6 +99,8 @@ private:
 
     /*! Silent interval (3.5 characters) to keep before reply, as required by Modbus RTU */
     std::chrono::microseconds FrameDelay;
+
+    TRTUFrameParser Parser;
 };
 
 /*! Modbus RTU silent interval between frames for given serial port settings */

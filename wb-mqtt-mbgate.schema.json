@@ -299,9 +299,11 @@
                 },
                 "keepalive": {
                     "type": "integer",
-                    "title": "Keep-alive interval",
+                    "title": "Keep-alive interval (s)",
                     "description": "keepalive_description",
                     "default": 60,
+                    "minimum": 5,
+                    "maximum": 65535,
                     "propertyOrder": 25,
                     "options": {
                         "grid_columns": 12
@@ -386,7 +388,7 @@
             "Broker address": "Адрес брокера MQTT",
             "Port": "Порт",
             "Broker port": "Порт брокера MQTT",
-            "Keep-alive interval": "Интервал ожидания ответа",
+            "Keep-alive interval (s)": "Интервал ожидания ответа (с)",
             "keepalive_description": "Запрос к брокеру повторяется, если данные не были получены в течение заданного интервала",
             "Enable username+password authentication": "Включить аутентификацию по логину и паролю",
             "Login": "Логин",

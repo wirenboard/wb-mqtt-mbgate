@@ -1,10 +1,22 @@
-wb-mqtt-mbgate (1.12.2) stable; urgency=medium
+wb-mqtt-mbgate (1.13.2) stable; urgency=medium
 
   * Update LICENSE: Wiren Board as the copyright holder,
     2016 as the first publication year, use restricted to Wiren Board equipment
   * Fill debian/copyright in the DEP-5 format
 
- -- Ekaterina Volkova <ekaterina.volkova@wirenboard.com>  Thu, 12 Nov 2026 14:40:07 +0300
+ -- Ekaterina Volkova <ekaterina.volkova@wirenboard.com>  Thu, 26 Nov 2026 18:14:10 +0300
+
+wb-mqtt-mbgate (1.13.1) stable; urgency=medium
+
+  * Limit MQTT keep-alive interval to 5..65535 seconds in config schema
+
+ -- Nikolay Korotkiy <nikolay.korotkiy@wirenboard.com>  Thu, 26 Nov 2026 09:47:22 +0400
+
+wb-mqtt-mbgate (1.13.0) stable; urgency=medium
+
+  * Fix lost Modbus RTU requests when other slaves respond on the same bus
+
+ -- Ilya Titov <ilya.titov@wirenboard.com>  Mon, 16 Nov 2026 17:14:11 +0300
 
 wb-mqtt-mbgate (1.12.1) stable; urgency=medium
 
